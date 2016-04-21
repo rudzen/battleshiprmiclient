@@ -15,7 +15,7 @@ import utility.Statics;
 public class PlayerOld {
 
     private int hits;
-    private final Ship[] boats = new Ship[5];
+    private final ShipOld[] boats = new ShipOld[5];
     private String user;//user name
     //private JPanel board;//panel to store game board
     private int shipsleft;
@@ -46,7 +46,7 @@ public class PlayerOld {
 
         if (UI.isAutoSet() || UI.isLocal()) {
             for (int i = 0; i < 5; i++) {
-                boats[i] = new Ship(UI.getShips(i), 0, 0, 0, 0);
+                boats[i] = new ShipOld(UI.getShips(i), 0, 0, 0, 0);
             }
         }
         timeleft = new Timer(10000, new AttackListener(ui));
@@ -85,7 +85,7 @@ public class PlayerOld {
         gboard = r;
     }
 
-    public void setBoats(int i, Ship r) {
+    public void setBoats(int i, ShipOld r) {
         boats[i] = r;
     }
 
@@ -98,7 +98,7 @@ public class PlayerOld {
 	{
 		return this.games;
 	}*/
-    public Ship getBoats(int x) {
+    public ShipOld getBoats(int x) {
         return boats[x];
     }
 

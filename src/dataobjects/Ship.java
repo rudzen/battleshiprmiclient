@@ -1,254 +1,365 @@
+/*
+ * The MIT License
+ *
+ * Copyright 2016 Rudy Alex Kohn <s133235@student.dtu.dk>.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package dataobjects;
 
-import javax.swing.*;
-import ui.UI;
-import ui.UIHelpers;
-import utility.Statics;
+import dataobjects.Upgrades.UPGRADES;
+import interfaces.IShip;
+import java.io.Serializable;
 
-public class Ship {
+/**
+ * Basic ship class, it defines what ship type it is, and what else there is to
+ * know about it.
+ *
+ * @author rudz
+ * @version 1.0
+ * @since 16-04-2016
+ */
+public class Ship implements Serializable, IShip {
 
-    private String name;
-    private int dir = 5,
-            length,
-            x1,
-            y1,
-            x2,
-            y2;
-    private int hitsleft;
-    private boolean invalid;
+    private static final long serialVersionUID = -5311711410232026986L;
 
-    public Ship(String n, int d, int ln, int x, int y) {
-        name = n;
-        length = ln;
-        dir = d;
-        x1 = x;
-        y1 = y;
-        invalid = false;
-        hitsleft = ln;
+    /**
+     * The ship type
+     */
+    private IShip.TYPE type;
+
+    /**
+     * The ship direction
+     */
+    private IShip.DIRECTION direction;
+
+    /**
+     * The upgrades for the ship.
+     */
+    private Upgrades upgrades;
+
+    /**
+     * Points for ship location locStart = start locEnd = end
+     */
+    private PPoint locStart;
+    private PPoint locEnd;
+
+    /**
+     * The length of the ship
+     */
+    private int length;
+
+    /**
+     * The life of the ship. This is modified by armor upgrade(s).
+     */
+    private int life;
+
+    /**
+     * If the ship has _any_ type of upgrade, this is set to true
+     */
+    private boolean hasUpgrade;
+
+    /**
+     * The basic hit index. 0 = not hit, 1 = hit
+     */
+    private int[] hits;
+
+    /**
+     * Is the ship placed on the board?
+     */
+    private boolean isPlaced;
+    
+    
+    
+    /**
+     * Default constructor.
+     */
+    public Ship() {
     }
 
-    public Ship(String name, int direction, int length, int x, int y, int ex, int ey) {
-        this.name = name;
-        this.length = hitsleft = length;
-        dir = direction;
-        x1 = x;
-        y1 = y;
-        x2 = ex;
-        y2 = ey;
-        invalid = false;
+    /**
+     * Constructor without upgrades defined.
+     *
+     * @param x The X start location
+     * @param y The Y start location
+     * @param type The type of the ship
+     * @param direction The direction of placement
+     */
+    public Ship(final int x, final int y, final IShip.TYPE type, final IShip.DIRECTION direction) {
+        locStart = new PPoint(x, y);
+        length = getLen(type);
+        locEnd = setEnd(locStart, length, direction);
+        this.type = type;
+        this.direction = direction;
+        life = length;
+        hits = new int[length];
+        upgrades = new Upgrades(); // just to make sure, java is picky with it's serialization!
     }
 
-    public String getName() {
-        return name;
+    /**
+     * Constructor which contain upgrade(s)
+     *
+     * @param x The X start location
+     * @param y The Y start location
+     * @param type The type of the ship
+     * @param direction The placement direction
+     * @param upgrades The upgrades for the ship.
+     */
+    public Ship(final int x, final int y, final IShip.TYPE type, final IShip.DIRECTION direction, final Upgrades upgrades) {
+        this(x, y, type, direction);
+        hasUpgrade = upgrades.hasUpgrades();
+        if (hasUpgrade) {
+            this.upgrades = new Upgrades(upgrades);
+            if (upgrades.getArmor() > 0) {
+                life += upgrades.getArmor();
+            }
+        }
     }
 
+    /* upgrade helper functions */
+    /**
+     * Adds an upgrade to the ship (if bought by the player)
+     *
+     * @param upgradeType The upgrade type.
+     */
+    @Override
+    public void addUpgrade(final UPGRADES upgradeType) {
+        upgrades.addUpgrade(upgradeType);
+    }
+
+    /**
+     * Removes an upgrade from the ship (wahh, what why?)
+     *
+     * @param upgradeType The upgrade type.
+     */
+    @Override
+    public void removeUpgrade(final UPGRADES upgradeType) {
+        upgrades.removeUpgrade(upgradeType);
+    }
+
+    /* helper methods */
+    /**
+     * Is the ship dead?
+     *
+     * @return true if ship if dead, otherwise false
+     */
+    @Override
+    public boolean isDead() {
+        return life == 0;
+    }
+
+    /**
+     * Hit the ship!! (argh!)
+     */
+    private void hit(final int location) {
+        life--;
+        hits[location] = 1;
+    }
+
+//    /**
+//     * Determines if the ship has been hit.<br>
+//     * The ship will loose 1 life if hit.
+//     *
+//     * @param x The X coordinate to check
+//     * @param y The Y coordinate to check
+//     * @return true if ship is hit, otherwise false.
+//     */
+//    public boolean isHit(byte x, byte y) {
+//        /* check off the bat for direct start & end hit first! */
+//        if (x == locStart.getX() && y == locStart.getY()) {
+//            hit(0);
+//            return true;
+//        } else if (x == locEnd.getX() && y == locEnd.getY()) {
+//            hit(length - 1);
+//            return true;
+//        }
+//
+//        // TODO :: WHAT WHAT!!!
+//        if (direction == DIRECTION.HORIZONTAL) {
+//            if (x + locStart.getX() < locEnd.getX()) {
+//                hit(locEnd.getX() - x);
+//                return true;
+//            }
+//        } else if (y + locStart.getY() < locEnd.getY()) {
+//            hit(locEnd.getY() - y);
+//            return true;
+//        }
+//        return false;
+//    }
+
+    /**
+     * Overload of {@link #isHit(byte x, byte y)} to check for hit with
+     * integers.
+     *
+     * @param x The X coordinate to check
+     * @param y The Y coordinate to check
+     * @return true if ship is hit, otherwise false.
+     */
+    @Override
+    public boolean isHit(int x, int y) {
+        return isHit((byte) x, (byte) y);
+    }
+
+    /**
+     * Set the end specified by the start and the type combined with direction.
+     *
+     * @param start The start PPoint object containing the start coordinates
+     * @param length the length
+     * @param direction The direction of the ship
+     * @return The end PPoint object
+     */
+    public static PPoint setEnd(final PPoint start, final int length, final DIRECTION direction) {
+        return (direction == DIRECTION.HORIZONTAL) ? new PPoint(start.getX() + length, start.getY()) : new PPoint(start.getX(), start.getY() + length);
+    }
+
+    /**
+     * Determines the length of the ship based on it's type.
+     *
+     * @param type The type of the ship
+     * @return The length of the ship
+     */
+    private static int getLen(final TYPE type) {
+        if (type == TYPE.DESTROYER || type == TYPE.SUBMARINE) {
+            return 3;
+        } else if (type == TYPE.CARRIER) {
+            return 5;
+        } else if (type == TYPE.CRUISER) {
+            return 4;
+        } else { // patrol boat
+            return 2;
+        }
+    }
+
+    /**
+     * Get the ship name defined by it's type
+     *
+     * @return The string name of the ship
+     */
+    @Override
+    public String getShipType() {
+        if (type == TYPE.CARRIER) {
+            return "Carrier";
+        } else if (type == TYPE.DESTROYER) {
+            return "Destroyer";
+        } else if (type == TYPE.SUBMARINE) {
+            return "Submarine";
+        } else if (type == TYPE.CRUISER) {
+            return "Cruiser";
+        } else { // patrol boat
+            return "Patrol boat";
+        }
+    }
+
+    /* getters & setters */
+    @Override
+    public int getLife() {
+        return life;
+    }
+
+    @Override
+    public void setLife(int life) {
+        this.life = life;
+    }
+
+    @Override
+    public PPoint getLocStart() {
+        return locStart;
+    }
+
+    @Override
+    public void setLocStart(PPoint locStart) {
+        this.locStart = locStart;
+    }
+
+    @Override
+    public PPoint getLocEnd() {
+        return locEnd;
+    }
+
+    @Override
+    public void setLocEnd(PPoint locEnd) {
+        this.locEnd = locEnd;
+    }
+
+    @Override
+    public TYPE getType() {
+        return type;
+    }
+
+    @Override
+    public void setType(TYPE type) {
+        this.type = type;
+    }
+
+    @Override
+    public DIRECTION getDirection() {
+        return direction;
+    }
+
+    @Override
+    public void setDirection(DIRECTION direction) {
+        this.direction = direction;
+    }
+
+    @Override
     public int getLength() {
         return length;
     }
 
-    public int getDirect() {
-        return dir;
+    @Override
+    public void setLength(int length) {
+        this.length = length;
     }
 
-    public int getX() {
-        return x1;
+    @Override
+    public boolean isHasUpgrade() {
+        return hasUpgrade;
     }
 
-    public int getY() {
-        return y1;
+    @Override
+    public void setHasUpgrade(boolean hasUpgrade) {
+        this.hasUpgrade = hasUpgrade;
     }
 
-    //returns the end x-point for this ship 
-    public int getEndX() {
-        return x2;
+    @Override
+    public Upgrades getUpgrades() {
+        return upgrades;
     }
 
-    //returns the end y-point for this ship 
-    public int getEndY() {
-        return y2;
+    @Override
+    public void setUpgrades(Upgrades upgrades) {
+        this.upgrades = upgrades;
     }
 
-    public void setInvalid(boolean newValue) {
-        invalid = newValue;
+    @Override
+    public String toString() {
+        return "Ship{" + "type=" + type + ", direction=" + direction + ", upgrades=" + upgrades + ", start=" + locStart + ", end=" + locEnd + ", length=" + length + ", hasUpgrade=" + hasUpgrade + '}';
     }
 
-    public void shipHit() {
-        hitsleft--;
+    @Override
+    public boolean isPlaced() {
+        return isPlaced;
     }
 
-    public void setHitsLeft(int newValue) {
-        hitsleft = newValue;
+    @Override
+    public void setIsPlaced(boolean isPlaced) {
+        this.isPlaced = isPlaced;
     }
 
-    public int getHitsLeft() {
-        return hitsleft;
-    }
-
-    public void clearship(final PlayerOld p) {
-        switch (dir) {
-            case 0:
-                if (!invalid) {
-                    for (int j = y1; j < y2; j++) {
-                        p.setBboard(x1, j, null);
-                        p.setHitOrMiss(x1, j, false);
-                        p.setWhatShip(x1, j, " ");
-                    }
-                }
-                break;
-            case 1:
-                if (!invalid) {
-                    for (int i = x1; i < x2; i++) {
-                        p.setBboard(i, y1, null);
-                        p.setHitOrMiss(i, y1, false);
-                        p.setWhatShip(i, y1, " ");
-                    }
-                }
-                break;
-        }
-    }
-
-    //Method to place the ships	
-    public void placeship() {
-        switch (dir) {
-            case 0:
-                if (length + y1 > 10) {
-                    UIHelpers.messageDialog("A " + name + " placed in a " + UI.getDirection(dir) + " direction will not fit at position " + UI.getCletters(x1 + 1) + UI.getCnumbers(y1 + 1) + ".", "Invalid Placement", JOptionPane.ERROR_MESSAGE);
-                    invalid = true;
-                } else {
-                    int j = 0;
-                    while (j != length && !UI.getPlayer(Statics.you).getHitOrMiss(x1, y1 + j)) {
-                        j++;
-                    }
-                    if (j != length) {
-                        UIHelpers.messageDialog("Position " + UI.getCletters(x1 + 1) + UI.getCnumbers(y1 + j + 1) + " is already occupied.", "Invalid Placement", JOptionPane.ERROR_MESSAGE);
-                        invalid = true;
-                    } else {
-                        x2 = x1;
-                        y2 = y1 + length;
-                        for (j = y1; j < y2; j++) {
-                            UI.getPlayer(Statics.you).setBboard(x1, j, UI.getColor());
-                            UI.getPlayer(Statics.you).setHitOrMiss(x1, j, true);
-                            UI.getPlayer(Statics.you).setWhatShip(x1, j, name);
-                        }
-                        invalid = false;
-                    }
-                }
-                break;
-            case 1:
-                if (x1 + length > 10) {
-                    UIHelpers.messageDialog("A " + name + " placed in a " + UI.getDirection(dir) + " direction will not fit at position " + UI.getCletters(x1 + 1) + UI.getCnumbers(y1 + 1) + ".", "Invalid Placement", JOptionPane.ERROR_MESSAGE);
-                    invalid = true;
-                } else {
-                    int j = 0;
-                    while (j != length && !UI.getPlayer(Statics.you).getHitOrMiss(x1 + j, y1)) {
-                        j++;
-                    }
-                    if (j != length) {
-                        UIHelpers.messageDialog("Position " + UI.getCletters(x1 + j + 1) + UI.getCnumbers(y1 + 1) + " is already occupied.", "Invalid Placement", JOptionPane.ERROR_MESSAGE);
-                        invalid = true;
-                    } else {
-                        y2 = y1;
-                        x2 = x1 + length;
-                        for (int i = x1; i < x2; i++) {
-                            UI.getPlayer(Statics.you).setBboard(i, y1, UI.getColor());
-                            UI.getPlayer(Statics.you).setHitOrMiss(i, y1, true);
-                            UI.getPlayer(Statics.you).setWhatShip(i, y1, name);
-                        }
-                        invalid = false;
-                    }
-                }
-                break;
-        }
-        if (UI.getCarrierPlaced() > 0 && UI.getBattleshipPlaced() > 0
-                && UI.getSubmarinePlaced() > 0 && UI.getDestroyerPlaced() > 0
-                && UI.getPatrolPlaced() > 0 && !invalid) {
-            if (!UI.getPlayer(Statics.you).getBoats(0).invalid && !UI.getPlayer(Statics.you).getBoats(1).invalid && !UI.getPlayer(Statics.you).getBoats(2).invalid
-                    && !UI.getPlayer(Statics.you).getBoats(3).invalid && !UI.getPlayer(Statics.you).getBoats(4).invalid) {
-                UI.setDeploy(true);
-            } else {
-                UI.setDeploy(false);
-            }
-        } else {
-            UI.setDeploy(false);
-        }
-    }
-
-    public Ship compinput(int u, int n) {
-        Ship boat;
-
-        int i = 0;
-        int j = 0;
-        int x;
-        int y;
-        int shipl = 0;
-        int dir;
-
-        switch (u) {
-            case 0:
-                shipl = 5;
-                break;
-            case 1:
-                shipl = 4;
-                break;
-            case 2:
-            case 3:
-                shipl = 3;
-                break;
-            case 4:
-                shipl = 2;
-                break;
-        }
-
-        do {
-            x = (int) (Math.random() * 10);
-            y = (int) (Math.random() * 10);
-            dir = (int) (Math.random() * 2);//generates random direction within range			
-            boat = new Ship(UI.getShips(u), dir, shipl, x, y);
-            switch (dir) {
-                case 0:
-                    if (boat.length + y > 10 || x == 0 || y == 0) {
-                        boat.invalid = true;
-                    } else {
-                        j = 0;
-                        while (j != boat.length && !UI.getPlayer(n).getHitOrMiss(x, y + j)) {
-                            j++;
-                        }
-                        if (j != boat.length) {
-                            boat.invalid = true;
-                        } else {
-                            boat.x2 = x;
-                            boat.y2 = y + boat.length;
-                            for (j = y; j < boat.y2; j++) {
-                                UI.getPlayer(n).setHitOrMiss(x, j, true);
-                                UI.getPlayer(n).setWhatShip(x, j, UI.getShips(u));
-                            }
-                            boat.invalid = false;
-                        }
-                    }
-                    break;
-                case 1:
-                    if (x + boat.length > 10 || x == 0 || y == 0) {
-                        boat.invalid = true;
-                    } else {
-                        j = 0;
-                        while (j != boat.length && !UI.getPlayer(n).getHitOrMiss(x + j, y)) {
-                            j++;
-                        }
-                        if (j != boat.length) {
-                            boat.invalid = true;
-                        } else {
-                            boat.y2 = y;
-                            boat.x2 = x + boat.length;
-                            for (i = x; i < boat.x2; i++) {
-                                UI.getPlayer(n).setHitOrMiss(i, y, true);
-                                UI.getPlayer(n).setWhatShip(i, y, UI.getShips(u));
-                            }
-                            boat.invalid = false;
-                        }
-                    }
-                    break;
-            }
-        } while (boat.invalid);
-        return boat;
-    }
 }

@@ -26,13 +26,13 @@ public class GameState implements Serializable {
     private boolean hasEnded;
     private int winner;
     private boolean loggedIn;
-    private HashMap<Integer, ArrayList<Ship>> shipList = new HashMap<>();
+    private HashMap<Integer, ArrayList<ShipOld>> shipList = new HashMap<>();
 
     private void switchTurn() {
 
     }
 
-    private boolean isShipSunken(Ship ship) {
+    private boolean isShipSunken(ShipOld ship) {
         return true;
     }
 
@@ -40,7 +40,7 @@ public class GameState implements Serializable {
 
     }
 
-    private void damageShip(Ship ship, int x, int y) {
+    private void damageShip(ShipOld ship, int x, int y) {
 
     }
 
@@ -53,11 +53,11 @@ public class GameState implements Serializable {
         hasEnded = newValue;
     }
 
-    public void setShipList(final HashMap<Integer, ArrayList<Ship>> newList) {
+    public void setShipList(final HashMap<Integer, ArrayList<ShipOld>> newList) {
         shipList = newList;
     }
 
-    public HashMap<Integer, ArrayList<Ship>> getShipList() {
+    public HashMap<Integer, ArrayList<ShipOld>> getShipList() {
         return shipList;
     }
 

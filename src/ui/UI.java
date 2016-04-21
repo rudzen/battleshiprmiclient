@@ -24,10 +24,14 @@
 package ui;
 
 import dataobjects.GameState;
+import dataobjects.PPoint;
+import dataobjects.Player;
 import dataobjects.PlayerOld;
 import dataobjects.Ship;
+import dataobjects.ShipOld;
 import interfaces.IBattleShip;
 import interfaces.IClientListener;
+import interfaces.IShip;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
@@ -57,20 +61,19 @@ import utility.Statics;
 public class UI extends JFrame {
 
     private static final long serialVersionUID = 6911438361535703573L;
-    
+
     /* the two playing field button arrays, shown on the UI when playing..
        0 = this player
        1 = remote player
-    */
+     */
     private static ArrayList<JButton[][]> playingFields = new ArrayList<>(2);
-    
+
     /**
-     * The two boards as panels where the buttons are located inside.
-     * 0 = local player
-     * 1 = remote player
+     * The two boards as panels where the buttons are located inside. 0 = local
+     * player 1 = remote player
      */
     private static JPanel[] boards = new JPanel[2];
-    
+
     /* the game state */
     private static GameState gameState = new GameState();
 
@@ -82,7 +85,7 @@ public class UI extends JFrame {
 
     /* status bar */
     private static JPanel statusBar;
-    
+
     /* board and input panel */
     private static Container b, c, d;
 
@@ -143,7 +146,7 @@ public class UI extends JFrame {
     /* myself */
     IClientListener clientListener;
 
-    private static PlayerOld me;
+    private static Player me;
 
     /* this is just to save time! */
     // TODO : move to GameState
@@ -154,7 +157,7 @@ public class UI extends JFrame {
         super();
         user = UIHelpers.getPlayerName();
 
-        me = new PlayerOld(user, this);
+        me = new Player(user);
 
         setTitle("Battleship");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -167,10 +170,10 @@ public class UI extends JFrame {
         d = getContentPane();
         inputpanel = shipinput();
         d.add(inputpanel, BorderLayout.NORTH);
-        
+
         statusBar = new JPanel();
         d.add(statusBar);
-        
+
         pack();
         setVisible(true);
     }
@@ -243,7 +246,7 @@ public class UI extends JFrame {
      */
     public JPanel setBoard(int n) {
         boards[n] = new JPanel(new GridLayout(11, 11));
-        
+
         JTextField k;
         for (int i = 0; i < 11; i++) {
             for (int j = 0; j < 11; j++) {
@@ -278,13 +281,30 @@ public class UI extends JFrame {
         b.removeAll();
         c.removeAll();
         d.removeAll();
-        me = new PlayerOld(user, this);
+        me = new Player(user);
 
         b.add(setBoard(0), BorderLayout.CENTER);
         inputpanel = shipinput();
         d.add(UI.inputpanel, BorderLayout.NORTH);
     }
 
+    /**
+     * Places a ship from the board
+     * @param s The ship to add
+     */
+    private void placeShip(final Ship s) {
+        
+    }
+
+    /**
+     * Removes a ship from the board
+     * @param s The ship to remove
+     */
+    private void removeShip(final Ship s) {
+        
+    }
+    
+    
     /**
      * Determines whether or not is shipLayout is set to automatic
      *
@@ -380,12 +400,12 @@ public class UI extends JFrame {
         deploy.setEnabled(k);
     }
 
-    public static PlayerOld getMe() {
+    public static Player getMe() {
         return me;
     }
 
-    public static void setMe(final PlayerOld newMe) {
-        me = newMe;
+    public static void setMe(final Player me) {
+        UI.me = me;
     }
 
     public static String getDirection(int i) {
@@ -420,209 +440,208 @@ public class UI extends JFrame {
         @Override
         public void actionPerformed(ActionEvent v) {
             if (ready == 0) {
-                if (me.getBoats(sindex) != null) {
-                    me.getBoats(sindex).clearship(me);
+                if (me.getShip(sindex).isPlaced()) {
+                    // TODO : Clear ship
                 }
+
                 Object source = v.getSource();
                 outer:
                 for (int i = 0; i < 10; i++) {
                     for (int j = 0; j < 10; j++) {
                         if (source == playingFields.get(0)[i][j]) {
                             // TODO : Make ship DTO here
-                            switch (sindex) {
-                                case 0:
-                                    if (carrierPlaced == 0) {
-                                        carrierPlaced++;
-                                    }
-                                    
-                                    break;
-                                case 1:
-                                    if (battleshipPlaced == 0) {
-                                        battleshipPlaced++;
-                                    }
-                                    break;
-                                case 2:
-                                    if (submarinePlaced == 0) {
-                                        submarinePlaced++;
-                                    }
-                                    break;
-                                case 3:
-                                    if (destroyerPlaced == 0) {
-                                        destroyerPlaced++;
-                                    }
-                                    break;
-                                case 4:
-                                    if (patrolPlaced == 0) {
-                                        patrolPlaced++;
-                                    }
-                                    break;
-                            }
-                            me.setBoats(sindex, new Ship(ships[sindex], dindex, length, i, j));
-                            break outer;
+                            Ship s = me.getShip(sindex);
+                            s.setIsPlaced(true);
+                            s.setDirection(dindex == 0 ? IShip.DIRECTION.HORIZONTAL : IShip.DIRECTION.VERTICAL);
+                            s.setLocStart(new PPoint(i, j));
+                            s.setLocEnd(Ship.setEnd(s.getLocStart(), s.getLength(), s.getDirection()));
+
                         }
+
+                        break outer;
                     }
                 }
-                me.getBoats(sindex).placeship();
             }
+            me.getBoats(sindex).placeship();
         }
     }
+}
 
-    /**
-     * Direction combobox listener. Purpose : Alters which ship that should be
-     * placed.
-     */
-    private class DirectListener implements ActionListener {
+/**
+ * Direction combobox listener. Purpose : Alters which ship that should be
+ * placed.
+ */
+private class DirectListener implements ActionListener {
 
-        @Override
-        public void actionPerformed(ActionEvent v) {
-            dindex = cdir.getSelectedIndex();
-            if (me.getBoats(sindex) != null) {
-                Ship boat = new Ship(ships[sindex], dindex, me.getBoats(sindex).getLength(), me.getBoats(sindex).getX(), me.getBoats(sindex).getY());
-                me.getBoats(sindex).clearship(me);
-                me.setBoats(sindex, boat);
-                me.getBoats(sindex).placeship();
+    private void updateShips() {
+        /* clear the button colours */
+        JButton[][] jp = playingFields.get(0);
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                jp[i][j].setBackground(Color.GRAY);
             }
         }
-    }
 
-    /**
-     * Exit menu item listener. Purpose : Handles the users request to exit the
-     * program.
-     */
-    private class ExitListener implements ActionListener {
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            if (UIHelpers.confirmDialog("Are you sure you would like to exit Battleship?", "Exit?") == 0) {
-                // TODO : Add sending defeat to server + log out.
-                System.exit(0);
-            }
-        }
-    }
-
-    /**
-     * Combobox for layout of ships listener. Purpose : Alters the direction of
-     * the current selected ship.
-     */
-    private class ShipsListener implements ActionListener {
-
-        @Override
-        public void actionPerformed(ActionEvent v) {
-            sindex = cshi.getSelectedIndex();
-            if (me.getBoats(sindex) != null) {
-                cdir.setSelectedIndex(me.getBoats(sindex).getDirect());
-            }
-            switch (sindex) {
-                case 0:
-                    length = 5;
-                    break;
-                case 1:
-                    length = 4;
-                    break;
-                case 2:
-                    length = 3;
-                    break;
-                case 3:
-                    length = 3;
-                    break;
-                case 4:
-                    length = 2;
-                    break;
-            }
-            if (me.getBoats(sindex) != null) {
-                Ship boat = new Ship(ships[sindex], me.getBoats(sindex).getDirect(), length, me.getBoats(sindex).getX(), me.getBoats(sindex).getY());
-                me.getBoats(sindex).clearship(me);
-                me.setBoats(sindex, boat);
-                me.getBoats(sindex).placeship();
-            }
-        }
-    }
-
-    /**
-     * Listener for New Game submenu Purpose : 1. If player is not logged in,
-     * ask player to log in. 2. If player is logged in, request availble players
-     * from the server. 3. If the player list is empty, auto create a new
-     * session. 4. If the player list exists, display it and let the user choose
-     * opponent or create new game session 5. If the player selects an opponent,
-     * let the player know and get the session ID. 6. Let the server create the
-     * game session and retrieve the new session ID.
-     */
-    private class GameListener implements ActionListener {
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            if (!Statics.isLoggedIn) {
-                UIHelpers.messageDialog("You are not logged in.", "Log in required to play.");
-            } else if (Statics.isLoggedIn && Statics.gameInProgress) {
-                int q = UIHelpers.confirmDialog("Are you sure you would like to start a new game?\nYou will loose this game!", "New Game?");
-                if (q == 0) {
-
-                    //resets variables
-                    b.removeAll();
-                    c.removeAll();
-                    d.removeAll();
-
-                    Statics.yourTurn = false;
-                    Statics.gameInProgress = false;
-
-                    ready = 0;
-
-                    if (me.getTimer() != null) {
-                        if (me.getTimer().isRunning()) {
-                            me.getTimer().stop();
-                        }
+        /* redraw the ships */
+        for (int i = 0; i < me.getShips().length; i++) {
+            Ship s = me.getShip(i);
+            if (s.isPlaced()) {
+                if (s.getDirection() == IShip.DIRECTION.HORIZONTAL) {
+                    for (int j = 0; j < s.getLength(); j++) {
+                        jp[((int) s.getLocStart().getX()) + j][(int) s.getLocStart().getY()].setBackground(Color.YELLOW);
                     }
-
-                    gametype = (JMenuItem) e.getSource();
-
-                    if (gametype == pvp) {
-
-                        // TODO : Get playerlist from server *OR* Input name of opponent!
-                        // TODO : Make better abstraction!!!!!
-                        me = new PlayerOld(user, this);
-
-                        // TODO : Ask server for opponent here !
-                        if ("Online".equals(selectedValue)) {
-                            players[1] = new PlayerOld("Unknown");
-                            b.add(setBoard(0), BorderLayout.CENTER);
-                            deploy.setEnabled(false);
-                            d.add(inputpanel, BorderLayout.NORTH);
-                        }
-                        //ready=1;
+                } else {
+                    /* vertical */
+                    for (int j = 0; j < s.getLength(); j++) {
+                        jp[(int) s.getLocStart().getX()][((int) s.getLocStart().getY()) + j].setBackground(Color.YELLOW);
                     }
-                    pack();
-                    repaint();
                 }
             }
         }
+
     }
 
-    /**
-     * Listener for Login
-     */
-    private class LoginListener implements ActionListener {
+    @Override
+    public void actionPerformed(ActionEvent v) {
+        dindex = cdir.getSelectedIndex();
 
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            if (gameState.isLoggedIn()) {
-                gameState.setLoggedIn(false);
-                // TODO : Add RMI interface to actually let the server know about it.
+        Ship ship = me.getShip(dindex);
+
+        ship.setIsPlaced(true);
+
+        if (me.getShip(sindex).isPlaced()) {
+
+            me.setShip(sindex, new Ship(, ready, IShip.TYPE.PATROL, IShip.DIRECTION.VERTICAL, upgrades));
+        }
+        if (me.getBoats(sindex) != null) {
+            ShipOld boat = new ShipOld(ships[sindex], dindex, me.getBoats(sindex).getLength(), me.getBoats(sindex).getX(), me.getBoats(sindex).getY());
+            me.getBoats(sindex).clearship(me);
+            me.setBoats(sindex, boat);
+            me.getBoats(sindex).placeship();
+        }
+    }
+}
+
+/**
+ * Exit menu item listener. Purpose : Handles the users request to exit the
+ * program.
+ */
+private class ExitListener implements ActionListener {
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (UIHelpers.confirmDialog("Are you sure you would like to exit Battleship?", "Exit?") == 0) {
+            // TODO : Add sending defeat to server + log out.
+            System.exit(0);
+        }
+    }
+}
+
+/**
+ * Combobox for layout of ships listener. Purpose : Alters the direction of the
+ * current selected ship.
+ */
+private class ShipsListener implements ActionListener {
+
+    @Override
+    public void actionPerformed(ActionEvent v) {
+        sindex = cshi.getSelectedIndex();
+        Ship s = me.getShip(sindex);
+        if (s.isPlaced()) {
+            if (me.getShip(sindex).getDirection() == IShip.DIRECTION.HORIZONTAL) {
+                cdir.setSelectedIndex(0);
             } else {
-                LoginDialog.login();
+                cdir.setSelectedIndex(1);
             }
         }
     }
+}
 
-    //Listener for Deploy Button
-    private class DeployListener implements ActionListener {
+/**
+ * Listener for New Game submenu Purpose : 1. If player is not logged in, ask
+ * player to log in. 2. If player is logged in, request availble players from
+ * the server. 3. If the player list is empty, auto create a new session. 4. If
+ * the player list exists, display it and let the user choose opponent or create
+ * new game session 5. If the player selects an opponent, let the player know
+ * and get the session ID. 6. Let the server create the game session and
+ * retrieve the new session ID.
+ */
+private class GameListener implements ActionListener {
 
-        @Override
-        public void actionPerformed(ActionEvent v) {
-            if (UIHelpers.confirmDialog("Are you sure you would like to deploy your ships?", "Deploy Ships?") == 0) {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (!Statics.isLoggedIn) {
+            UIHelpers.messageDialog("You are not logged in.", "Log in required to play.");
+        } else if (Statics.isLoggedIn && Statics.gameInProgress) {
+            int q = UIHelpers.confirmDialog("Are you sure you would like to start a new game?\nYou will loose this game!", "New Game?");
+            if (q == 0) {
 
-                // TODO : Send the idiotic stuff to the server, aparently someone thought that was a good idea..
-                //        .. Well, have fun...
-                /*
+                //resets variables
+                b.removeAll();
+                c.removeAll();
+                d.removeAll();
+
+                Statics.yourTurn = false;
+                Statics.gameInProgress = false;
+
+                ready = 0;
+
+                if (me.getTimer() != null) {
+                    if (me.getTimer().isRunning()) {
+                        me.getTimer().stop();
+                    }
+                }
+
+                gametype = (JMenuItem) e.getSource();
+
+                if (gametype == pvp) {
+
+                    // TODO : Get playerlist from server *OR* Input name of opponent!
+                    // TODO : Make better abstraction!!!!!
+                    me = new PlayerOld(user, this);
+
+                    // TODO : Ask server for opponent here !
+                    if ("Online".equals(selectedValue)) {
+                        players[1] = new PlayerOld("Unknown");
+                        b.add(setBoard(0), BorderLayout.CENTER);
+                        deploy.setEnabled(false);
+                        d.add(inputpanel, BorderLayout.NORTH);
+                    }
+                    //ready=1;
+                }
+                pack();
+                repaint();
+            }
+        }
+    }
+}
+
+/**
+ * Listener for Login
+ */
+private class LoginListener implements ActionListener {
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (gameState.isLoggedIn()) {
+            gameState.setLoggedIn(false);
+            // TODO : Add RMI interface to actually let the server know about it.
+        } else {
+            LoginDialog.login();
+        }
+    }
+}
+
+//Listener for Deploy Button
+private class DeployListener implements ActionListener {
+
+    @Override
+    public void actionPerformed(ActionEvent v) {
+        if (UIHelpers.confirmDialog("Are you sure you would like to deploy your ships?", "Deploy Ships?") == 0) {
+
+            // TODO : Send the idiotic stuff to the server, aparently someone thought that was a good idea..
+            //        .. Well, have fun...
+            /*
                 carrierPlaced = battleshipPlaced = submarinePlaced = destroyerPlaced = patrolPlaced = 0;
                 d.remove(input);
                 b.add(players[0].getMyBoard(), BorderLayout.WEST);
@@ -634,31 +653,31 @@ public class UI extends JFrame {
                 }
                 pack();
                 repaint();
-                 */
+             */
+        }
+    }
+}
+
+//Listener for Options menu
+public class OptionsListener implements ActionListener {
+
+    private final WeakReference<UI> weakReference;
+
+    public OptionsListener(final UI ui) {
+        weakReference = new WeakReference<>(ui);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        final UI ui = weakReference.get();
+        if (ui != null) {
+            if (Options.opts == null) {
+                options.setup(ui);
+            } else {
+                options.setVisible(true);
             }
         }
     }
-
-    //Listener for Options menu
-    public class OptionsListener implements ActionListener {
-
-        private final WeakReference<UI> weakReference;
-
-        public OptionsListener(final UI ui) {
-            weakReference = new WeakReference<>(ui);
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            final UI ui = weakReference.get();
-            if (ui != null) {
-                if (Options.opts == null) {
-                    options.setup(ui);
-                } else {
-                    options.setVisible(true);
-                }
-            }
-        }
-    }
+}
 
 }
