@@ -23,7 +23,7 @@
  */
 package ui;
 
-import dataobjects.Player;
+import dataobjects.PlayerOld;
 import java.awt.BorderLayout;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -55,7 +55,7 @@ public final class UIHelpers {
     }
 
     //creates a panel that tells whose board is which
-    public static JPanel whoseBoard(final Player[] players) {
+    public static JPanel whoseBoard(final PlayerOld[] players) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(new JLabel(players[0].getUser() + "'s Board", SwingConstants.LEFT), BorderLayout.WEST);
         panel.add(new JLabel(players[1].getUser() + "'s Board", SwingConstants.RIGHT), BorderLayout.EAST);

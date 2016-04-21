@@ -17,6 +17,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
+import dataobjects.PWdto;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.ProgressBar;
 
 /**
  * Simple login dialog.<br>
@@ -29,11 +32,13 @@ public final class LoginDialog extends JDialog {
     private static final long serialVersionUID = 1L;
 
     private static JPanel contentPanel;
-    private final JPasswordField passwordField;
+    private static JPasswordField passwordField;
     private static JTextField textField;
     private static JButton okButton;
-    private final JProgressBar progressBar;
+    private static final JProgressBar progressBar = new JProgressBar();;
 
+    public static PWdto pw = new PWdto();
+    
     public static void login() {
         try {
             LoginDialog dialog = new LoginDialog();
@@ -76,7 +81,6 @@ public final class LoginDialog extends JDialog {
         lblPassword.setBounds(10, 45, 46, 14);
         contentPanel.add(lblPassword);
 
-        progressBar = new JProgressBar();
         progressBar.setIndeterminate(true);
         progressBar.setBounds(10, 73, 205, 14);
         progressBar.setVisible(false);
@@ -93,16 +97,16 @@ public final class LoginDialog extends JDialog {
         getRootPane().setDefaultButton(okButton);
         JButton cancelButton = new JButton("Cancel");
         cancelButton.addActionListener((final ActionEvent e) -> {
-            closeThis();
+            closeThis(this);
         });
         cancelButton.setActionCommand("Cancel");
         buttonPane.add(cancelButton);
         setLocationRelativeTo(null);
     }
 
-    private void closeThis() {
-        setVisible(false);
-        dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+    public static void closeThis(JDialog dialog) {
+        dialog.setVisible(false);
+        dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
     }
 
     /**
@@ -134,6 +138,17 @@ public final class LoginDialog extends JDialog {
             boolean lastState = okButton.isEnabled();
             okButton.setEnabled(false);
 
+            progressBar.setVisible(true);
+            
+            pw.setU(textField.getText());
+            pw.setP(new String(passwordField.getPassword()));
+            
+            login();
+            
+            
+            
+            
+            
 //            progressBar.setVisible(true);
 
             /* the text is concatted and BASE64 encoded before, as it will be decoded on the server side */

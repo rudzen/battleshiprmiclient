@@ -5,7 +5,7 @@
  */
 package battleshiprmiclient;
 
-import dataobjects.Player;
+import dataobjects.PlayerOld;
 import interfaces.IClientListener;
 import java.io.Serializable;
 import java.rmi.RemoteException;
@@ -57,7 +57,7 @@ public class BattleShipClientImpl implements IClientListener, Serializable {
     }
 
     @Override
-    public void updateOpponent(Player player) throws RemoteException {
+    public void updateOpponent(PlayerOld player) throws RemoteException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -68,6 +68,11 @@ public class BattleShipClientImpl implements IClientListener, Serializable {
 
     @Override
     public void updateBoard(int[][] board) throws RemoteException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void ping() throws RemoteException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

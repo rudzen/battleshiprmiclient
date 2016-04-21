@@ -84,7 +84,7 @@ public class Ship {
         return hitsleft;
     }
 
-    public void clearship(final Player p) {
+    public void clearship(final PlayerOld p) {
         switch (dir) {
             case 0:
                 if (!invalid) {

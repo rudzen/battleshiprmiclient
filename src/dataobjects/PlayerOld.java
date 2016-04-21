@@ -12,7 +12,7 @@ import ui.UI;
 import ui.UIHelpers;
 import utility.Statics;
 
-public class Player {
+public class PlayerOld {
 
     private int hits;
     private final Ship[] boats = new Ship[5];
@@ -21,7 +21,6 @@ public class Player {
     private int shipsleft;
     private int shots;// shots taken
     private final boolean[][] hitormiss = new boolean[10][10];
-    private final JButton[][] bboard = new JButton[10][10];
     //gbutton=new JButton [10][10];
     //, hit(1), or sunk(2); default is (3)
     private JPanel gboard, myboard;
@@ -37,7 +36,9 @@ public class Player {
 
     private UI ui;
     
-    public Player(final String name, final UI ui) {
+    public PlayerOld() { }
+    
+    public PlayerOld(final String name, final UI ui) {
         this.ui = ui;
         user = name;
         shipsleft = 5;

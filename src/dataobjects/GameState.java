@@ -20,7 +20,7 @@ public class GameState implements Serializable {
     private static final long serialVersionUID = -7033076611469483025L;
 
     private int dimentions = 5;
-    private Player[] players = new Player[2];
+    private PlayerOld[] players = new PlayerOld[2];
     private int[][] playerOneBoard = new int[dimentions][dimentions];
     private int[][] playerTwoBoard = new int[dimentions][dimentions];
     private boolean hasEnded;
@@ -69,11 +69,11 @@ public class GameState implements Serializable {
         this.dimentions = dimentions;
     }
 
-    public Player[] getPlayers() {
+    public PlayerOld[] getPlayers() {
         return players;
     }
 
-    public void setPlayers(Player[] players) {
+    public void setPlayers(PlayerOld[] players) {
         this.players = players;
     }
 

@@ -24,8 +24,10 @@
 package ui;
 
 import dataobjects.GameState;
-import dataobjects.Player;
+import dataobjects.PlayerOld;
 import dataobjects.Ship;
+import interfaces.IBattleShip;
+import interfaces.IClientListener;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
@@ -34,6 +36,7 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -42,7 +45,6 @@ import static javax.swing.JFrame.EXIT_ON_CLOSE;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
@@ -55,6 +57,20 @@ import utility.Statics;
 public class UI extends JFrame {
 
     private static final long serialVersionUID = 6911438361535703573L;
+    
+    /* the two playing field button arrays, shown on the UI when playing..
+       0 = this player
+       1 = remote player
+    */
+    private static ArrayList<JButton[][]> playingFields = new ArrayList<>(2);
+    
+    /**
+     * The two boards as panels where the buttons are located inside.
+     * 0 = local player
+     * 1 = remote player
+     */
+    private static JPanel[] boards = new JPanel[2];
+    
     /* the game state */
     private static GameState gameState = new GameState();
 
@@ -64,6 +80,9 @@ public class UI extends JFrame {
     /* for manually inputting ships */
     private static JPanel inputpanel;
 
+    /* status bar */
+    private static JPanel statusBar;
+    
     /* board and input panel */
     private static Container b, c, d;
 
@@ -118,7 +137,13 @@ public class UI extends JFrame {
     BoardListener boardListener = new BoardListener();
     DirectListener directionListener = new DirectListener();
 
-    private static Player[] players = new Player[2];
+    /* server interface through RMI */
+    IBattleShip bship;
+
+    /* myself */
+    IClientListener clientListener;
+
+    private static PlayerOld me;
 
     /* this is just to save time! */
     // TODO : move to GameState
@@ -129,8 +154,7 @@ public class UI extends JFrame {
         super();
         user = UIHelpers.getPlayerName();
 
-        players[0] = new Player(user, this);
-        //players[Statics.enemy] = new Player("Computer");
+        me = new PlayerOld(user, this);
 
         setTitle("Battleship");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -143,6 +167,10 @@ public class UI extends JFrame {
         d = getContentPane();
         inputpanel = shipinput();
         d.add(inputpanel, BorderLayout.NORTH);
+        
+        statusBar = new JPanel();
+        d.add(statusBar);
+        
         pack();
         setVisible(true);
     }
@@ -214,13 +242,14 @@ public class UI extends JFrame {
      * @return The JPanel which contains the ship placement.
      */
     public JPanel setBoard(int n) {
-        players[n].setMyBoard(new JPanel(new GridLayout(11, 11)));//panel to store board		
+        boards[n] = new JPanel(new GridLayout(11, 11));
+        
         JTextField k;
         for (int i = 0; i < 11; i++) {
             for (int j = 0; j < 11; j++) {
                 if (j != 0 && i != 0) {
-                    players[n].getBboard(i - 1, j - 1).addActionListener(boardListener);
-                    players[n].getMyBoard().add(players[n].getBboard(i - 1, j - 1));
+                    playingFields.get(n)[i - 1][j - 1].addActionListener(boardListener);
+                    boards[n].add(playingFields.get(n)[i - 1][j - 1]);
                 }
                 if (i == 0) {
                     if (j != 0) {
@@ -233,23 +262,23 @@ public class UI extends JFrame {
                         k = new JTextField();
                         k.setEditable(false);
                     }
-                    players[n].getMyBoard().add(k);
+                    boards[n].add(k);
                 } else if (j == 0) {
                     k = new JTextField(UI.getCletters(i));
                     k.setEditable(false);
                     k.setHorizontalAlignment((int) JFrame.CENTER_ALIGNMENT);
-                    players[n].getMyBoard().add(k);
+                    boards[n].add(k);
                 }
             }
         }
-        return players[n].getMyBoard();
+        return boards[n];
     }
 
     public void resetGame() {
         b.removeAll();
         c.removeAll();
         d.removeAll();
-        players[0] = new Player(user, this);
+        me = new PlayerOld(user, this);
 
         b.add(setBoard(0), BorderLayout.CENTER);
         inputpanel = shipinput();
@@ -351,16 +380,12 @@ public class UI extends JFrame {
         deploy.setEnabled(k);
     }
 
-    public static Player getPlayer(int x) {
-        return players[x];
+    public static PlayerOld getMe() {
+        return me;
     }
 
-    public static Player[] getPlayers() {
-        return players;
-    }
-
-    public static void setPlayer(final Player[] newPlayers) {
-        players = newPlayers;
+    public static void setMe(final PlayerOld newMe) {
+        me = newMe;
     }
 
     public static String getDirection(int i) {
@@ -388,26 +413,28 @@ public class UI extends JFrame {
     }
 
     /**
-     * The listener for the buttons on the board.
+     * The listener for the buttons on the board. Purpose : Ship placement
      */
     private class BoardListener implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent v) {
             if (ready == 0) {
-                if (players[0].getBoats(sindex) != null) {
-                    players[0].getBoats(sindex).clearship(players[0]);
+                if (me.getBoats(sindex) != null) {
+                    me.getBoats(sindex).clearship(me);
                 }
                 Object source = v.getSource();
                 outer:
                 for (int i = 0; i < 10; i++) {
                     for (int j = 0; j < 10; j++) {
-                        if (source == players[0].getBboard(i, j)) {
+                        if (source == playingFields.get(0)[i][j]) {
+                            // TODO : Make ship DTO here
                             switch (sindex) {
                                 case 0:
                                     if (carrierPlaced == 0) {
                                         carrierPlaced++;
                                     }
+                                    
                                     break;
                                 case 1:
                                     if (battleshipPlaced == 0) {
@@ -430,35 +457,37 @@ public class UI extends JFrame {
                                     }
                                     break;
                             }
-                            players[0].setBoats(sindex, new Ship(ships[sindex], dindex, length, i, j));
+                            me.setBoats(sindex, new Ship(ships[sindex], dindex, length, i, j));
                             break outer;
                         }
                     }
                 }
-                players[0].getBoats(sindex).placeship();
+                me.getBoats(sindex).placeship();
             }
         }
     }
 
     /**
-     * Direction combobox listener.
+     * Direction combobox listener. Purpose : Alters which ship that should be
+     * placed.
      */
     private class DirectListener implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent v) {
             dindex = cdir.getSelectedIndex();
-            if (players[0].getBoats(sindex) != null) {
-                Ship boat = new Ship(ships[sindex], dindex, players[0].getBoats(sindex).getLength(), players[0].getBoats(sindex).getX(), players[0].getBoats(sindex).getY());
-                players[0].getBoats(sindex).clearship(players[0]);
-                players[0].setBoats(sindex, boat);
-                players[0].getBoats(sindex).placeship();
+            if (me.getBoats(sindex) != null) {
+                Ship boat = new Ship(ships[sindex], dindex, me.getBoats(sindex).getLength(), me.getBoats(sindex).getX(), me.getBoats(sindex).getY());
+                me.getBoats(sindex).clearship(me);
+                me.setBoats(sindex, boat);
+                me.getBoats(sindex).placeship();
             }
         }
     }
 
     /**
-     * Exit menu item listener.
+     * Exit menu item listener. Purpose : Handles the users request to exit the
+     * program.
      */
     private class ExitListener implements ActionListener {
 
@@ -472,15 +501,16 @@ public class UI extends JFrame {
     }
 
     /**
-     * Combobox for layout of ships listener.
+     * Combobox for layout of ships listener. Purpose : Alters the direction of
+     * the current selected ship.
      */
     private class ShipsListener implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent v) {
             sindex = cshi.getSelectedIndex();
-            if (players[0].getBoats(sindex) != null) {
-                cdir.setSelectedIndex(players[0].getBoats(sindex).getDirect());
+            if (me.getBoats(sindex) != null) {
+                cdir.setSelectedIndex(me.getBoats(sindex).getDirect());
             }
             switch (sindex) {
                 case 0:
@@ -499,16 +529,24 @@ public class UI extends JFrame {
                     length = 2;
                     break;
             }
-            if (players[0].getBoats(sindex) != null) {
-                Ship boat = new Ship(ships[sindex], players[0].getBoats(sindex).getDirect(), length, players[0].getBoats(sindex).getX(), players[0].getBoats(sindex).getY());
-                players[0].getBoats(sindex).clearship(players[0]);
-                players[0].setBoats(sindex, boat);
-                players[0].getBoats(sindex).placeship();
+            if (me.getBoats(sindex) != null) {
+                Ship boat = new Ship(ships[sindex], me.getBoats(sindex).getDirect(), length, me.getBoats(sindex).getX(), me.getBoats(sindex).getY());
+                me.getBoats(sindex).clearship(me);
+                me.setBoats(sindex, boat);
+                me.getBoats(sindex).placeship();
             }
         }
     }
 
-    //listener for New Game submenu
+    /**
+     * Listener for New Game submenu Purpose : 1. If player is not logged in,
+     * ask player to log in. 2. If player is logged in, request availble players
+     * from the server. 3. If the player list is empty, auto create a new
+     * session. 4. If the player list exists, display it and let the user choose
+     * opponent or create new game session 5. If the player selects an opponent,
+     * let the player know and get the session ID. 6. Let the server create the
+     * game session and retrieve the new session ID.
+     */
     private class GameListener implements ActionListener {
 
         @Override
@@ -529,9 +567,9 @@ public class UI extends JFrame {
 
                     ready = 0;
 
-                    if (players[0].getTimer() != null) {
-                        if (players[0].getTimer().isRunning()) {
-                            players[0].getTimer().stop();
+                    if (me.getTimer() != null) {
+                        if (me.getTimer().isRunning()) {
+                            me.getTimer().stop();
                         }
                     }
 
@@ -541,11 +579,11 @@ public class UI extends JFrame {
 
                         // TODO : Get playerlist from server *OR* Input name of opponent!
                         // TODO : Make better abstraction!!!!!
-                        players[0] = new Player(user, this);
+                        me = new PlayerOld(user, this);
 
                         // TODO : Ask server for opponent here !
                         if ("Online".equals(selectedValue)) {
-                            players[1] = new Player("Unknown");
+                            players[1] = new PlayerOld("Unknown");
                             b.add(setBoard(0), BorderLayout.CENTER);
                             deploy.setEnabled(false);
                             d.add(inputpanel, BorderLayout.NORTH);
@@ -581,6 +619,7 @@ public class UI extends JFrame {
         @Override
         public void actionPerformed(ActionEvent v) {
             if (UIHelpers.confirmDialog("Are you sure you would like to deploy your ships?", "Deploy Ships?") == 0) {
+
                 // TODO : Send the idiotic stuff to the server, aparently someone thought that was a good idea..
                 //        .. Well, have fun...
                 /*
@@ -595,7 +634,7 @@ public class UI extends JFrame {
                 }
                 pack();
                 repaint();
-                */
+                 */
             }
         }
     }
@@ -621,6 +660,5 @@ public class UI extends JFrame {
             }
         }
     }
-    
 
 }

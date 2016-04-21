@@ -1,6 +1,6 @@
 package interfaces;
 
-import dataobjects.Player;
+import dataobjects.PlayerOld;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
@@ -32,14 +32,14 @@ public interface IBattleShip extends Remote {
      * @return The player object for the client.
      * @throws RemoteException 
      */
-    Player getMe() throws RemoteException; // PlayerDTO
+    PlayerOld getMe() throws RemoteException; // PlayerDTO
     
     /**
      * Get the opponent information object.
      * @return The Player object which contains public information about the opponent.
      * @throws RemoteException 
      */
-    Player getOther() throws RemoteException;
+    PlayerOld getOther() throws RemoteException;
 
     /**
      * Let the server know at what location you attempted to fire a shot at.

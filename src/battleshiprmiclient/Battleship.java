@@ -1,6 +1,6 @@
 package battleshiprmiclient;
 
-import dataobjects.Player;
+import dataobjects.PlayerOld;
 import interfaces.IBattleShip;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
@@ -96,7 +96,7 @@ public class Battleship extends UnicastRemoteObject implements IClientListener {
     }
 
     @Override
-    public void updateOpponent(Player player) throws RemoteException {
+    public void updateOpponent(PlayerOld player) throws RemoteException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
