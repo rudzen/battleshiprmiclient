@@ -1,6 +1,6 @@
 package interfaces;
 
-import dataobjects.PlayerOld;
+import dataobjects.Player;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
@@ -77,7 +77,7 @@ public interface IClientListener extends Remote {
      * @param player The opponent data object which contains the new information
      * @throws RemoteException 
      */
-    void updateOpponent(final PlayerOld player) throws RemoteException;
+    void updateOpponent(final Player player) throws RemoteException;
 
     /**
      * The client should update the playing field.

@@ -38,6 +38,7 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.ref.WeakReference;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -47,6 +48,7 @@ import static javax.swing.JFrame.EXIT_ON_CLOSE;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
@@ -56,10 +58,12 @@ import utility.Statics;
  *
  * @author rudz
  */
-public class UI extends JFrame {
+public class UI extends JFrame  implements IClientListener {
 
     private static final long serialVersionUID = 6911438361535703573L;
 
+    /* UI Stuff */
+    
     /* the two playing field button arrays, shown on the UI when playing..
        0 = this player
        1 = remote player
@@ -111,15 +115,6 @@ public class UI extends JFrame {
     /* deploy button */
     private static final JButton deploy = new JButton("DEPLOY");
 
-    /* ship counters */
-    private static int carrierPlaced, battleshipPlaced, submarinePlaced, destroyerPlaced, patrolPlaced;
-
-    /* ship hit matrix */
-    private static final String[][] SHIPHIT = new String[10][10];
-
-    /* the last selected value for game type (local / internet) */
-    static String selectedValue = " ";
-
     /* the game type */
     private static JMenuItem gametype;
 
@@ -145,11 +140,93 @@ public class UI extends JFrame {
     IClientListener clientListener;
 
     private static Player me;
+    private static Player other;
     
     /* this is just to save time! */
     // TODO : move to GameState
     protected static String user, user2;
     protected static boolean gameover;
+
+    /* RMI callback methods */
+    
+    @Override
+    public void shotFired(int x, int y, boolean hit) throws RemoteException {
+        playingFields.get(0)[x][y].setBackground(hit ? Color.YELLOW : Color.CYAN);
+    }
+
+    @Override
+    public void shipSunk(int x, int y, int direction, int len) throws RemoteException {
+        // TODO : Implement.
+    }
+
+    @Override
+    public void setBoard(int[][] board) throws RemoteException {
+        me.setBoard(board);
+        // TODO : Something else here?
+    }
+
+    @Override
+    public void gameOver(boolean won) throws RemoteException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("You have ").append(won ? "won the game over " : "lost the game to ").append(other.getName());
+        UIHelpers.messageDialog(UIHelpers.MSG_GAME_OVER, sb.toString(), JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    @Override
+    public void canPlay(boolean canPlay) throws RemoteException {
+        
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void showMessage(String title, String message, int modal) throws RemoteException {
+        UIHelpers.messageDialog(title, message, modal);
+    }
+
+    @Override
+    public void opponentQuit() throws RemoteException {
+        UIHelpers.messageDialog("Game is terminated", other.getName() + " has left the game.", JOptionPane.ERROR_MESSAGE);
+        UIHelpers.messageDialog("Game is terminated", "You have gained 0 points, but do not worry as " + other.getName() + " has lost points.", JOptionPane.ERROR_MESSAGE);
+    }
+
+    @Override
+    public void updateOpponent(Player player) throws RemoteException {
+        other = player;
+    }
+
+    @Override
+    public void updateOpponentBoard(int[][] board) throws RemoteException {
+        other.setBoard(board);
+        // TODO : Something else here?
+    }
+
+    @Override
+    public void updateBoard(int[][] board) throws RemoteException {
+        setBoard(board);
+        // TODO : Re-draw the bastard..
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                switch (board[i][j]) {
+                    case 1:
+                        
+                    case 2:
+                        
+                    case 3:
+                        
+                    case 4:
+                        
+                    case 5:
+                        
+                }
+            }
+        }
+    }
+
+    @Override
+    public void ping() throws RemoteException {
+        // TODO : Call pong on the server!..
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 
     
     private enum SHIP_PLACE {
@@ -330,9 +407,6 @@ public class UI extends JFrame {
         }
     }
     
-    
-    
-
     /**
      * Determines whether or not is shipLayout is set to automatic
      *
@@ -343,66 +417,12 @@ public class UI extends JFrame {
     }
 
     /**
-     * Asks if two players are playing on the same computer or over the web
-     *
-     * @return
-     */
-    public static boolean isLocal() {
-        return gametype == pvp && "Local".equals(selectedValue);
-    }
-
-    /**
      * Returns ship colour, as selected by the user
      *
      * @return
      */
     public static Color getColor() {
         return Options.COLOURS[Options.SHIP_COLOUR.getSelectedIndex()];
-    }
-
-    /**
-     * Variable that determines whether or not the carrier has been placed
-     *
-     * @return
-     */
-    public static int getCarrierPlaced() {
-        return carrierPlaced;
-    }
-
-    /**
-     * Variable that determines whether or not the battleship has been placed
-     *
-     * @return
-     */
-    public static int getBattleshipPlaced() {
-        return battleshipPlaced;
-    }
-
-    /**
-     * Variable that determines whether or not the submarine has been placed
-     *
-     * @return
-     */
-    public static int getSubmarinePlaced() {
-        return submarinePlaced;
-    }
-
-    /**
-     * Variable that determines whether or not the destroyer has been placed
-     *
-     * @return
-     */
-    public static int getDestroyerPlaced() {
-        return destroyerPlaced;
-    }
-
-    /**
-     * Variable that determines whether or not the patrol boat has been placed
-     *
-     * @return
-     */
-    public static int getPatrolPlaced() {
-        return patrolPlaced;
     }
 
     public static boolean getGameOver() {
@@ -635,6 +655,7 @@ public class UI extends JFrame {
         public void actionPerformed(ActionEvent e) {
             if (gameState.isLoggedIn()) {
                 gameState.setLoggedIn(false);
+                
                 // TODO : Add RMI interface to actually let the server know about it.
             } else {
                 LoginDialog.login();

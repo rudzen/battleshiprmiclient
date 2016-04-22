@@ -37,6 +37,9 @@ import javax.swing.SwingConstants;
  */
 public final class UIHelpers {
 
+    public static String MSG_GAME_OVER = "Game is over!";
+    
+    
     public static String getPlayerName() {
         String daName = inputDialog("Please enter your name.", "Enter name.");
         int dummy = 0;
