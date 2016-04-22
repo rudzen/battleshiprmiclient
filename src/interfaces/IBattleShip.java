@@ -1,5 +1,6 @@
 package interfaces;
 
+import dataobjects.Player;
 import dataobjects.PlayerOld;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -39,7 +40,7 @@ public interface IBattleShip extends Remote {
      * @return The Player object which contains public information about the opponent.
      * @throws RemoteException 
      */
-    PlayerOld getOther() throws RemoteException;
+    Player getOther() throws RemoteException;
 
     /**
      * Let the server know at what location you attempted to fire a shot at.
@@ -59,6 +60,13 @@ public interface IBattleShip extends Remote {
      */
     boolean login(final String user, final String pw) throws RemoteException;
     
+    /**
+     * Logs the user out from the system
+     * @param client The client to log out
+     * @return true if logged out, false if failed (should NEVER happend!)
+     * @throws RemoteException Meh..
+     */
+    boolean logout(IClientListener client) throws RemoteException;
     
     /**
      * Response to client callback method ping().

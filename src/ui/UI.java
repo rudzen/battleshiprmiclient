@@ -38,8 +38,14 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.ref.WeakReference;
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -226,8 +232,7 @@ public class UI extends JFrame implements IClientListener {
 
     @Override
     public void ping() throws RemoteException {
-        // TODO : Call pong on the server!..
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        game.pong(this);
     }
 
     private enum SHIP_PLACE {
@@ -239,6 +244,13 @@ public class UI extends JFrame implements IClientListener {
 
         this.registry = registry;
 
+        setupUI();
+    }
+
+    /**
+     * Sets up the window and stuff.
+     */
+    private void setupUI() {
         setTitle("Battleship");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setJMenuBar(createMenuBar());
@@ -659,22 +671,43 @@ public class UI extends JFrame implements IClientListener {
             if (gameState.isLoggedIn()) {
                 gameState.setLoggedIn(false);
 
-                // TODO : Add RMI interface to actually let the server know about it.
+                try {
+                    // TODO : Add RMI interface to actually let the server know about it.
+                    game.logout(ui);
+                } catch (RemoteException ex) {
+                    Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
+                }
             } else {
+                // TODO : Move this entire bullcrap to the login dialog and implement observer.
+                
                 LoginDialog.login();
 
                 final String name;
-                
+
                 // TODO : Get the username from the login dialog here!
                 user = UIHelpers.getPlayerName();
                 me = new Player(user);
 
-                
                 try {
+
+                    // Registration format
+                    //registry_hostname :port/service
+                    // Note the :port field is optional
+                    String registration = "rmi://" + registry + "/Battleship";
+                    /* Lookup the service in the registry, and obtain a remote service */
+                    Remote remoteService = Naming.lookup(registration);
+                    game = (IBattleShip) remoteService;
+
                     game.fireShot(3, 5, ui);
                     game.registerClient(ui);
                 } catch (final RemoteException re) {
+                    UIHelpers.messageDialog("Error", "RMI Error - RemoteException()", JOptionPane.ERROR_MESSAGE);
 
+                } catch (NotBoundException ex) {
+                    UIHelpers.messageDialog("Error", "No game server available - NotBountException()", JOptionPane.ERROR_MESSAGE);
+                    Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (MalformedURLException ex) {
+                    Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
                 }
 
             }
