@@ -33,6 +33,7 @@ import interfaces.IShip;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
+import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -237,6 +238,25 @@ public class UI extends JFrame implements IClientListener {
 
     private enum SHIP_PLACE {
         REMOVE, ADD, SUNK
+    }
+
+    private static class RunnableImpl implements Runnable {
+
+        
+        private final String registry;
+        
+        public RunnableImpl(final String registry) {
+            this.registry = registry;
+        }
+        
+        @Override
+        public void run() {
+            new UI(registry);
+        }
+    }
+
+    public static void runGame(final String registry) {
+        EventQueue.invokeLater(new RunnableImpl(registry));
     }
 
     public UI(final String registry) {
@@ -679,7 +699,7 @@ public class UI extends JFrame implements IClientListener {
                 }
             } else {
                 // TODO : Move this entire bullcrap to the login dialog and implement observer.
-                
+
                 LoginDialog.login();
 
                 final String name;

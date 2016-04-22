@@ -22,7 +22,6 @@ public class Battleship extends UnicastRemoteObject {
     }
 
     public static void main(String args[]) {
-        System.out.println("Looking for battleship server");
 
         // Only required for dynamic class loading
         //System.setSecurityManager(new RMISecurityManager());
@@ -32,8 +31,8 @@ public class Battleship extends UnicastRemoteObject {
             registry = args[0];
         }
 
-        /* Create a new monitor and register it as a listener with remote game */
-        UI ui = new UI(registry);
+        /* Create a new game window and register it as a listener with remote game */
+        UI.runGame(registry);
 
     }
 }
