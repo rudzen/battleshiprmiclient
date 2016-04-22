@@ -1,6 +1,5 @@
 package battleshiprmiclient;
 
-import dataobjects.PlayerOld;
 import interfaces.IBattleShip;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
@@ -42,10 +41,8 @@ public class Battleship extends UnicastRemoteObject {
             IBattleShip game = (IBattleShip) remoteService;
 
             /* Create a new monitor and register it as a listener with remote game */
-            UI ui = new UI();
+            UI ui = new UI(registry);
 
-            game.fireShot(3, 5, ui);
-            game.registerClient(ui);
 
         } catch (NotBoundException nbe) {
             System.out.println("No game server available");

@@ -58,13 +58,16 @@ import utility.Statics;
  *
  * @author rudz
  */
-public class UI extends JFrame  implements IClientListener {
+public class UI extends JFrame implements IClientListener {
 
     private static final long serialVersionUID = 6911438361535703573L;
 
+    private IBattleShip game;
+
+    private final String registry;
+
     /* UI Stuff */
-    
-    /* the two playing field button arrays, shown on the UI when playing..
+ /* the two playing field button arrays, shown on the UI when playing..
        0 = this player
        1 = remote player
      */
@@ -141,14 +144,13 @@ public class UI extends JFrame  implements IClientListener {
 
     private static Player me;
     private static Player other;
-    
+
     /* this is just to save time! */
     // TODO : move to GameState
     protected static String user, user2;
     protected static boolean gameover;
 
     /* RMI callback methods */
-    
     @Override
     public void shotFired(int x, int y, boolean hit) throws RemoteException {
         playingFields.get(0)[x][y].setBackground(hit ? Color.YELLOW : Color.CYAN);
@@ -174,7 +176,7 @@ public class UI extends JFrame  implements IClientListener {
 
     @Override
     public void canPlay(boolean canPlay) throws RemoteException {
-        
+
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -208,15 +210,15 @@ public class UI extends JFrame  implements IClientListener {
             for (int j = 0; j < 10; j++) {
                 switch (board[i][j]) {
                     case 1:
-                        
+
                     case 2:
-                        
+
                     case 3:
-                        
+
                     case 4:
-                        
+
                     case 5:
-                        
+
                 }
             }
         }
@@ -228,17 +230,14 @@ public class UI extends JFrame  implements IClientListener {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    
     private enum SHIP_PLACE {
         REMOVE, ADD, SUNK
     }
-    
-    
-    public UI() {
-        super();
-        user = UIHelpers.getPlayerName();
 
-        me = new Player(user);
+    public UI(final String registry) {
+        super();
+
+        this.registry = registry;
 
         setTitle("Battleship");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -280,7 +279,7 @@ public class UI extends JFrame  implements IClientListener {
 
         /* regular menu */
         m = new JMenuItem(gameState.isLoggedIn() ? "Logout" : "Login");
-        m.addActionListener(new LoginListener());
+        m.addActionListener(new LoginListener(this));
         menu.add(m);
         m = new JMenuItem("Options");
         m.addActionListener(new OptionsListener(this));
@@ -395,7 +394,7 @@ public class UI extends JFrame  implements IClientListener {
             // ship sunk
             col = Color.BLACK;
         }
-        
+
         if (s.getDirection() == IShip.DIRECTION.HORIZONTAL) {
             for (int i = 0; i < s.getLength(); i++) {
                 playingFields.get(fieldIndex)[s.getLocStart().getX() + i][s.getLocStart().getY()].setBackground(col);
@@ -406,7 +405,7 @@ public class UI extends JFrame  implements IClientListener {
             }
         }
     }
-    
+
     /**
      * Determines whether or not is shipLayout is set to automatic
      *
@@ -635,8 +634,6 @@ public class UI extends JFrame  implements IClientListener {
                         me = new Player(user);
 
                         // TODO : Ask server for opponent here !
-                        
-                        
                         //ready=1;
                     }
                     pack();
@@ -651,14 +648,35 @@ public class UI extends JFrame  implements IClientListener {
      */
     private class LoginListener implements ActionListener {
 
+        private final UI ui;
+
+        public LoginListener(final UI ui) {
+            this.ui = ui;
+        }
+
         @Override
         public void actionPerformed(ActionEvent e) {
             if (gameState.isLoggedIn()) {
                 gameState.setLoggedIn(false);
-                
+
                 // TODO : Add RMI interface to actually let the server know about it.
             } else {
                 LoginDialog.login();
+
+                final String name;
+                
+                // TODO : Get the username from the login dialog here!
+                user = UIHelpers.getPlayerName();
+                me = new Player(user);
+
+                
+                try {
+                    game.fireShot(3, 5, ui);
+                    game.registerClient(ui);
+                } catch (final RemoteException re) {
+
+                }
+
             }
         }
     }
