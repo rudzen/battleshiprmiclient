@@ -78,7 +78,8 @@ public class UI extends JFrame implements IClientListener {
        0 = this player
        1 = remote player
      */
-    private static ArrayList<JButton[][]> playingFields = new ArrayList<>(2);
+    private static JButton[][] ownButtons = new JButton[10][10];
+    private static JButton[][] oppButtons = new JButton[10][10];
 
     /**
      * The two boards as panels where the buttons are located inside. 0 = local
@@ -110,7 +111,7 @@ public class UI extends JFrame implements IClientListener {
     /* arrays for combo boxes */
     private static final String[] cletters = {" ", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J"};
     private static final String[] cnumbers = {" ", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"};
-    private static final String[] ships = {"Carrier", "Battleship", "Submarine", "Destroyer", "Patrol Boat"};
+    private static final String[] ships = {"Carrier", "Cruiser", "Destroyer", "Submarine", "Patrol Boat"};
     private static final String[] direction = {"Horizontal", "Vertical"};
 
     /* ships */
@@ -160,7 +161,7 @@ public class UI extends JFrame implements IClientListener {
     /* RMI callback methods */
     @Override
     public void shotFired(int x, int y, boolean hit) throws RemoteException {
-        playingFields.get(0)[x][y].setBackground(hit ? Color.YELLOW : Color.CYAN);
+        ownButtons[x][y].setBackground(hit ? Color.YELLOW : Color.CYAN);
     }
 
     @Override
@@ -183,8 +184,7 @@ public class UI extends JFrame implements IClientListener {
 
     @Override
     public void canPlay(boolean canPlay) throws RemoteException {
-
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        deploy.setEnabled(canPlay);
     }
 
     @Override
@@ -195,7 +195,7 @@ public class UI extends JFrame implements IClientListener {
     @Override
     public void opponentQuit() throws RemoteException {
         UIHelpers.messageDialog("Game is terminated", other.getName() + " has left the game.", JOptionPane.ERROR_MESSAGE);
-        UIHelpers.messageDialog("Game is terminated", "You have gained 0 points, but do not worry as " + other.getName() + " has lost points.", JOptionPane.ERROR_MESSAGE);
+        UIHelpers.messageDialog("Game is terminated", "You have gained 0 points, but don't worry as " + other.getName() + " has lost points.", JOptionPane.ERROR_MESSAGE);
     }
 
     @Override
@@ -236,20 +236,25 @@ public class UI extends JFrame implements IClientListener {
         game.pong(this);
     }
 
+    @Override
+    public void isLoggedOut(boolean status) throws RemoteException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
     private enum SHIP_PLACE {
         REMOVE, ADD, SUNK
     }
 
     private static class RunnableImpl implements Runnable {
 
-        
         private final String registry;
-        
+
         public RunnableImpl(final String registry) {
             this.registry = registry;
         }
-        
+
         @Override
+        @SuppressWarnings("ResultOfObjectAllocationIgnored")
         public void run() {
             new UI(registry);
         }
@@ -263,7 +268,10 @@ public class UI extends JFrame implements IClientListener {
         super();
 
         this.registry = registry;
+        me = new Player("");
 
+        me.initShips();
+        
         setupUI();
     }
 
@@ -271,6 +279,15 @@ public class UI extends JFrame implements IClientListener {
      * Sets up the window and stuff.
      */
     private void setupUI() {
+
+        /* set up the buttons */
+        for (int j = 0; j < 10; j++) {
+            for (int k = 0; k < 10; k++) {
+                ownButtons[j][k] = new JButton();
+                ownButtons[j][k].setBackground(null);
+            }
+        }
+
         setTitle("Battleship");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setJMenuBar(createMenuBar());
@@ -363,8 +380,13 @@ public class UI extends JFrame implements IClientListener {
         for (int i = 0; i < 11; i++) {
             for (int j = 0; j < 11; j++) {
                 if (j != 0 && i != 0) {
-                    playingFields.get(n)[i - 1][j - 1].addActionListener(boardListener);
-                    boards[n].add(playingFields.get(n)[i - 1][j - 1]);
+                    if (n == 0) {
+                        ownButtons[i - 1][j - 1].addActionListener(boardListener);
+                        boards[n].add(ownButtons[i - 1][j - 1]);
+                    } else {
+                        oppButtons[i - 1][j - 1].addActionListener(boardListener);
+                        boards[n].add(oppButtons[i - 1][j - 1]);
+                    }
                 }
                 if (i == 0) {
                     if (j != 0) {
@@ -428,12 +450,22 @@ public class UI extends JFrame implements IClientListener {
         }
 
         if (s.getDirection() == IShip.DIRECTION.HORIZONTAL) {
+            if (fieldIndex == 0) {
+                for (int i = 0; i < s.getLength(); i++) {
+                    ownButtons[s.getLocStart().getX() + i][s.getLocStart().getY()].setBackground(col);
+                }
+            } else {
+                for (int i = 0; i < s.getLength(); i++) {
+                    oppButtons[s.getLocStart().getX() + i][s.getLocStart().getY()].setBackground(col);
+                }
+            }
+        } else if (fieldIndex == 0) {
             for (int i = 0; i < s.getLength(); i++) {
-                playingFields.get(fieldIndex)[s.getLocStart().getX() + i][s.getLocStart().getY()].setBackground(col);
+                ownButtons[s.getLocStart().getX()][s.getLocStart().getY() + i].setBackground(col);
             }
         } else {
             for (int i = 0; i < s.getLength(); i++) {
-                playingFields.get(fieldIndex)[s.getLocStart().getX()][s.getLocStart().getY() + i].setBackground(col);
+                oppButtons[s.getLocStart().getX()][s.getLocStart().getY() + i].setBackground(col);
             }
         }
     }
@@ -527,7 +559,7 @@ public class UI extends JFrame implements IClientListener {
                 outer:
                 for (int i = 0; i < 10; i++) {
                     for (int j = 0; j < 10; j++) {
-                        if (source == playingFields.get(0)[i][j]) {
+                        if (source == ownButtons[i][j]) {
                             // TODO : Make ship DTO here
                             Ship s = me.getShip(sindex);
                             s.setIsPlaced(true);
@@ -553,10 +585,9 @@ public class UI extends JFrame implements IClientListener {
 
         private void updateShips() {
             /* clear the button colours */
-            JButton[][] jp = playingFields.get(0);
             for (int i = 0; i < 10; i++) {
                 for (int j = 0; j < 10; j++) {
-                    jp[i][j].setBackground(Color.GRAY);
+                    ownButtons[i][j].setBackground(Color.GRAY);
                 }
             }
 
@@ -566,12 +597,12 @@ public class UI extends JFrame implements IClientListener {
                 if (s.isPlaced()) {
                     if (s.getDirection() == IShip.DIRECTION.HORIZONTAL) {
                         for (int j = 0; j < s.getLength(); j++) {
-                            jp[((int) s.getLocStart().getX()) + j][(int) s.getLocStart().getY()].setBackground(Color.YELLOW);
+                            ownButtons[((int) s.getLocStart().getX()) + j][(int) s.getLocStart().getY()].setBackground(Color.YELLOW);
                         }
                     } else {
                         /* vertical */
                         for (int j = 0; j < s.getLength(); j++) {
-                            jp[(int) s.getLocStart().getX()][((int) s.getLocStart().getY()) + j].setBackground(Color.YELLOW);
+                            ownButtons[(int) s.getLocStart().getX()][((int) s.getLocStart().getY()) + j].setBackground(Color.YELLOW);
                         }
                     }
                 }
@@ -617,8 +648,10 @@ public class UI extends JFrame implements IClientListener {
         @Override
         public void actionPerformed(ActionEvent v) {
             sindex = cshi.getSelectedIndex();
-            Ship s = me.getShip(sindex);
-            if (s.isPlaced()) {
+            System.out.println(sindex);
+            System.out.println(me.getShips()[sindex]);
+            
+            if (me.getShip(sindex).isPlaced()) {
                 if (me.getShip(sindex).getDirection() == IShip.DIRECTION.HORIZONTAL) {
                     cdir.setSelectedIndex(0);
                 } else {

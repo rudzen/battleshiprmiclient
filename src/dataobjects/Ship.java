@@ -83,7 +83,7 @@ public class Ship implements Serializable, IShip {
     /**
      * Is the ship placed on the board?
      */
-    private boolean isPlaced;
+    private boolean isPlaced = false;
     
     
     

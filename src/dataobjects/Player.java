@@ -24,6 +24,7 @@
 package dataobjects;
 
 import interfaces.IPlayer;
+import interfaces.IShip;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
@@ -43,7 +44,7 @@ public class Player implements Serializable, IPlayer {
     private int id;
     private String name;
     private String token;
-    
+
     private byte hits;
 
     /*
@@ -73,6 +74,7 @@ public class Player implements Serializable, IPlayer {
     }
 
     public Player(final Player player) {
+        this();
         name = player.getName();
         id = player.getId();
         token = player.getToken();
@@ -90,17 +92,21 @@ public class Player implements Serializable, IPlayer {
         }
     }
 
+    public void initShips() {
+        ships[0] = new Ship(0, 0, IShip.TYPE.CARRIER, IShip.DIRECTION.VERTICAL);
+        ships[1] = new Ship(0, 0, IShip.TYPE.CRUISER, IShip.DIRECTION.VERTICAL);
+        ships[2] = new Ship(0, 0, IShip.TYPE.DESTROYER, IShip.DIRECTION.VERTICAL);
+        ships[3] = new Ship(0, 0, IShip.TYPE.SUBMARINE, IShip.DIRECTION.VERTICAL);
+        ships[4] = new Ship(0, 0, IShip.TYPE.PATROL, IShip.DIRECTION.VERTICAL);
+    }
+
     @Override
     public void boardHit(final int x, final int y) {
         // TODO : Needs to be moved out of the player class !!!
-        
-        
+
         // TODO : Needs to be reworked somehow!
-        
         // TODO : Attacker and defender needs to get the right message back from here !.
-        
         // TODO : Perhaps integrate ship positions in board when the ships are known!
-        
         StringBuilder sbAttacker = new StringBuilder();
         StringBuilder sbDefender = new StringBuilder();
         switch (board[x][y]) {
@@ -112,7 +118,7 @@ public class Player implements Serializable, IPlayer {
                         // ship appears to be hit.
                         sbAttacker.append("Ship hit");
                         sbDefender.append("The attacker has hit your ").append(ships[i].getShipType());
-                        
+
                         if (!ships[i].isDead()) {
                             // ship is still alive
                             if (ships[i].isHasUpgrade() && ships[i].getUpgrades().getArmor() > 0) {
@@ -148,15 +154,11 @@ public class Player implements Serializable, IPlayer {
     public void setShip(final int index, final Ship ship) {
         ships[index] = ship;
     }
-    
+
     public Ship getShip(final int index) {
         return ships[index];
     }
-    
-    
-    
-    
-    
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder(150);
@@ -216,7 +218,6 @@ public class Player implements Serializable, IPlayer {
     }
 
     /* getters & setters */
-
     @Override
     public byte getHits() {
         return hits;
@@ -226,7 +227,7 @@ public class Player implements Serializable, IPlayer {
     public void setHits(byte hits) {
         this.hits = hits;
     }
-    
+
     @Override
     public int getId() {
         return id;

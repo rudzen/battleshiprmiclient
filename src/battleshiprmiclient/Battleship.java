@@ -26,9 +26,11 @@ public class Battleship extends UnicastRemoteObject {
         // Only required for dynamic class loading
         //System.setSecurityManager(new RMISecurityManager());
         // Check to see if a registry was specified
-        String registry = "localhost";
+        String registry;
         if (args.length >= 1) {
             registry = args[0];
+        } else {
+            registry = "localhost";
         }
 
         /* Create a new game window and register it as a listener with remote game */

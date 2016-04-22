@@ -100,4 +100,14 @@ public interface IClientListener extends Remote {
      * @throws RemoteException 
      */
     void ping() throws RemoteException;
+    
+
+    /**
+     * Sends a notification to the client that the user has been logged out.
+     * @param status The status of the log out attempt, true if logged out, false if not.
+     * @throws RemoteException 
+     */
+    void isLoggedOut(boolean status) throws RemoteException;
+    
+    
 }
