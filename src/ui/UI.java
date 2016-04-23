@@ -616,13 +616,20 @@ public class UI extends JFrame implements IClientListener {
         public void actionPerformed(ActionEvent v) {
             dindex = cdir.getSelectedIndex();
 
-            Ship ship = me.getShip(dindex);
+            Ship ship = me.getShip(sindex);
+
+            ship.setDirection(dindex == 0 ? IShip.DIRECTION.HORIZONTAL : IShip.DIRECTION.VERTICAL);
 
             ship.setIsPlaced(true);
 
             if (!me.getShip(sindex).isPlaced()) {
                 handleShip(0, me.getShip(sindex), SHIP_PLACE.ADD);
             }
+            
+            me.setShip(sindex, ship);
+
+            System.out.println(ship);
+
         }
     }
 
@@ -769,7 +776,7 @@ public class UI extends JFrame implements IClientListener {
         }
     }
 
-//Listener for Deploy Button
+    /* Listener for Deploy Button */
     private class DeployListener implements ActionListener {
 
         private final UI ui;
@@ -782,6 +789,7 @@ public class UI extends JFrame implements IClientListener {
         public void actionPerformed(ActionEvent v) {
             if (UIHelpers.confirmDialog("Are you sure you would like to deploy your ships?", "Deploy Ships?") == 0) {
                 try {
+                    System.out.println("The player to deploy : " + me);
                     game.deployShips(ui, me);
                     pack();
                     repaint();
