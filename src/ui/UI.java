@@ -256,7 +256,7 @@ public class UI extends JFrame implements IClientListener {
         @Override
         public void run() {
             UI ui = new UI(registry);
-            
+
             try {
 
                 // Registration format
@@ -271,11 +271,12 @@ public class UI extends JFrame implements IClientListener {
                 ui.getGame().registerClient(ui, UI.me);
             } catch (final RemoteException re) {
                 UIHelpers.messageDialog("RMI Error - RemoteException()", "Error", JOptionPane.ERROR_MESSAGE);
-
-            } catch (NotBoundException ex) {
+                Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, re);
+            } catch (final NotBoundException ex) {
                 UIHelpers.messageDialog("No game server available - NotBountException()", "Error", JOptionPane.ERROR_MESSAGE);
                 Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (MalformedURLException ex) {
+            } catch (final MalformedURLException ex) {
+                UIHelpers.messageDialog("No game server available - MalformedURLException()", "Error", JOptionPane.ERROR_MESSAGE);
                 Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
             }
 
@@ -300,10 +301,9 @@ public class UI extends JFrame implements IClientListener {
     }
 
     public void connect() {
-        
+
     }
-    
-    
+
     /**
      * Sets up the window and stuff.
      */
@@ -520,11 +520,11 @@ public class UI extends JFrame implements IClientListener {
     public void setGame(final IBattleShip game) {
         this.game = game;
     }
-    
+
     public IBattleShip getGame() {
         return game;
     }
-    
+
     public static boolean getGameOver() {
         return gameover;
     }
@@ -724,35 +724,37 @@ public class UI extends JFrame implements IClientListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (!Statics.isLoggedIn) {
-                UIHelpers.messageDialog("You are not logged in.", "Log in required to play.");
-            } else if (Statics.isLoggedIn && Statics.gameInProgress) {
-                int q = UIHelpers.confirmDialog("Are you sure you would like to start a new game?\nYou will loose this game!", "New Game?");
-                if (q == 0) {
+            if (UIHelpers.isConnected(game)) {
+                if (!Statics.isLoggedIn) {
+                    UIHelpers.messageDialog("You are not logged in.", "Log in required to play.");
+                } else if (Statics.isLoggedIn && Statics.gameInProgress) {
+                    int q = UIHelpers.confirmDialog("Are you sure you would like to start a new game?\nYou will loose this game!", "New Game?");
+                    if (q == 0) {
 
-                    //resets variables
-                    b.removeAll();
-                    c.removeAll();
-                    d.removeAll();
+                        //resets variables
+                        b.removeAll();
+                        c.removeAll();
+                        d.removeAll();
 
-                    Statics.yourTurn = false;
-                    Statics.gameInProgress = false;
+                        Statics.yourTurn = false;
+                        Statics.gameInProgress = false;
 
-                    ready = 0;
+                        ready = 0;
 
-                    gametype = (JMenuItem) e.getSource();
+                        gametype = (JMenuItem) e.getSource();
 
-                    if (gametype == pvp) {
+                        if (gametype == pvp) {
 
-                        // TODO : Get playerlist from server *OR* Input name of opponent!
-                        // TODO : Make better abstraction!!!!!
-                        me = new Player(user);
+                            // TODO : Get playerlist from server *OR* Input name of opponent!
+                            // TODO : Make better abstraction!!!!!
+                            me = new Player(user);
 
-                        // TODO : Ask server for opponent here !
-                        //ready=1;
+                            // TODO : Ask server for opponent here !
+                            //ready=1;
+                        }
+                        pack();
+                        repaint();
                     }
-                    pack();
-                    repaint();
                 }
             }
         }
@@ -771,19 +773,20 @@ public class UI extends JFrame implements IClientListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (gameState.isLoggedIn()) {
-                gameState.setLoggedIn(false);
+            if (UIHelpers.isConnected(game)) {
+                if (gameState.isLoggedIn()) {
+                    gameState.setLoggedIn(false);
 
-                try {
-                    // TODO : Add RMI interface to actually let the server know about it.
-                    game.logout(ui, me);
-                } catch (RemoteException ex) {
-                    Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
+                    try {
+                        // TODO : Add RMI interface to actually let the server know about it.
+                        game.logout(ui, me);
+                    } catch (RemoteException ex) {
+                        Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                } else {
+                    // TODO : Move this entire bullcrap to the login dialog and implement observer.
+                    ui.setLoginDialog(LoginDialog.login(ui.game));
                 }
-            } else {
-                // TODO : Move this entire bullcrap to the login dialog and implement observer.
-
-                ui.setLoginDialog(LoginDialog.login(ui.game));
             }
         }
     }

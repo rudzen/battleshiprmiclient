@@ -24,6 +24,7 @@
 package ui;
 
 import dataobjects.PlayerOld;
+import interfaces.IBattleShip;
 import java.awt.BorderLayout;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -89,4 +90,12 @@ public final class UIHelpers {
         return (String) JOptionPane.showInputDialog(null, text, title, JOptionPane.INFORMATION_MESSAGE, null, possibleValues, possibleValues[defaultValue]);
     }
 
+    public static boolean isConnected(final IBattleShip game) {
+        if (game == null) {
+            UIHelpers.messageDialog("Please connect to server first.\nTry restarting the application.", "Not connected to server.", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        return true;
+    }
+    
 }
