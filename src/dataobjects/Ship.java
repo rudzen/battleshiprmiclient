@@ -349,9 +349,9 @@ public class Ship implements Serializable, IShip {
 
     @Override
     public String toString() {
-        return "Ship{" + "type=" + type + ", direction=" + direction + ", upgrades=" + upgrades + ", start=" + locStart + ", end=" + locEnd + ", length=" + length + ", hasUpgrade=" + hasUpgrade + '}';
+        return "Ship{" + "type=" + type + ", direction=" + direction + ", upgrades=" + upgrades + ", locStart=" + locStart + ", locEnd=" + locEnd + ", length=" + length + ", life=" + life + ", hasUpgrade=" + hasUpgrade + ", hits=" + hits + ", isPlaced=" + isPlaced + '}';
     }
-
+    
     @Override
     public boolean isPlaced() {
         return isPlaced;

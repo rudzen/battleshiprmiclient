@@ -585,33 +585,6 @@ public class UI extends JFrame implements IClientListener {
      */
     private class DirectListener implements ActionListener {
 
-        private void updateShips() {
-            /* clear the button colours */
-            for (int i = 0; i < 10; i++) {
-                for (int j = 0; j < 10; j++) {
-                    ownButtons[i][j].setBackground(Color.GRAY);
-                }
-            }
-
-            /* redraw the ships */
-            for (int i = 0; i < me.getShips().length; i++) {
-                Ship s = me.getShip(i);
-                if (s.isPlaced()) {
-                    if (s.getDirection() == IShip.DIRECTION.HORIZONTAL) {
-                        for (int j = 0; j < s.getLength(); j++) {
-                            ownButtons[((int) s.getLocStart().getX()) + j][(int) s.getLocStart().getY()].setBackground(Color.YELLOW);
-                        }
-                    } else {
-                        /* vertical */
-                        for (int j = 0; j < s.getLength(); j++) {
-                            ownButtons[(int) s.getLocStart().getX()][((int) s.getLocStart().getY()) + j].setBackground(Color.YELLOW);
-                        }
-                    }
-                }
-            }
-
-        }
-
         @Override
         public void actionPerformed(ActionEvent v) {
             dindex = cdir.getSelectedIndex();
@@ -620,12 +593,12 @@ public class UI extends JFrame implements IClientListener {
 
             ship.setDirection(dindex == 0 ? IShip.DIRECTION.HORIZONTAL : IShip.DIRECTION.VERTICAL);
 
-            ship.setIsPlaced(true);
-
-            if (!me.getShip(sindex).isPlaced()) {
-                handleShip(0, me.getShip(sindex), SHIP_PLACE.ADD);
+            if (ship.isPlaced()) {
+                handleShip(0, ship, SHIP_PLACE.REMOVE);
             }
             
+            handleShip(0, ship, SHIP_PLACE.ADD);
+
             me.setShip(sindex, ship);
 
             System.out.println(ship);
