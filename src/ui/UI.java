@@ -23,7 +23,6 @@
  */
 package ui;
 
-import dataobjects.GameState;
 import dataobjects.PPoint;
 import dataobjects.Player;
 import dataobjects.Ship;
@@ -92,9 +91,6 @@ public class UI extends JFrame implements IClientListener {
      * player 1 = remote player
      */
     private static JPanel[] boards = new JPanel[2];
-
-    /* the game state */
-    private static GameState gameState = new GameState();
 
     /* options window frame */
     private static Options options = new Options("Options");
@@ -356,7 +352,7 @@ public class UI extends JFrame implements IClientListener {
         m.add(pvp);
 
         /* regular menu */
-        m = new JMenuItem(gameState.isLoggedIn() ? "Logout" : "Login");
+        m = new JMenuItem(Statics.isLoggedIn ? "Logout" : "Login");
         m.addActionListener(new LoginListener(this));
         menu.add(m);
         m = new JMenuItem("Options");
@@ -774,8 +770,8 @@ public class UI extends JFrame implements IClientListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             if (UIHelpers.isConnected(game)) {
-                if (gameState.isLoggedIn()) {
-                    gameState.setLoggedIn(false);
+                if (Statics.isLoggedIn) {
+                    Statics.isLoggedIn = false;
 
                     try {
                         // TODO : Add RMI interface to actually let the server know about it.

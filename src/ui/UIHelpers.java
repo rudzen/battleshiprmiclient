@@ -92,7 +92,7 @@ public final class UIHelpers {
 
     public static boolean isConnected(final IBattleShip game) {
         if (game == null) {
-            UIHelpers.messageDialog("Please connect to server first.\nTry restarting the application.", "Not connected to server.", JOptionPane.ERROR_MESSAGE);
+            messageDialog("Please connect to server first.\nTry restarting the application.", "Not connected to server.", JOptionPane.ERROR_MESSAGE);
             return false;
         }
         return true;
