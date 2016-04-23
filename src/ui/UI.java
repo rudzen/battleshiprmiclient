@@ -49,6 +49,7 @@ import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import static javax.swing.JFrame.EXIT_ON_CLOSE;
 import javax.swing.JMenu;
@@ -70,11 +71,16 @@ public class UI extends JFrame implements IClientListener {
 
     private IBattleShip game;
 
+    /* myself */
+    IClientListener clientListener;
+
     private final String registry;
 
     /* UI Stuff */
+    private JDialog loginDialog;
 
- /* the two playing field button arrays, shown on the UI when playing..
+
+    /* the two playing field button arrays, shown on the UI when playing..
        0 = this player
        1 = remote player
      */
@@ -144,12 +150,6 @@ public class UI extends JFrame implements IClientListener {
     BoardListener boardListener = new BoardListener();
     DirectListener directionListener = new DirectListener();
 
-    /* server interface through RMI */
-    IBattleShip bship;
-
-    /* myself */
-    IClientListener clientListener;
-
     private static Player me;
     private static Player other;
 
@@ -179,7 +179,7 @@ public class UI extends JFrame implements IClientListener {
     public void gameOver(boolean won) throws RemoteException {
         StringBuilder sb = new StringBuilder();
         sb.append("You have ").append(won ? "won the game over " : "lost the game to ").append(other.getName());
-        UIHelpers.messageDialog(UIHelpers.MSG_GAME_OVER, sb.toString(), JOptionPane.INFORMATION_MESSAGE);
+        UIHelpers.messageDialog(sb.toString(), UIHelpers.MSG_GAME_OVER, JOptionPane.INFORMATION_MESSAGE);
     }
 
     @Override
@@ -194,8 +194,8 @@ public class UI extends JFrame implements IClientListener {
 
     @Override
     public void opponentQuit() throws RemoteException {
-        UIHelpers.messageDialog("Game is terminated", other.getName() + " has left the game.", JOptionPane.ERROR_MESSAGE);
-        UIHelpers.messageDialog("Game is terminated", "You have gained 0 points, but don't worry as " + other.getName() + " has lost points.", JOptionPane.ERROR_MESSAGE);
+        UIHelpers.messageDialog(other.getName() + " has left the game.", "Game is terminated", JOptionPane.ERROR_MESSAGE);
+        UIHelpers.messageDialog("You have gained 0 points, but don't worry as " + other.getName() + " has lost points.", "Game is terminated", JOptionPane.ERROR_MESSAGE);
     }
 
     @Override
@@ -254,9 +254,31 @@ public class UI extends JFrame implements IClientListener {
         }
 
         @Override
-        @SuppressWarnings("ResultOfObjectAllocationIgnored")
         public void run() {
-            new UI(registry);
+            UI ui = new UI(registry);
+            
+            try {
+
+                // Registration format
+                //registry_hostname :port/service
+                // Note the :port field is optional
+                String registration = "rmi://" + registry + "/Battleship";
+                /* Lookup the service in the registry, and obtain a remote service */
+                Remote remoteService = Naming.lookup(registration);
+                ui.setGame((IBattleShip) remoteService);
+
+                ui.getGame().fireShot(3, 5, ui, me);
+                ui.getGame().registerClient(ui, UI.me);
+            } catch (final RemoteException re) {
+                UIHelpers.messageDialog("RMI Error - RemoteException()", "Error", JOptionPane.ERROR_MESSAGE);
+
+            } catch (NotBoundException ex) {
+                UIHelpers.messageDialog("No game server available - NotBountException()", "Error", JOptionPane.ERROR_MESSAGE);
+                Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
         }
     }
 
@@ -277,6 +299,11 @@ public class UI extends JFrame implements IClientListener {
         setupUI();
     }
 
+    public void connect() {
+        
+    }
+    
+    
     /**
      * Sets up the window and stuff.
      */
@@ -336,7 +363,7 @@ public class UI extends JFrame implements IClientListener {
         m.addActionListener(new OptionsListener(this));
         menu.add(m);
         m = new JMenuItem("Exit");
-        m.addActionListener(new ExitListener());
+        m.addActionListener(new ExitListener(this));
         menu.add(m);
         return menuBar;
     }
@@ -490,6 +517,14 @@ public class UI extends JFrame implements IClientListener {
         return Options.COLOURS[Options.SHIP_COLOUR.getSelectedIndex()];
     }
 
+    public void setGame(final IBattleShip game) {
+        this.game = game;
+    }
+    
+    public IBattleShip getGame() {
+        return game;
+    }
+    
     public static boolean getGameOver() {
         return gameover;
     }
@@ -502,13 +537,14 @@ public class UI extends JFrame implements IClientListener {
         return ready;
     }
 
-//    public static void setData(JLabel x) {
-//        data = x;
-//    }
-//
-//    public static JLabel getData() {
-//        return data;
-//    }
+    public JDialog getLoginDialog() {
+        return loginDialog;
+    }
+
+    public void setLoginDialog(JDialog loginDialog) {
+        this.loginDialog = loginDialog;
+    }
+
     public static void setDeploy(boolean k) {
         deploy.setEnabled(k);
     }
@@ -543,6 +579,24 @@ public class UI extends JFrame implements IClientListener {
 
     public static int getDIndex() {
         return dindex;
+    }
+
+    public static void updateUser(final String name, final String pw, final IBattleShip game) {
+        if (name != null && !"".equals(name)) {
+            if (me != null) {
+                user = name;
+                me.setName(user);
+            } else {
+                user = name;
+                me = new Player(name);
+            }
+            try {
+                Statics.isLoggedIn = game.login(user, pw);
+            } catch (RemoteException ex) {
+                Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+        }
     }
 
     /**
@@ -589,19 +643,19 @@ public class UI extends JFrame implements IClientListener {
         public void actionPerformed(ActionEvent v) {
             dindex = cdir.getSelectedIndex();
 
-            Ship ship = me.getShip(sindex);
+            final Ship ship = me.getShip(sindex);
 
             ship.setDirection(dindex == 0 ? IShip.DIRECTION.HORIZONTAL : IShip.DIRECTION.VERTICAL);
 
             if (ship.isPlaced()) {
                 handleShip(0, ship, SHIP_PLACE.REMOVE);
             }
-            
+
             handleShip(0, ship, SHIP_PLACE.ADD);
 
             me.setShip(sindex, ship);
 
-            System.out.println(ship);
+            System.out.println("Ship placement changed for : " + ship);
 
         }
     }
@@ -612,11 +666,25 @@ public class UI extends JFrame implements IClientListener {
      */
     private class ExitListener implements ActionListener {
 
+        private final UI ui;
+
+        public ExitListener(final UI ui) {
+            this.ui = ui;
+        }
+
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (UIHelpers.confirmDialog("Are you sure you would like to exit Battleship?", "Exit?") == 0) {
-                // TODO : Add sending defeat to server + log out.
-                System.exit(0);
+            if (UIHelpers.confirmDialog("Are you sure you would like to exit Battleship?\nYou will loose points", "Exit?") == 0) {
+                try {
+                    // TODO : Add forefeit command in game object
+
+                    UIHelpers.messageDialog(game.logout(ui, me) ? "You have been logged out." : "Failed to log out, server could be unresponsive.", "Logged out");
+                } catch (RemoteException ex) {
+                    Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
+                } finally {
+                    ui.dispose();
+                    System.exit(0);
+                }
             }
         }
     }
@@ -715,36 +783,7 @@ public class UI extends JFrame implements IClientListener {
             } else {
                 // TODO : Move this entire bullcrap to the login dialog and implement observer.
 
-                LoginDialog.login();
-
-                final String name;
-
-                // TODO : Get the username from the login dialog here!
-                user = UIHelpers.getPlayerName();
-                me = new Player(user);
-
-                try {
-
-                    // Registration format
-                    //registry_hostname :port/service
-                    // Note the :port field is optional
-                    String registration = "rmi://" + registry + "/Battleship";
-                    /* Lookup the service in the registry, and obtain a remote service */
-                    Remote remoteService = Naming.lookup(registration);
-                    game = (IBattleShip) remoteService;
-
-                    game.fireShot(3, 5, ui, me);
-                    game.registerClient(ui, me);
-                } catch (final RemoteException re) {
-                    UIHelpers.messageDialog("Error", "RMI Error - RemoteException()", JOptionPane.ERROR_MESSAGE);
-
-                } catch (NotBoundException ex) {
-                    UIHelpers.messageDialog("Error", "No game server available - NotBountException()", JOptionPane.ERROR_MESSAGE);
-                    Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (MalformedURLException ex) {
-                    Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
-                }
-
+                ui.setLoginDialog(LoginDialog.login(ui.game));
             }
         }
     }
@@ -784,14 +823,16 @@ public class UI extends JFrame implements IClientListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            final UI ui = weakReference.get();
-            if (ui != null) {
-                if (Options.opts == null) {
-                    options.setup(ui);
-                } else {
-                    options.setVisible(true);
-                }
-            }
+            UIHelpers.messageDialog("This feature has been disabled until further notice.", "Options");
+
+//            final UI ui = weakReference.get();
+//            if (ui != null) {
+//                if (Options.opts == null) {
+//                    options.setup(ui);
+//                } else {
+//                    options.setVisible(true);
+//                }
+//            }
         }
     }
 

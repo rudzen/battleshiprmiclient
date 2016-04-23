@@ -1,5 +1,6 @@
 package ui;
 
+import interfaces.IBattleShip;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 
@@ -17,9 +18,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
-import dataobjects.PWdto;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.ProgressBar;
 
 /**
  * Simple login dialog.<br>
@@ -35,20 +33,24 @@ public final class LoginDialog extends JDialog {
     private static JPasswordField passwordField;
     private static JTextField textField;
     private static JButton okButton;
-    private static final JProgressBar progressBar = new JProgressBar();;
+    private static final JProgressBar progressBar = new JProgressBar();
 
-    public static PWdto pw = new PWdto();
+    ;
+
     
-    public static void login() {
+    
+    public static JDialog login(final IBattleShip game) {
         try {
-            LoginDialog dialog = new LoginDialog();
+            LoginDialog dialog = new LoginDialog(game);
             dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             dialog.setVisible(true);
+            return dialog;
         } catch (Exception e) {
         }
+        return null;
     }
 
-    public LoginDialog() {
+    public LoginDialog(final IBattleShip game) {
         super();
         setAlwaysOnTop(true);
         setType(Type.POPUP);
@@ -92,7 +94,7 @@ public final class LoginDialog extends JDialog {
         okButton = new JButton("OK");
         okButton.setActionCommand("OK");
         okButton.setEnabled(false);
-        okButton.addActionListener(new OkActionImpl());
+        okButton.addActionListener(new OkActionImpl(game));
         buttonPane.add(okButton);
         getRootPane().setDefaultButton(okButton);
         JButton cancelButton = new JButton("Cancel");
@@ -132,6 +134,12 @@ public final class LoginDialog extends JDialog {
 
     private static class OkActionImpl implements ActionListener {
 
+        private IBattleShip game;
+
+        public OkActionImpl(final IBattleShip game) {
+            this.game = game;
+        }
+
         @Override
         public void actionPerformed(final ActionEvent e) {
             /* this is where the dialog will send the information to the server. */
@@ -139,17 +147,10 @@ public final class LoginDialog extends JDialog {
             okButton.setEnabled(false);
 
             progressBar.setVisible(true);
-            
-            pw.setU(textField.getText());
-            pw.setP(new String(passwordField.getPassword()));
-            
-            login();
-            
-            
-            
-            
-            
-//            progressBar.setVisible(true);
+
+            UI.updateUser(textField.getText(), new String(passwordField.getPassword()), game);
+
+            progressBar.setVisible(true);
 
             /* the text is concatted and BASE64 encoded before, as it will be decoded on the server side */
 //            if (Login.attempt_login(textField.getText().trim(), new String(passwordField.getPassword()))) {

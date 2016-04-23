@@ -117,6 +117,7 @@ public class Options extends JFrame {
             if (ui != null) {
                 for (int i = 0; i < 10; i++) {
                     for (int j = 0; j < 10; j++) {
+                        
                         if (ui.get[0].getBboard(i, j).getBackground() == COLOURS[prevcolor]) {
                             PLAYERS[0].setBboard(i, j, COLOURS[SHIP_COLOUR.getSelectedIndex()]);
                         }
