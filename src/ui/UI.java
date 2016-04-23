@@ -44,7 +44,6 @@ import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
@@ -74,6 +73,7 @@ public class UI extends JFrame implements IClientListener {
     private final String registry;
 
     /* UI Stuff */
+
  /* the two playing field button arrays, shown on the UI when playing..
        0 = this player
        1 = remote player
@@ -233,7 +233,7 @@ public class UI extends JFrame implements IClientListener {
 
     @Override
     public void ping() throws RemoteException {
-        game.pong(this);
+        game.pong(this, me);
     }
 
     @Override
@@ -270,8 +270,10 @@ public class UI extends JFrame implements IClientListener {
         this.registry = registry;
         me = new Player("");
 
+        System.out.println("Registry : " + registry);
+
         me.initShips();
-        
+
         setupUI();
     }
 
@@ -362,7 +364,7 @@ public class UI extends JFrame implements IClientListener {
         titleBorder = BorderFactory.createTitledBorder("Direction");
         cdir.setBorder(titleBorder);
         deploy.setEnabled(false);
-        deploy.addActionListener(new DeployListener());
+        deploy.addActionListener(new DeployListener(this));
         input.add(deploy);
         return input;
     }
@@ -650,7 +652,7 @@ public class UI extends JFrame implements IClientListener {
             sindex = cshi.getSelectedIndex();
             System.out.println(sindex);
             System.out.println(me.getShips()[sindex]);
-            
+
             if (me.getShip(sindex).isPlaced()) {
                 if (me.getShip(sindex).getDirection() == IShip.DIRECTION.HORIZONTAL) {
                     cdir.setSelectedIndex(0);
@@ -726,7 +728,7 @@ public class UI extends JFrame implements IClientListener {
 
                 try {
                     // TODO : Add RMI interface to actually let the server know about it.
-                    game.logout(ui);
+                    game.logout(ui, me);
                 } catch (RemoteException ex) {
                     Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -751,8 +753,8 @@ public class UI extends JFrame implements IClientListener {
                     Remote remoteService = Naming.lookup(registration);
                     game = (IBattleShip) remoteService;
 
-                    game.fireShot(3, 5, ui);
-                    game.registerClient(ui);
+                    game.fireShot(3, 5, ui, me);
+                    game.registerClient(ui, me);
                 } catch (final RemoteException re) {
                     UIHelpers.messageDialog("Error", "RMI Error - RemoteException()", JOptionPane.ERROR_MESSAGE);
 
@@ -770,30 +772,27 @@ public class UI extends JFrame implements IClientListener {
 //Listener for Deploy Button
     private class DeployListener implements ActionListener {
 
+        private final UI ui;
+
+        public DeployListener(final UI ui) {
+            this.ui = ui;
+        }
+
         @Override
         public void actionPerformed(ActionEvent v) {
             if (UIHelpers.confirmDialog("Are you sure you would like to deploy your ships?", "Deploy Ships?") == 0) {
-
-                // TODO : Send the idiotic stuff to the server, aparently someone thought that was a good idea..
-                //        .. Well, have fun...
-                /*
-                carrierPlaced = battleshipPlaced = submarinePlaced = destroyerPlaced = patrolPlaced = 0;
-                d.remove(input);
-                b.add(players[0].getMyBoard(), BorderLayout.WEST);
-                ready = 1;
-                c.add(autoBoard(1, 0), BorderLayout.EAST);
-                d.add(new JPanel(), BorderLayout.CENTER);
-                if (!"Online".equals(selectedValue)) {
-                    whoGoesFirst();
+                try {
+                    game.deployShips(ui, me);
+                    pack();
+                    repaint();
+                } catch (RemoteException ex) {
+                    Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                pack();
-                repaint();
-                 */
             }
         }
     }
 
-//Listener for Options menu
+    /* Listener for Options menu */
     public class OptionsListener implements ActionListener {
 
         private final WeakReference<UI> weakReference;

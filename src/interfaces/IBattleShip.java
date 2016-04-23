@@ -15,25 +15,21 @@ public interface IBattleShip extends Remote {
     /**
      * Registers a client at the server.
      * @param clientInterface The client's interface.
+     * @param player The player
      * @return true if okay, else false.
      * @throws RemoteException 
      */
-    boolean registerClient(IClientListener clientInterface) throws RemoteException;
+    boolean registerClient(IClientListener clientInterface, Player player) throws RemoteException;
     
     /**
      * Removes a client registration at the server.
      * @param clientInterface The client interface to remove
+     * @param player The player
      * @return true if removed, otherwise false.
      * @throws RemoteException 
      */
-    boolean removeClient(IClientListener clientInterface) throws RemoteException;
+    boolean removeClient(IClientListener clientInterface, Player player) throws RemoteException;
 
-    /**
-     * Get server information about me!
-     * @return The player object for the client.
-     * @throws RemoteException 
-     */
-    PlayerOld getMe() throws RemoteException; // PlayerDTO
     
     /**
      * Get the opponent information object.
@@ -47,9 +43,10 @@ public interface IBattleShip extends Remote {
      * @param x the X
      * @param y the Y
      * @param client Who the fuck is actually firering! :-)
+     * @param player The player shooting
      * @throws RemoteException 
      */
-    void fireShot(int x, int y, IClientListener client) throws RemoteException;
+    void fireShot(int x, int y, IClientListener client, Player player) throws RemoteException;
     
     /**
      * Login attempt
@@ -63,16 +60,28 @@ public interface IBattleShip extends Remote {
     /**
      * Logs the user out from the system
      * @param client The client to log out
+     * @param player The Player
      * @return true if logged out, false if failed (should NEVER happend!)
      * @throws RemoteException Meh..
      */
-    boolean logout(IClientListener client) throws RemoteException;
+    boolean logout(IClientListener client, Player player) throws RemoteException;
     
     /**
      * Response to client callback method ping().
      * @param client The client which is responding.
+     * @param player The player
      * @throws RemoteException 
      */
-    void pong(IClientListener client) throws RemoteException;
+    void pong(IClientListener client, Player player) throws RemoteException;
+    
+    /**
+     * Deploy set-up of ships to the server.
+     * @param client The client
+     * @param player The player
+     * @throws RemoteException 
+     */
+    void deployShips(IClientListener client, Player player) throws RemoteException;
+
+    
     
 }
