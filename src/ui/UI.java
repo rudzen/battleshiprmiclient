@@ -143,7 +143,7 @@ public class UI extends JFrame implements IClientListener {
     private static int dindex;
 
     /* and the local action listeners! */
-    BoardListener boardListener = new BoardListener();
+    //BoardListener boardListener = new BoardListener();
     DirectListener directionListener = new DirectListener();
 
     private static Player me;
@@ -310,6 +310,7 @@ public class UI extends JFrame implements IClientListener {
             for (int k = 0; k < 10; k++) {
                 ownButtons[j][k] = new JButton();
                 ownButtons[j][k].setBackground(null);
+                ownButtons[j][k].addActionListener(new BoardListener(j, k));
             }
         }
 
@@ -325,9 +326,8 @@ public class UI extends JFrame implements IClientListener {
         inputpanel = shipinput();
         d.add(inputpanel, BorderLayout.NORTH);
 
-        statusBar = new JPanel();
-        d.add(statusBar);
-
+        //statusBar = new JPanel();
+        //d.add(statusBar);
         pack();
         setVisible(true);
     }
@@ -406,10 +406,10 @@ public class UI extends JFrame implements IClientListener {
             for (int j = 0; j < 11; j++) {
                 if (j != 0 && i != 0) {
                     if (n == 0) {
-                        ownButtons[i - 1][j - 1].addActionListener(boardListener);
+                        //ownButtons[i - 1][j - 1].addActionListener(boardListener);
                         boards[n].add(ownButtons[i - 1][j - 1]);
                     } else {
-                        oppButtons[i - 1][j - 1].addActionListener(boardListener);
+                        //oppButtons[i - 1][j - 1].addActionListener(boardListener);
                         boards[n].add(oppButtons[i - 1][j - 1]);
                     }
                 }
@@ -461,7 +461,7 @@ public class UI extends JFrame implements IClientListener {
      *
      * @param s The ship to remove
      */
-    private void handleShip(final int fieldIndex, final Ship s, final SHIP_PLACE place) {
+    private static void handleShip(final int x, final int y, final int fieldIndex, final Ship s, final SHIP_PLACE place) {
         Color col;
         if (place == SHIP_PLACE.ADD) {
             col = Color.YELLOW;
@@ -474,23 +474,28 @@ public class UI extends JFrame implements IClientListener {
             col = Color.BLACK;
         }
 
-        if (s.getDirection() == IShip.DIRECTION.HORIZONTAL) {
+        final IShip.DIRECTION shipDirection = s.getDirection();
+        final PPoint locStart = s.getLocStart();
+        
+        if (shipDirection == IShip.DIRECTION.HORIZONTAL) {
             if (fieldIndex == 0) {
                 for (int i = 0; i < s.getLength(); i++) {
-                    ownButtons[s.getLocStart().getX() + i][s.getLocStart().getY()].setBackground(col);
+                    ownButtons[locStart.getX() + i][locStart.getY()].setBackground(col);
                 }
             } else {
                 for (int i = 0; i < s.getLength(); i++) {
-                    oppButtons[s.getLocStart().getX() + i][s.getLocStart().getY()].setBackground(col);
+                    oppButtons[locStart.getX() + i][locStart.getY()].setBackground(col);
                 }
             }
-        } else if (fieldIndex == 0) {
-            for (int i = 0; i < s.getLength(); i++) {
-                ownButtons[s.getLocStart().getX()][s.getLocStart().getY() + i].setBackground(col);
-            }
-        } else {
-            for (int i = 0; i < s.getLength(); i++) {
-                oppButtons[s.getLocStart().getX()][s.getLocStart().getY() + i].setBackground(col);
+        } else if (shipDirection == IShip.DIRECTION.VERTICAL) {
+            if (fieldIndex == 0) {
+                for (int i = 0; i < s.getLength(); i++) {
+                    ownButtons[locStart.getX()][locStart.getY() + i].setBackground(col);
+                }
+            } else {
+                for (int i = 0; i < s.getLength(); i++) {
+                    oppButtons[locStart.getX()][locStart.getY() + i].setBackground(col);
+                }
             }
         }
     }
@@ -598,34 +603,36 @@ public class UI extends JFrame implements IClientListener {
     /**
      * The listener for the buttons on the board. Purpose : Ship placement
      */
-    private class BoardListener implements ActionListener {
+    private static class BoardListener implements ActionListener {
+
+        private final int x;
+        private final int y;
+
+        public BoardListener(final int x, final int y) {
+            this.x = x;
+            this.y = y;
+        }
 
         @Override
         public void actionPerformed(ActionEvent v) {
             if (ready == 0) {
-                if (me.getShip(sindex).isPlaced()) {
-                    handleShip(0, me.getShip(sindex), SHIP_PLACE.REMOVE);
-                }
-
-                Object source = v.getSource();
-                outer:
-                for (int i = 0; i < 10; i++) {
-                    for (int j = 0; j < 10; j++) {
-                        if (source == ownButtons[i][j]) {
-                            // TODO : Make ship DTO here
-                            Ship s = me.getShip(sindex);
-                            s.setIsPlaced(true);
-                            s.setDirection(dindex == 0 ? IShip.DIRECTION.HORIZONTAL : IShip.DIRECTION.VERTICAL);
-                            s.setLocStart(new PPoint(i, j));
-                            s.setLocEnd(Ship.setEnd(s.getLocStart(), s.getLength(), s.getDirection()));
-
-                        }
-
-                        break outer;
+                System.out.println("Command : " + v.getActionCommand());
+                Ship s = me.getShip(sindex);
+                if (s.isPlaced()) {
+                    /* since the ship appears to be placed, just remove it if user clicked another button */
+                    if (s.getLocStart().getX() != x && s.getLocStart().getY() != y) {
+                        handleShip(x, y, 0, s, SHIP_PLACE.REMOVE);
                     }
+                } else {
+                    s.setIsPlaced(true);
+                    s.setLocStart(new PPoint(x, y));
+                    s.setDirection(dindex == 0 ? IShip.DIRECTION.HORIZONTAL : IShip.DIRECTION.VERTICAL);
+                    s.setLocEnd(Ship.setEnd(s.getLocStart(), s.getLength(), s.getDirection()));
                 }
+                handleShip(x, y, 0, s, SHIP_PLACE.ADD);
+                /* assign the reference back to player as this class is static */
+                me.setShip(sindex, s);
             }
-            handleShip(0, me.getShip(sindex), SHIP_PLACE.ADD);
         }
     }
 
@@ -644,10 +651,10 @@ public class UI extends JFrame implements IClientListener {
             ship.setDirection(dindex == 0 ? IShip.DIRECTION.HORIZONTAL : IShip.DIRECTION.VERTICAL);
 
             if (ship.isPlaced()) {
-                handleShip(0, ship, SHIP_PLACE.REMOVE);
+                handleShip(ship.getLocStart().getX(), ship.getLocStart().getY(), 0, ship, SHIP_PLACE.REMOVE);
             }
 
-            handleShip(0, ship, SHIP_PLACE.ADD);
+            handleShip(ship.getLocStart().getX(), ship.getLocStart().getY(), 0, ship, SHIP_PLACE.ADD);
 
             me.setShip(sindex, ship);
 
