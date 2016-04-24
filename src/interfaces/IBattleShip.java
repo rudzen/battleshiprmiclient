@@ -1,7 +1,6 @@
 package interfaces;
 
 import dataobjects.Player;
-import dataobjects.PlayerOld;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
@@ -82,6 +81,14 @@ public interface IBattleShip extends Remote {
      */
     void deployShips(IClientListener client, Player player) throws RemoteException;
 
+    
+    /**
+     * Requests a list of players currently available to play against.
+     * @param client Who the fuck am i?
+     * @param player This is my player object.
+     * @throws RemoteException 
+     */
+    void requestPlayers(IClientListener client, Player player) throws RemoteException;
     
     
 }

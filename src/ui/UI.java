@@ -43,6 +43,7 @@ import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
@@ -160,16 +161,6 @@ public class UI extends JFrame implements IClientListener {
         ownButtons[x][y].setBackground(hit ? Color.YELLOW : Color.CYAN);
     }
 
-    @Override
-    public void shipSunk(int x, int y, int direction, int len) throws RemoteException {
-        // TODO : Implement.
-    }
-
-    @Override
-    public void setBoard(int[][] board) throws RemoteException {
-        me.setBoard(board);
-        // TODO : Something else here?
-    }
 
     @Override
     public void gameOver(boolean won) throws RemoteException {
@@ -219,6 +210,17 @@ public class UI extends JFrame implements IClientListener {
     @Override
     public void isLoggedOut(boolean status) throws RemoteException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void shipSunk(Ship ship) throws RemoteException {
+        UIHelpers.messageDialog("Your " + ship.getShipType() + " has been sunk by " + other.getName(), "Ship sunk!!!!");
+        colorShip(ship.getLocStart().getX(), ship.getLocStart().getY(), ship, Color.BLACK);
+    }
+
+    @Override
+    public void playerList(ArrayList<Player> players) throws RemoteException {
+        System.out.println("Player list received : " + players);
     }
 
     private enum SHIP_PLACE {
@@ -441,7 +443,8 @@ public class UI extends JFrame implements IClientListener {
     3 = shot, hit, armor rating
     4 = ship location
     5 = ship, sunk
-         */ if (fieldIndex == 0) {
+         */
+        if (fieldIndex == 0) {
             for (int i = 0; i < 10; i++) {
                 for (int j = 0; j < 10; j++) {
                     switch (board[i][j]) {
@@ -599,7 +602,7 @@ public class UI extends JFrame implements IClientListener {
         if (place == SHIP_PLACE.ADD) {
             /* if the ship is to be added */
 
-            /* update the ship with the new coordinated */
+ /* update the ship with the new coordinated */
             s.setLocStart(new PPoint(x, y));
             s.setLocEnd(Ship.setEnd(s.getLocStart(), s.getLength(), s.getDirection()));
 

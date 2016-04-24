@@ -1,8 +1,10 @@
 package interfaces;
 
 import dataobjects.Player;
+import dataobjects.Ship;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 
 /**
  * Server -> Client callback interface.
@@ -24,21 +26,10 @@ public interface IClientListener extends Remote {
     /**
      * Ship has been sunk.
      *
-     * @param x The X start coordinate
-     * @param y The Y start coordinate
-     * @param direction The direction where : 1 = horizontal, 2 = vertical
-     * @param len The length of the ship that has been sunk
+     * @param ship the ship that are sunk
      * @throws RemoteException
      */
-    void shipSunk(final int x, final int y, final int direction, final int len) throws RemoteException;
-
-    /**
-     * Set the board.
-     *
-     * @param board the board.
-     * @throws java.rmi.RemoteException
-     */
-    void setBoard(final int[][] board) throws RemoteException;
+    void shipSunk(final Ship ship) throws RemoteException;
 
     /**
      * The game is over
@@ -100,7 +91,6 @@ public interface IClientListener extends Remote {
      * @throws RemoteException 
      */
     void ping() throws RemoteException;
-    
 
     /**
      * Sends a notification to the client that the user has been logged out.
@@ -109,5 +99,11 @@ public interface IClientListener extends Remote {
      */
     void isLoggedOut(boolean status) throws RemoteException;
     
+    /**
+     * Receive a list of players to pick between
+     * @param players The list of players from which you can play against.
+     * @throws RemoteException 
+     */
+    void playerList(ArrayList<Player> players) throws RemoteException;
     
 }
