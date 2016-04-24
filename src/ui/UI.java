@@ -376,7 +376,7 @@ public class UI extends JFrame implements IClientListener {
     public JPanel shipinput() {
         input = new JPanel();
         mbar.setText("Select a ship, its front position and direction.");
-        mbar.setFont(new Font("Courier New", Font.BOLD, 14));
+        mbar.setFont(new Font("Ariel", Font.BOLD, 14));
         mbar.setEditable(false);
         //input.add(mbar);
         cshi.setSelectedIndex(0);
@@ -392,6 +392,7 @@ public class UI extends JFrame implements IClientListener {
         cdir.setBorder(titleBorder);
         deploy.setEnabled(false);
         deploy.addActionListener(new DeployListener(this));
+        deploy.setAlignmentX(CENTER_ALIGNMENT);
         input.add(deploy);
         return input;
     }
@@ -451,6 +452,12 @@ public class UI extends JFrame implements IClientListener {
         d.add(UI.inputpanel, BorderLayout.NORTH);
     }
 
+
+    private static boolean contains(int what, int ... array) {
+        for (int i : array) if (what == i) return true;
+        return false;
+    }
+    
     /**
      * Helper function to determin if the location is valid..
      *
@@ -460,7 +467,40 @@ public class UI extends JFrame implements IClientListener {
      * @return true if possible, otherwise false
      */
     private static boolean isValidPos(final int x, final int y, final Ship s) {
-        boolean val = ((s.getDirection() == IShip.DIRECTION.HORIZONTAL ? x : y) + s.getLength() <= ownButtons.length);
+        Ship otherShip;
+        IShip.DIRECTION dir = s.getDirection();
+        
+        final int lower = dir == IShip.DIRECTION.HORIZONTAL ? x : y;
+        final int upper = lower + s.getLength();
+        
+        /* determin if the ship is placed within the board boundries */
+        boolean val = upper <= ownButtons.length;
+        
+        /* determin if we hit another ship */
+        for (int i = 0; i < me.getShips().length; i++) {
+            otherShip = me.getShips()[i];
+            if (s.getType() != otherShip.getType() && otherShip.isPlaced()) {
+                System.out.println("Validation : " + s.getShipType() + " v " + otherShip.getShipType());
+                if (otherShip.getDirection() == IShip.DIRECTION.HORIZONTAL) {
+                    for (int j = otherShip.getLocStart().getX(); j < otherShip.getLocEnd().getX(); j++) {
+                        if (contains(j, x, y)) {
+                            val = false;
+                            break;
+                        }
+                    }
+                } else {
+                    for (int j = otherShip.getLocStart().getY(); j < otherShip.getLocEnd().getY(); j++) {
+                        if (contains(j, x, y)) {
+                            val = false;
+                            break;
+                        }
+                    }
+                }
+                if (!val) {
+                    break;
+                }
+            }
+        }
         System.out.println("Position is valid : " + val);
         return val;
     }
@@ -493,24 +533,17 @@ public class UI extends JFrame implements IClientListener {
      * @param s The ship to handle
      */
     private static void handleShip(final int x, final int y, final int fieldIndex, final Ship s, final SHIP_PLACE place) {
-        Color col;
-        PPoint locStart = s.getLocStart(); // the location start
-        final boolean isPlaced = s.isPlaced(); // is it placed ?
-        IShip.DIRECTION dir = s.getDirection(); // direction of the ship
 
         colorShip(x, y, s, null);
+        
+        System.out.println("Ship placement at : [" + x + ", " + y + "] lenght = " + s.getLength());
         
         if (place == SHIP_PLACE.ADD) {
             /* if the ship is to be added */
 
- /* remove the old ship on the board before re-drawing the new one. */
-//            if (isPlaced) {
-//                colorShip(x, y, s, null);
-//            }
-
             /* update the ship with the new coordinated */
             s.setLocStart(new PPoint(x, y));
-            s.setLocEnd(Ship.setEnd(locStart, s.getLength(), dir));
+            s.setLocEnd(Ship.setEnd(s.getLocStart(), s.getLength(), s.getDirection()));
 
             /* re-draw the ship with the new coordinated */
             colorShip(x, y, s, Color.YELLOW);
@@ -523,8 +556,6 @@ public class UI extends JFrame implements IClientListener {
         } else if (place == SHIP_PLACE.REMOVE) {
             /* if the ship is to be removed */
             s.setIsPlaced(false);
-
-            //colorShip(x, y, s, null);
         }
 
     }

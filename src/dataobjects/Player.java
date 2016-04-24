@@ -98,6 +98,9 @@ public class Player implements Serializable, IPlayer {
         ships[2] = new Ship(0, 2, IShip.TYPE.DESTROYER, IShip.DIRECTION.VERTICAL);
         ships[3] = new Ship(0, 3, IShip.TYPE.SUBMARINE, IShip.DIRECTION.VERTICAL);
         ships[4] = new Ship(0, 4, IShip.TYPE.PATROL, IShip.DIRECTION.VERTICAL);
+        for (Ship s : ships) {
+            s.setIsPlaced(false);
+        }
     }
 
     @Override
