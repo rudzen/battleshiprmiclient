@@ -172,36 +172,36 @@ public class Ship implements Serializable, IShip {
         hits[location] = 1;
     }
 
-//    /**
-//     * Determines if the ship has been hit.<br>
-//     * The ship will loose 1 life if hit.
-//     *
-//     * @param x The X coordinate to check
-//     * @param y The Y coordinate to check
-//     * @return true if ship is hit, otherwise false.
-//     */
-//    public boolean isHit(byte x, byte y) {
-//        /* check off the bat for direct start & end hit first! */
-//        if (x == locStart.getX() && y == locStart.getY()) {
-//            hit(0);
-//            return true;
-//        } else if (x == locEnd.getX() && y == locEnd.getY()) {
-//            hit(length - 1);
-//            return true;
-//        }
-//
-//        // TODO :: WHAT WHAT!!!
-//        if (direction == DIRECTION.HORIZONTAL) {
-//            if (x + locStart.getX() < locEnd.getX()) {
-//                hit(locEnd.getX() - x);
-//                return true;
-//            }
-//        } else if (y + locStart.getY() < locEnd.getY()) {
-//            hit(locEnd.getY() - y);
-//            return true;
-//        }
-//        return false;
-//    }
+    /**
+     * Determines if the ship has been hit.<br>
+     * The ship will loose 1 life if hit.
+     *
+     * @param x The X coordinate to check
+     * @param y The Y coordinate to check
+     * @return true if ship is hit, otherwise false.
+     */
+    public boolean isHit(byte x, byte y) {
+        /* check off the bat for direct start & end hit first! */
+        if (x == locStart.getX() && y == locStart.getY()) {
+            hit(0);
+            return true;
+        } else if (x == locEnd.getX() && y == locEnd.getY()) {
+            hit(length - 1);
+            return true;
+        }
+
+        // TODO :: WHAT WHAT!!!
+        if (direction == DIRECTION.HORIZONTAL) {
+            if (x + locStart.getX() < locEnd.getX()) {
+                hit(locEnd.getX() - x);
+                return true;
+            }
+        } else if (y + locStart.getY() < locEnd.getY()) {
+            hit(locEnd.getY() - y);
+            return true;
+        }
+        return false;
+    }
 
     /**
      * Overload of {@link #isHit(byte x, byte y)} to check for hit with
@@ -235,15 +235,17 @@ public class Ship implements Serializable, IShip {
      * @return The length of the ship
      */
     private static int getLen(final TYPE type) {
+        final int returnValue;
         if (type == TYPE.DESTROYER || type == TYPE.SUBMARINE) {
-            return 3;
+            returnValue = 3;
         } else if (type == TYPE.CARRIER) {
-            return 5;
+            returnValue = 5;
         } else if (type == TYPE.CRUISER) {
-            return 4;
+            returnValue = 4;
         } else { // patrol boat
-            return 2;
+            returnValue = 2;
         }
+        return returnValue;
     }
 
     /**

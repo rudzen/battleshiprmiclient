@@ -37,6 +37,7 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import static java.awt.image.ImageObserver.WIDTH;
 import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
@@ -154,6 +155,9 @@ public class UI extends JFrame implements IClientListener {
     protected static String user, user2;
     protected static boolean gameover;
 
+    
+    
+    
     /* RMI callback methods */
     @Override
     public void shotFired(int x, int y, boolean hit) throws RemoteException {
@@ -306,11 +310,11 @@ public class UI extends JFrame implements IClientListener {
     private void setupUI() {
 
         /* set up the buttons */
-        for (int j = 0; j < 10; j++) {
-            for (int k = 0; k < 10; k++) {
+        for (int k = 0; k < ownButtons.length; k++) {
+            for (int j = 0; j < ownButtons.length; j++) {
                 ownButtons[j][k] = new JButton();
                 ownButtons[j][k].setBackground(null);
-                ownButtons[j][k].addActionListener(new BoardListener(j, k));
+                ownButtons[j][k].addActionListener(new BoardListener(game, this, j, k));
             }
         }
 
@@ -448,56 +452,79 @@ public class UI extends JFrame implements IClientListener {
     }
 
     /**
-     * Places a ship from the board
+     * Helper function to determin if the location is valid..
      *
-     * @param s The ship to add
+     * @param x the X location clicked
+     * @param y the Y location clicked
+     * @param s the Ship
+     * @return true if possible, otherwise false
      */
-    private void placeShip(final int fieldIndex, final Ship s) {
-
+    private static boolean isValidPos(final int x, final int y, final Ship s) {
+        boolean val = ((s.getDirection() == IShip.DIRECTION.HORIZONTAL ? x : y) + s.getLength() <= ownButtons.length);
+        System.out.println("Position is valid : " + val);
+        return val;
     }
 
     /**
-     * Handles ship on the board
+     * Helper function to draw the ship on the buttons
      *
-     * @param s The ship to remove
+     * @param x The X start coordinate
+     * @param y The Y start coordinate
+     * @param s The ship to draw
+     * @param col The colour to draw it with (null will remove)
+     */
+    private static void colorShip(final int x, final int y, final Ship s, final Color col) {
+        if (s.getDirection() == IShip.DIRECTION.HORIZONTAL) {
+            for (int i = x; i < s.getLocEnd().getX(); i++) {
+                ownButtons[i][s.getLocStart().getY() + 1].setBackground(col);
+            }
+        } else if (s.getDirection() == IShip.DIRECTION.VERTICAL) {
+            for (int i = y; i < s.getLocEnd().getY(); i++) {
+                ownButtons[s.getLocStart().getX()][i].setBackground(col);
+            }
+        }
+    }
+
+    /**
+     * Handles ship on the board.<br>
+     * It supports removal and adding the ship to the board. Furthermore it can
+     * also mark a ship as sunk.
+     *
+     * @param s The ship to handle
      */
     private static void handleShip(final int x, final int y, final int fieldIndex, final Ship s, final SHIP_PLACE place) {
         Color col;
+        PPoint locStart = s.getLocStart(); // the location start
+        final boolean isPlaced = s.isPlaced(); // is it placed ?
+        IShip.DIRECTION dir = s.getDirection(); // direction of the ship
+
         if (place == SHIP_PLACE.ADD) {
-            col = Color.YELLOW;
+            /* if the ship is to be added */
+
+ /* remove the old ship on the board before re-drawing the new one. */
+            if (isPlaced) {
+                colorShip(x, y, s, null);
+            }
+
+            /* update the ship with the new coordinated */
+            s.setLocStart(new PPoint(x, y));
+            s.setLocEnd(Ship.setEnd(locStart, s.getLength(), dir));
+
+            /* re-draw the ship with the new coordinated */
+            colorShip(x, y, s, Color.YELLOW);
+
             s.setIsPlaced(true);
+
+            /* update the ship in the player */
+            me.setShip(sindex, s);
+
         } else if (place == SHIP_PLACE.REMOVE) {
+            /* if the ship is to be removed */
             s.setIsPlaced(false);
-            col = Color.GRAY;
-        } else {
-            // ship sunk
-            col = Color.BLACK;
+
+            colorShip(x, y, s, null);
         }
 
-        final IShip.DIRECTION shipDirection = s.getDirection();
-        final PPoint locStart = s.getLocStart();
-        
-        if (shipDirection == IShip.DIRECTION.HORIZONTAL) {
-            if (fieldIndex == 0) {
-                for (int i = 0; i < s.getLength(); i++) {
-                    ownButtons[locStart.getX() + i][locStart.getY()].setBackground(col);
-                }
-            } else {
-                for (int i = 0; i < s.getLength(); i++) {
-                    oppButtons[locStart.getX() + i][locStart.getY()].setBackground(col);
-                }
-            }
-        } else if (shipDirection == IShip.DIRECTION.VERTICAL) {
-            if (fieldIndex == 0) {
-                for (int i = 0; i < s.getLength(); i++) {
-                    ownButtons[locStart.getX()][locStart.getY() + i].setBackground(col);
-                }
-            } else {
-                for (int i = 0; i < s.getLength(); i++) {
-                    oppButtons[locStart.getX()][locStart.getY() + i].setBackground(col);
-                }
-            }
-        }
     }
 
     /**
@@ -510,78 +537,12 @@ public class UI extends JFrame implements IClientListener {
     }
 
     /**
-     * Returns ship colour, as selected by the user
+     * Update the username, this is called from the login dialog.
      *
-     * @return
+     * @param name The name of the user that was entered.
+     * @param pw The password of the user which was entered
+     * @param game The server game logic object.
      */
-    public static Color getColor() {
-        return Options.COLOURS[Options.SHIP_COLOUR.getSelectedIndex()];
-    }
-
-    public void setGame(final IBattleShip game) {
-        this.game = game;
-    }
-
-    public IBattleShip getGame() {
-        return game;
-    }
-
-    public static boolean getGameOver() {
-        return gameover;
-    }
-
-    public static void setGameOver(boolean b) {
-        gameover = b;
-    }
-
-    public static int getReady() {
-        return ready;
-    }
-
-    public JDialog getLoginDialog() {
-        return loginDialog;
-    }
-
-    public void setLoginDialog(JDialog loginDialog) {
-        this.loginDialog = loginDialog;
-    }
-
-    public static void setDeploy(boolean k) {
-        deploy.setEnabled(k);
-    }
-
-    public static Player getMe() {
-        return me;
-    }
-
-    public static void setMe(final Player me) {
-        UI.me = me;
-    }
-
-    public static String getDirection(int i) {
-        return direction[i];
-    }
-
-    public static String getCletters(int i) {
-        return cletters[i];
-    }
-
-    public static String getShips(int i) {
-        return ships[i];
-    }
-
-    public static String getCnumbers(int i) {
-        return cnumbers[i];
-    }
-
-    public static int getSIndex() {
-        return sindex;
-    }
-
-    public static int getDIndex() {
-        return dindex;
-    }
-
     public static void updateUser(final String name, final String pw, final IBattleShip game) {
         if (name != null && !"".equals(name)) {
             if (me != null) {
@@ -601,37 +562,65 @@ public class UI extends JFrame implements IClientListener {
     }
 
     /**
+     * Convert selected combobox direction to internat data structure.
+     *
+     * @return The direction selected by the user as defined by the IShip
+     * interface.
+     */
+    private static IShip.DIRECTION getSelectedDirection() {
+        return dindex == 0 ? IShip.DIRECTION.HORIZONTAL : IShip.DIRECTION.VERTICAL;
+    }
+
+    private static int getIndexDirection(final IShip.DIRECTION dir) {
+        return dir == IShip.DIRECTION.HORIZONTAL ? 0 : 1;
+    }
+
+    /**
      * The listener for the buttons on the board. Purpose : Ship placement
      */
     private static class BoardListener implements ActionListener {
 
         private final int x;
         private final int y;
+        private final UI ui;
+        private final IBattleShip game;
 
-        public BoardListener(final int x, final int y) {
+        public BoardListener(final IBattleShip game, final UI ui, final int x, final int y) {
             this.x = x;
             this.y = y;
+            this.ui = ui;
+            this.game = game;
         }
 
         @Override
         public void actionPerformed(ActionEvent v) {
             if (ready == 0) {
-                System.out.println("Command : " + v.getActionCommand());
+                // we are in construction faze
+                
                 Ship s = me.getShip(sindex);
-                if (s.isPlaced()) {
-                    /* since the ship appears to be placed, just remove it if user clicked another button */
-                    if (s.getLocStart().getX() != x && s.getLocStart().getY() != y) {
-                        handleShip(x, y, 0, s, SHIP_PLACE.REMOVE);
+                
+                if (isValidPos(x, y, s)) {
+                    System.out.println("Ship placement for -> " + s);
+                    if (s.isPlaced()) {
+
+                        /* since the ship appears to be placed, just remove it if user clicked another button */
+                        handleShip(s.getLocStart().getX(), s.getLocStart().getY(), 0, s, SHIP_PLACE.REMOVE);
                     }
+                    
+                    handleShip(x, y, 0, s, SHIP_PLACE.ADD);
+                    
                 } else {
-                    s.setIsPlaced(true);
-                    s.setLocStart(new PPoint(x, y));
-                    s.setDirection(dindex == 0 ? IShip.DIRECTION.HORIZONTAL : IShip.DIRECTION.VERTICAL);
-                    s.setLocEnd(Ship.setEnd(s.getLocStart(), s.getLength(), s.getDirection()));
+                    UIHelpers.messageDialog("Unable to place the selected ship at this location.", "Error");
                 }
-                handleShip(x, y, 0, s, SHIP_PLACE.ADD);
-                /* assign the reference back to player as this class is static */
-                me.setShip(sindex, s);
+                
+
+            } else {
+                try {
+                    /* user is fireing at the opponent!!! */
+                    game.fireShot(x, y, ui, me);
+                } catch (RemoteException ex) {
+                    Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         }
     }
@@ -646,19 +635,23 @@ public class UI extends JFrame implements IClientListener {
         public void actionPerformed(ActionEvent v) {
             dindex = cdir.getSelectedIndex();
 
-            final Ship ship = me.getShip(sindex);
+            System.out.println("Direction combobox used");
 
-            ship.setDirection(dindex == 0 ? IShip.DIRECTION.HORIZONTAL : IShip.DIRECTION.VERTICAL);
+            final Ship s = me.getShip(sindex);
 
-            if (ship.isPlaced()) {
-                handleShip(ship.getLocStart().getX(), ship.getLocStart().getY(), 0, ship, SHIP_PLACE.REMOVE);
+            if (isValidPos(s.getLocStart().getX(), s.getLocStart().getY(), s)) {
+                s.setDirection(getSelectedDirection());
+
+                if (s.isPlaced()) {
+                    handleShip(s.getLocStart().getX(), s.getLocStart().getY(), 0, s, SHIP_PLACE.REMOVE);
+                }
+
+                handleShip(s.getLocStart().getX(), s.getLocStart().getY(), 0, s, SHIP_PLACE.ADD);
+
+                me.setShip(sindex, s);
+            } else {
+                UIHelpers.messageDialog("You can not turn the ship direction based on it's location.\nMove the ship first", "Error");
             }
-
-            handleShip(ship.getLocStart().getX(), ship.getLocStart().getY(), 0, ship, SHIP_PLACE.ADD);
-
-            me.setShip(sindex, ship);
-
-            System.out.println("Ship placement changed for : " + ship);
 
         }
     }
@@ -700,16 +693,12 @@ public class UI extends JFrame implements IClientListener {
 
         @Override
         public void actionPerformed(ActionEvent v) {
-            sindex = cshi.getSelectedIndex();
-            System.out.println(sindex);
-            System.out.println(me.getShips()[sindex]);
+            dindex = cshi.getSelectedIndex();
+            System.out.println("Ship used");
 
-            if (me.getShip(sindex).isPlaced()) {
-                if (me.getShip(sindex).getDirection() == IShip.DIRECTION.HORIZONTAL) {
-                    cdir.setSelectedIndex(0);
-                } else {
-                    cdir.setSelectedIndex(1);
-                }
+            if (me.getShip(sindex).isPlaced() && cdir.getSelectedIndex() != getIndexDirection(me.getShip(sindex).getDirection())) {
+                System.out.println("Direction combobox changed because ship has different direction.");
+                cdir.setSelectedIndex(getIndexDirection(me.getShip(sindex).getDirection()));
             }
         }
     }
@@ -840,6 +829,79 @@ public class UI extends JFrame implements IClientListener {
 //                }
 //            }
         }
+    }
+
+    /**
+     * Returns ship colour, as selected by the user
+     *
+     * @return
+     */
+    public static Color getColor() {
+        return Options.COLOURS[Options.SHIP_COLOUR.getSelectedIndex()];
+    }
+
+    public void setGame(final IBattleShip game) {
+        this.game = game;
+    }
+
+    public IBattleShip getGame() {
+        return game;
+    }
+
+    public static boolean getGameOver() {
+        return gameover;
+    }
+
+    public static void setGameOver(boolean b) {
+        gameover = b;
+    }
+
+    public static int getReady() {
+        return ready;
+    }
+
+    public JDialog getLoginDialog() {
+        return loginDialog;
+    }
+
+    public void setLoginDialog(JDialog loginDialog) {
+        this.loginDialog = loginDialog;
+    }
+
+    public static void setDeploy(boolean k) {
+        deploy.setEnabled(k);
+    }
+
+    public static Player getMe() {
+        return me;
+    }
+
+    public static void setMe(final Player me) {
+        UI.me = me;
+    }
+
+    public static String getDirection(int i) {
+        return direction[i];
+    }
+
+    public static String getCletters(int i) {
+        return cletters[i];
+    }
+
+    public static String getShips(int i) {
+        return ships[i];
+    }
+
+    public static String getCnumbers(int i) {
+        return cnumbers[i];
+    }
+
+    public static int getSIndex() {
+        return sindex;
+    }
+
+    public static int getDIndex() {
+        return dindex;
     }
 
 }
