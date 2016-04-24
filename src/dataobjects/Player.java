@@ -94,10 +94,10 @@ public class Player implements Serializable, IPlayer {
 
     public void initShips() {
         ships[0] = new Ship(0, 0, IShip.TYPE.CARRIER, IShip.DIRECTION.VERTICAL);
-        ships[1] = new Ship(0, 0, IShip.TYPE.CRUISER, IShip.DIRECTION.VERTICAL);
-        ships[2] = new Ship(0, 0, IShip.TYPE.DESTROYER, IShip.DIRECTION.VERTICAL);
-        ships[3] = new Ship(0, 0, IShip.TYPE.SUBMARINE, IShip.DIRECTION.VERTICAL);
-        ships[4] = new Ship(0, 0, IShip.TYPE.PATROL, IShip.DIRECTION.VERTICAL);
+        ships[1] = new Ship(0, 1, IShip.TYPE.CRUISER, IShip.DIRECTION.VERTICAL);
+        ships[2] = new Ship(0, 2, IShip.TYPE.DESTROYER, IShip.DIRECTION.VERTICAL);
+        ships[3] = new Ship(0, 3, IShip.TYPE.SUBMARINE, IShip.DIRECTION.VERTICAL);
+        ships[4] = new Ship(0, 4, IShip.TYPE.PATROL, IShip.DIRECTION.VERTICAL);
     }
 
     @Override

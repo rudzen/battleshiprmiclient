@@ -217,7 +217,7 @@ public class UI extends JFrame implements IClientListener {
             for (int j = 0; j < 10; j++) {
                 switch (board[i][j]) {
                     case 1:
-
+                        
                     case 2:
 
                     case 3:
@@ -476,7 +476,7 @@ public class UI extends JFrame implements IClientListener {
     private static void colorShip(final int x, final int y, final Ship s, final Color col) {
         if (s.getDirection() == IShip.DIRECTION.HORIZONTAL) {
             for (int i = x; i < s.getLocEnd().getX(); i++) {
-                ownButtons[i][s.getLocStart().getY() + 1].setBackground(col);
+                ownButtons[i][s.getLocStart().getY()].setBackground(col);
             }
         } else if (s.getDirection() == IShip.DIRECTION.VERTICAL) {
             for (int i = y; i < s.getLocEnd().getY(); i++) {
@@ -498,13 +498,15 @@ public class UI extends JFrame implements IClientListener {
         final boolean isPlaced = s.isPlaced(); // is it placed ?
         IShip.DIRECTION dir = s.getDirection(); // direction of the ship
 
+        colorShip(x, y, s, null);
+        
         if (place == SHIP_PLACE.ADD) {
             /* if the ship is to be added */
 
  /* remove the old ship on the board before re-drawing the new one. */
-            if (isPlaced) {
-                colorShip(x, y, s, null);
-            }
+//            if (isPlaced) {
+//                colorShip(x, y, s, null);
+//            }
 
             /* update the ship with the new coordinated */
             s.setLocStart(new PPoint(x, y));
@@ -522,7 +524,7 @@ public class UI extends JFrame implements IClientListener {
             /* if the ship is to be removed */
             s.setIsPlaced(false);
 
-            colorShip(x, y, s, null);
+            //colorShip(x, y, s, null);
         }
 
     }
@@ -568,11 +570,11 @@ public class UI extends JFrame implements IClientListener {
      * interface.
      */
     private static IShip.DIRECTION getSelectedDirection() {
-        return dindex == 0 ? IShip.DIRECTION.HORIZONTAL : IShip.DIRECTION.VERTICAL;
+        return dindex == 1 ? IShip.DIRECTION.HORIZONTAL : IShip.DIRECTION.VERTICAL;
     }
 
     private static int getIndexDirection(final IShip.DIRECTION dir) {
-        return dir == IShip.DIRECTION.HORIZONTAL ? 0 : 1;
+        return dir == IShip.DIRECTION.HORIZONTAL ? 1 : 0;
     }
 
     /**
@@ -640,11 +642,13 @@ public class UI extends JFrame implements IClientListener {
             final Ship s = me.getShip(sindex);
 
             if (isValidPos(s.getLocStart().getX(), s.getLocStart().getY(), s)) {
-                s.setDirection(getSelectedDirection());
-
                 if (s.isPlaced()) {
                     handleShip(s.getLocStart().getX(), s.getLocStart().getY(), 0, s, SHIP_PLACE.REMOVE);
                 }
+                
+                s.setDirection(getSelectedDirection());
+                s.setLocEnd(Ship.setEnd(s.getLocStart(), s.getLength(), s.getDirection()));
+                
 
                 handleShip(s.getLocStart().getX(), s.getLocStart().getY(), 0, s, SHIP_PLACE.ADD);
 
@@ -693,7 +697,7 @@ public class UI extends JFrame implements IClientListener {
 
         @Override
         public void actionPerformed(ActionEvent v) {
-            dindex = cshi.getSelectedIndex();
+            sindex = cshi.getSelectedIndex();
             System.out.println("Ship used");
 
             if (me.getShip(sindex).isPlaced() && cdir.getSelectedIndex() != getIndexDirection(me.getShip(sindex).getDirection())) {
