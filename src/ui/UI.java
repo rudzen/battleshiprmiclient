@@ -37,7 +37,6 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import static java.awt.image.ImageObserver.WIDTH;
 import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
@@ -155,9 +154,6 @@ public class UI extends JFrame implements IClientListener {
     protected static String user, user2;
     protected static boolean gameover;
 
-    
-    
-    
     /* RMI callback methods */
     @Override
     public void shotFired(int x, int y, boolean hit) throws RemoteException {
@@ -206,29 +202,13 @@ public class UI extends JFrame implements IClientListener {
     @Override
     public void updateOpponentBoard(int[][] board) throws RemoteException {
         other.setBoard(board);
-        // TODO : Something else here?
+        drawBoard(board, 1);
     }
 
     @Override
     public void updateBoard(int[][] board) throws RemoteException {
-        setBoard(board);
-        // TODO : Re-draw the bastard..
-        for (int i = 0; i < 10; i++) {
-            for (int j = 0; j < 10; j++) {
-                switch (board[i][j]) {
-                    case 1:
-                        
-                    case 2:
-
-                    case 3:
-
-                    case 4:
-
-                    case 5:
-
-                }
-            }
-        }
+        me.setBoard(board);
+        drawBoard(board, 0);
     }
 
     @Override
@@ -452,14 +432,79 @@ public class UI extends JFrame implements IClientListener {
         d.add(UI.inputpanel, BorderLayout.NORTH);
     }
 
+    private void drawBoard(int[][] board, int fieldIndex) throws RemoteException {
+        /*
+    board defined as :
+    0 = empty not shot
+    1 = shot, no hit
+    2 = shot, hit
+    3 = shot, hit, armor rating
+    4 = ship location
+    5 = ship, sunk
+         */ if (fieldIndex == 0) {
+            for (int i = 0; i < 10; i++) {
+                for (int j = 0; j < 10; j++) {
+                    switch (board[i][j]) {
+                        case 0:
+                            ownButtons[i][j].setBackground(null);
+                            break;
+                        case 1:
+                            ownButtons[i][j].setBackground(Color.BLUE);
+                            break;
+                        case 2:
+                            ownButtons[i][j].setBackground(Color.RED);
+                            break;
+                        case 3:
+                            ownButtons[i][j].setBackground(Color.MAGENTA);
+                            break;
+                        case 4:
+                            ownButtons[i][j].setBackground(Color.YELLOW);
+                            break;
+                        case 5:
+                            ownButtons[i][j].setBackground(Color.BLACK);
+                            break;
+                    }
+                }
+            }
+        } else {
+            for (int i = 0; i < 10; i++) {
+                for (int j = 0; j < 10; j++) {
+                    switch (board[i][j]) {
+                        case 0:
+                            oppButtons[i][j].setBackground(null);
+                            break;
+                        case 1:
+                            oppButtons[i][j].setBackground(Color.BLUE);
+                            break;
+                        case 2:
+                            oppButtons[i][j].setBackground(Color.RED);
+                            break;
+                        case 3:
+                            oppButtons[i][j].setBackground(Color.MAGENTA);
+                            break;
+                        case 4:
+                            //oppButtons[i][j].setBackground(Color.YELLOW);
+                            break;
+                        case 5:
+                            oppButtons[i][j].setBackground(Color.BLACK);
+                            break;
+                    }
+                }
+            }
+        }
+    }
 
-    private static boolean contains(int what, int ... array) {
-        for (int i : array) if (what == i) return true;
+    private static boolean contains(int what, int... array) {
+        for (int i : array) {
+            if (what == i) {
+                return true;
+            }
+        }
         return false;
     }
-    
+
     /**
-     * Helper function to determin if the location is valid..
+     * Helper function to determine if the location is valid..
      *
      * @param x the X location clicked
      * @param y the Y location clicked
@@ -469,40 +514,52 @@ public class UI extends JFrame implements IClientListener {
     private static boolean isValidPos(final int x, final int y, final Ship s) {
         Ship otherShip;
         IShip.DIRECTION dir = s.getDirection();
-        
+
         final int lower = dir == IShip.DIRECTION.HORIZONTAL ? x : y;
         final int upper = lower + s.getLength();
-        
+
         /* determin if the ship is placed within the board boundries */
         boolean val = upper <= ownButtons.length;
-        
-        /* determin if we hit another ship */
+
+        /* determin if we will intersect another ship */
         for (int i = 0; i < me.getShips().length; i++) {
             otherShip = me.getShips()[i];
             if (s.getType() != otherShip.getType() && otherShip.isPlaced()) {
                 System.out.println("Validation : " + s.getShipType() + " v " + otherShip.getShipType());
-                if (otherShip.getDirection() == IShip.DIRECTION.HORIZONTAL) {
-                    for (int j = otherShip.getLocStart().getX(); j < otherShip.getLocEnd().getX(); j++) {
-                        if (contains(j, x, y)) {
-                            val = false;
-                            break;
-                        }
-                    }
-                } else {
-                    for (int j = otherShip.getLocStart().getY(); j < otherShip.getLocEnd().getY(); j++) {
-                        if (contains(j, x, y)) {
-                            val = false;
-                            break;
-                        }
-                    }
-                }
-                if (!val) {
+                if (isContained(x, y, otherShip)) {
+                    val = false;
                     break;
                 }
             }
         }
         System.out.println("Position is valid : " + val);
         return val;
+    }
+
+    private static boolean isContained(final int x, final int y, final Ship s) {
+        final int startX = s.getLocStart().getX();
+        final int startY = s.getLocStart().getY();
+
+        if (y == startX || x == startY || x == s.getLocEnd().getX() || y == s.getLocEnd().getY()) {
+            return true;
+        }
+        int pos;
+        if (s.getDirection() == IShip.DIRECTION.HORIZONTAL) {
+            for (int i = 1; i < s.getLength() - 1; i++) {
+                pos = i + startX;
+                if (pos == x) {
+                    return true;
+                }
+            }
+        } else {
+            for (int i = 1; i < s.getLength() - 1; i++) {
+                pos = i + startY;
+                if (pos == y) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -534,10 +591,11 @@ public class UI extends JFrame implements IClientListener {
      */
     private static void handleShip(final int x, final int y, final int fieldIndex, final Ship s, final SHIP_PLACE place) {
 
+        // clear the ship
         colorShip(x, y, s, null);
-        
+
         System.out.println("Ship placement at : [" + x + ", " + y + "] lenght = " + s.getLength());
-        
+
         if (place == SHIP_PLACE.ADD) {
             /* if the ship is to be added */
 
@@ -629,9 +687,9 @@ public class UI extends JFrame implements IClientListener {
         public void actionPerformed(ActionEvent v) {
             if (ready == 0) {
                 // we are in construction faze
-                
+
                 Ship s = me.getShip(sindex);
-                
+
                 if (isValidPos(x, y, s)) {
                     System.out.println("Ship placement for -> " + s);
                     if (s.isPlaced()) {
@@ -639,13 +697,12 @@ public class UI extends JFrame implements IClientListener {
                         /* since the ship appears to be placed, just remove it if user clicked another button */
                         handleShip(s.getLocStart().getX(), s.getLocStart().getY(), 0, s, SHIP_PLACE.REMOVE);
                     }
-                    
+
                     handleShip(x, y, 0, s, SHIP_PLACE.ADD);
-                    
+
                 } else {
                     UIHelpers.messageDialog("Unable to place the selected ship at this location.", "Error");
                 }
-                
 
             } else {
                 try {
@@ -672,20 +729,21 @@ public class UI extends JFrame implements IClientListener {
 
             final Ship s = me.getShip(sindex);
 
-            if (isValidPos(s.getLocStart().getX(), s.getLocStart().getY(), s)) {
-                if (s.isPlaced()) {
-                    handleShip(s.getLocStart().getX(), s.getLocStart().getY(), 0, s, SHIP_PLACE.REMOVE);
+            if (s.isPlaced()) {
+                if (isValidPos(s.getLocStart().getX(), s.getLocStart().getY(), s)) {
+                    if (s.isPlaced()) {
+                        handleShip(s.getLocStart().getX(), s.getLocStart().getY(), 0, s, SHIP_PLACE.REMOVE);
+                    }
+
+                    s.setDirection(getSelectedDirection());
+                    s.setLocEnd(Ship.setEnd(s.getLocStart(), s.getLength(), s.getDirection()));
+
+                    handleShip(s.getLocStart().getX(), s.getLocStart().getY(), 0, s, SHIP_PLACE.ADD);
+
+                    me.setShip(sindex, s);
+                } else {
+                    UIHelpers.messageDialog("You can not turn the ship direction based on it's location.\nMove the ship first", "Error");
                 }
-                
-                s.setDirection(getSelectedDirection());
-                s.setLocEnd(Ship.setEnd(s.getLocStart(), s.getLength(), s.getDirection()));
-                
-
-                handleShip(s.getLocStart().getX(), s.getLocStart().getY(), 0, s, SHIP_PLACE.ADD);
-
-                me.setShip(sindex, s);
-            } else {
-                UIHelpers.messageDialog("You can not turn the ship direction based on it's location.\nMove the ship first", "Error");
             }
 
         }

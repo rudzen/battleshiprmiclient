@@ -84,9 +84,7 @@ public class Ship implements Serializable, IShip {
      * Is the ship placed on the board?
      */
     private boolean isPlaced = false;
-    
-    
-    
+
     /**
      * Default constructor.
      */
@@ -181,24 +179,23 @@ public class Ship implements Serializable, IShip {
      * @return true if ship is hit, otherwise false.
      */
     public boolean isHit(byte x, byte y) {
-        /* check off the bat for direct start & end hit first! */
-        if (x == locStart.getX() && y == locStart.getY()) {
-            hit(0);
-            return true;
-        } else if (x == locEnd.getX() && y == locEnd.getY()) {
-            hit(length - 1);
-            return true;
-        }
-
-        // TODO :: WHAT WHAT!!!
-        if (direction == DIRECTION.HORIZONTAL) {
-            if (x + locStart.getX() < locEnd.getX()) {
-                hit(locEnd.getX() - x);
-                return true;
+        if (isPlaced) {
+            System.out.println("isHit is running on : " + getShipType());
+            if (direction == DIRECTION.HORIZONTAL) {
+                for (int i = 0; i < length; i++) {
+                    if (x == locStart.getX() + i || y == locStart.getX() + i) {
+                        hit(i);
+                        return true;
+                    }
+                }
+            } else if (direction == DIRECTION.VERTICAL) {
+                for (int i = 0; i < length; i++) {
+                    if (x == locStart.getY() + i || y == locStart.getY() + i) {
+                        hit(i);
+                        return true;
+                    }
+                }
             }
-        } else if (y + locStart.getY() < locEnd.getY()) {
-            hit(locEnd.getY() - y);
-            return true;
         }
         return false;
     }
@@ -353,7 +350,7 @@ public class Ship implements Serializable, IShip {
     public String toString() {
         return "Ship{" + "type=" + type + ", direction=" + direction + ", upgrades=" + upgrades + ", locStart=" + locStart + ", locEnd=" + locEnd + ", length=" + length + ", life=" + life + ", hasUpgrade=" + hasUpgrade + ", hits=" + hits + ", isPlaced=" + isPlaced + '}';
     }
-    
+
     @Override
     public boolean isPlaced() {
         return isPlaced;
