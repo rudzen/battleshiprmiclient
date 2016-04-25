@@ -18,6 +18,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
+import java.io.Serializable;
 
 /**
  * Simple login dialog.<br>
@@ -25,7 +26,7 @@ import java.awt.event.WindowEvent;
  *
  * @author rudz
  */
-public final class LoginDialog extends JDialog {
+public final class LoginDialog extends JDialog implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -35,13 +36,12 @@ public final class LoginDialog extends JDialog {
     private static JButton okButton;
     private static final JProgressBar progressBar = new JProgressBar();
 
-    ;
-
+    private UI ui;
     
     
-    public static JDialog login(final IBattleShip game) {
+    public static JDialog login(final IBattleShip game, final UI ui) {
         try {
-            LoginDialog dialog = new LoginDialog(game);
+            LoginDialog dialog = new LoginDialog(game, ui);
             dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             dialog.setVisible(true);
             return dialog;
@@ -50,7 +50,8 @@ public final class LoginDialog extends JDialog {
         return null;
     }
 
-    public LoginDialog(final IBattleShip game) {
+    @SuppressWarnings("OverridableMethodCallInConstructor")
+    public LoginDialog(final IBattleShip game, final UI ui) {
         super();
         setAlwaysOnTop(true);
         setType(Type.POPUP);
@@ -94,7 +95,7 @@ public final class LoginDialog extends JDialog {
         okButton = new JButton("OK");
         okButton.setActionCommand("OK");
         okButton.setEnabled(false);
-        okButton.addActionListener(new OkActionImpl(game));
+        okButton.addActionListener(new OkActionImpl(ui));
         buttonPane.add(okButton);
         getRootPane().setDefaultButton(okButton);
         JButton cancelButton = new JButton("Cancel");
@@ -134,10 +135,10 @@ public final class LoginDialog extends JDialog {
 
     private static class OkActionImpl implements ActionListener {
 
-        private IBattleShip game;
-
-        public OkActionImpl(final IBattleShip game) {
-            this.game = game;
+        private final UI ui;
+        
+        public OkActionImpl(final UI ui) {
+            this.ui = ui;
         }
 
         @Override
@@ -147,11 +148,16 @@ public final class LoginDialog extends JDialog {
             okButton.setEnabled(false);
 
             progressBar.setVisible(true);
+            
+            //Statics.isLoggedIn = game.login(user, pw);
 
-            UI.updateUser(textField.getText(), new String(passwordField.getPassword()), game);
+            ui.updateUser(textField.getText(), new String(passwordField.getPassword()));
 
             progressBar.setVisible(true);
 
+            
+            
+            
             /* the text is concatted and BASE64 encoded before, as it will be decoded on the server side */
 //            if (Login.attempt_login(textField.getText().trim(), new String(passwordField.getPassword()))) {
 //                System.out.println("Du er logget ind som : " + LoginData.b.getBrugernavn());

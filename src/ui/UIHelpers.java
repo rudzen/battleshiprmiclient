@@ -23,8 +23,8 @@
  */
 package ui;
 
-import dataobjects.PlayerOld;
 import interfaces.IBattleShip;
+import interfaces.IPlayer;
 import java.awt.BorderLayout;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -59,10 +59,10 @@ public final class UIHelpers {
     }
 
     //creates a panel that tells whose board is which
-    public static JPanel whoseBoard(final PlayerOld[] players) {
+    public static JPanel whoseBoard(final IPlayer[] players) {
         JPanel panel = new JPanel(new BorderLayout());
-        panel.add(new JLabel(players[0].getUser() + "'s Board", SwingConstants.LEFT), BorderLayout.WEST);
-        panel.add(new JLabel(players[1].getUser() + "'s Board", SwingConstants.RIGHT), BorderLayout.EAST);
+        panel.add(new JLabel(players[0].getName() + "'s Board", SwingConstants.LEFT), BorderLayout.WEST);
+        panel.add(new JLabel(players[1].getName() + "'s Board", SwingConstants.RIGHT), BorderLayout.EAST);
         return panel;
     }
 

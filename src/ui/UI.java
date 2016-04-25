@@ -28,6 +28,7 @@ import dataobjects.Player;
 import dataobjects.Ship;
 import interfaces.IBattleShip;
 import interfaces.IClientListener;
+import interfaces.IPlayer;
 import interfaces.IShip;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -37,12 +38,10 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.Serializable;
 import java.lang.ref.WeakReference;
-import java.net.MalformedURLException;
-import java.rmi.Naming;
-import java.rmi.NotBoundException;
-import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -65,25 +64,188 @@ import utility.Statics;
  *
  * @author rudz
  */
-public class UI extends JFrame implements IClientListener {
+public class UI extends UnicastRemoteObject implements IClientListener, Serializable {
 
     private static final long serialVersionUID = 6911438361535703573L;
 
     private IBattleShip game;
 
-    /* myself */
-    IClientListener clientListener;
+    public static JButton[][] getOwnButtons() {
+        return ownButtons;
+    }
 
-    private final String registry;
+    public static void setOwnButtons(JButton[][] ownButtons) {
+        UI.ownButtons = ownButtons;
+    }
+
+    public static JButton[][] getOppButtons() {
+        return oppButtons;
+    }
+
+    public static void setOppButtons(JButton[][] oppButtons) {
+        UI.oppButtons = oppButtons;
+    }
+
+    public static JPanel[] getBoards() {
+        return boards;
+    }
+
+    public static void setBoards(JPanel[] boards) {
+        UI.boards = boards;
+    }
+
+    public static JPanel getInputpanel() {
+        return inputpanel;
+    }
+
+    public static void setInputpanel(JPanel inputpanel) {
+        UI.inputpanel = inputpanel;
+    }
+
+    public static JPanel getStatusBar() {
+        return statusBar;
+    }
+
+    public static void setStatusBar(JPanel statusBar) {
+        UI.statusBar = statusBar;
+    }
+
+    public static Container getB() {
+        return b;
+    }
+
+    public static void setB(Container b) {
+        UI.b = b;
+    }
+
+    public static Container getC() {
+        return c;
+    }
+
+    public static void setC(Container c) {
+        UI.c = c;
+    }
+
+    public static Container getD() {
+        return d;
+    }
+
+    public static void setD(Container d) {
+        UI.d = d;
+    }
+
+    public JPanel getInput() {
+        return input;
+    }
+
+    public void setInput(JPanel input) {
+        this.input = input;
+    }
+
+    public static JMenuItem getM() {
+        return m;
+    }
+
+    public static void setM(JMenuItem m) {
+        UI.m = m;
+    }
+
+    public static JMenuItem getPvp() {
+        return pvp;
+    }
+
+    public static void setPvp(JMenuItem pvp) {
+        UI.pvp = pvp;
+    }
+
+    public JTextField getMbar() {
+        return mbar;
+    }
+
+    public void setMbar(JTextField mbar) {
+        this.mbar = mbar;
+    }
+
+    public static JMenuItem getGametype() {
+        return gametype;
+    }
+
+    public static void setGametype(JMenuItem gametype) {
+        UI.gametype = gametype;
+    }
+
+    public static int getLength() {
+        return length;
+    }
+
+    public static void setLength(int length) {
+        UI.length = length;
+    }
+
+    public static int getSindex() {
+        return sindex;
+    }
+
+    public static void setSindex(int sindex) {
+        UI.sindex = sindex;
+    }
+
+    public static int getDindex() {
+        return dindex;
+    }
+
+    public static void setDindex(int dindex) {
+        UI.dindex = dindex;
+    }
+
+    public DirectListener getDirectionListener() {
+        return directionListener;
+    }
+
+    public void setDirectionListener(DirectListener directionListener) {
+        this.directionListener = directionListener;
+    }
+
+    public static IPlayer getOther() {
+        return other;
+    }
+
+    public static void setOther(Player other) {
+        UI.other = other;
+    }
+
+    public static String getUser() {
+        return user;
+    }
+
+    public static void setUser(String user) {
+        UI.user = user;
+    }
+
+    public static String getUser2() {
+        return user2;
+    }
+
+    public static void setUser2(String user2) {
+        UI.user2 = user2;
+    }
+
+    public static boolean isGameover() {
+        return gameover;
+    }
+
+    public static void setGameover(boolean gameover) {
+        UI.gameover = gameover;
+    }
+
+    private String registry;
 
     /* UI Stuff */
     private JDialog loginDialog;
+    private JFrame mainFrame;
 
 
-    /* the two playing field button arrays, shown on the UI when playing..
-       0 = this player
-       1 = remote player
-     */
+    /* the two playing field button arrays, shown on the UI when playing.. */
     private static JButton[][] ownButtons = new JButton[10][10];
     private static JButton[][] oppButtons = new JButton[10][10];
 
@@ -94,7 +256,7 @@ public class UI extends JFrame implements IClientListener {
     private static JPanel[] boards = new JPanel[2];
 
     /* options window frame */
-    private static Options options = new Options("Options");
+    //private static Options options = new Options("Options");
 
     /* for manually inputting ships */
     private static JPanel inputpanel;
@@ -147,8 +309,8 @@ public class UI extends JFrame implements IClientListener {
     //BoardListener boardListener = new BoardListener();
     DirectListener directionListener = new DirectListener();
 
-    private static Player me;
-    private static Player other;
+    private static IPlayer me;
+    private static IPlayer other;
 
     /* this is just to save time! */
     // TODO : move to GameState
@@ -160,7 +322,6 @@ public class UI extends JFrame implements IClientListener {
     public void shotFired(int x, int y, boolean hit) throws RemoteException {
         ownButtons[x][y].setBackground(hit ? Color.YELLOW : Color.CYAN);
     }
-
 
     @Override
     public void gameOver(boolean won) throws RemoteException {
@@ -186,7 +347,7 @@ public class UI extends JFrame implements IClientListener {
     }
 
     @Override
-    public void updateOpponent(Player player) throws RemoteException {
+    public void updateOpponent(IPlayer player) throws RemoteException {
         other = player;
     }
 
@@ -204,7 +365,7 @@ public class UI extends JFrame implements IClientListener {
 
     @Override
     public void ping() throws RemoteException {
-        game.pong(this, me);
+        game.pong(me);
     }
 
     @Override
@@ -213,14 +374,19 @@ public class UI extends JFrame implements IClientListener {
     }
 
     @Override
-    public void shipSunk(Ship ship) throws RemoteException {
+    public void shipSunk(IShip ship) throws RemoteException {
         UIHelpers.messageDialog("Your " + ship.getShipType() + " has been sunk by " + other.getName(), "Ship sunk!!!!");
         colorShip(ship.getLocStart().getX(), ship.getLocStart().getY(), ship, Color.BLACK);
     }
 
     @Override
-    public void playerList(ArrayList<Player> players) throws RemoteException {
+    public void playerList(ArrayList<IPlayer> players) throws RemoteException {
         System.out.println("Player list received : " + players);
+    }
+
+    @Override
+    public IPlayer getPlayer() throws RemoteException {
+        return me;
     }
 
     private enum SHIP_PLACE {
@@ -237,28 +403,9 @@ public class UI extends JFrame implements IClientListener {
 
         @Override
         public void run() {
-            UI ui = new UI(registry);
-
             try {
-
-                // Registration format
-                //registry_hostname :port/service
-                // Note the :port field is optional
-                String registration = "rmi://" + registry + "/Battleship";
-                /* Lookup the service in the registry, and obtain a remote service */
-                Remote remoteService = Naming.lookup(registration);
-                ui.setGame((IBattleShip) remoteService);
-
-                ui.getGame().fireShot(3, 5, ui, me);
-                ui.getGame().registerClient(ui, UI.me);
-            } catch (final RemoteException re) {
-                UIHelpers.messageDialog("RMI Error - RemoteException()", "Error", JOptionPane.ERROR_MESSAGE);
-                Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, re);
-            } catch (final NotBoundException ex) {
-                UIHelpers.messageDialog("No game server available - NotBountException()", "Error", JOptionPane.ERROR_MESSAGE);
-                Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (final MalformedURLException ex) {
-                UIHelpers.messageDialog("No game server available - MalformedURLException()", "Error", JOptionPane.ERROR_MESSAGE);
+                UI ui = new UI(registry);
+            } catch (RemoteException ex) {
                 Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
             }
 
@@ -269,7 +416,7 @@ public class UI extends JFrame implements IClientListener {
         EventQueue.invokeLater(new RunnableImpl(registry));
     }
 
-    public UI(final String registry) {
+    public UI(final String registry) throws RemoteException {
         super();
 
         this.registry = registry;
@@ -291,31 +438,33 @@ public class UI extends JFrame implements IClientListener {
      */
     private void setupUI() {
 
+        mainFrame = new JFrame("Battleship");
+
         /* set up the buttons */
         for (int k = 0; k < ownButtons.length; k++) {
             for (int j = 0; j < ownButtons.length; j++) {
                 ownButtons[j][k] = new JButton();
                 ownButtons[j][k].setBackground(null);
-                ownButtons[j][k].addActionListener(new BoardListener(game, this, j, k));
+                ownButtons[j][k].addActionListener(new BoardListener(game, mainFrame, j, k));
             }
         }
 
-        setTitle("Battleship");
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setJMenuBar(createMenuBar());
-        setResizable(false);
+        //setTitle("Battleship");
+        mainFrame.setDefaultCloseOperation(EXIT_ON_CLOSE);
+        mainFrame.setJMenuBar(createMenuBar());
+        mainFrame.setResizable(false);
 
-        b = getContentPane();
+        b = mainFrame.getContentPane();
         b.add(setBoard(0), BorderLayout.CENTER);
-        c = getContentPane();
-        d = getContentPane();
+        c = mainFrame.getContentPane();
+        d = mainFrame.getContentPane();
         inputpanel = shipinput();
         d.add(inputpanel, BorderLayout.NORTH);
 
         //statusBar = new JPanel();
         //d.add(statusBar);
-        pack();
-        setVisible(true);
+        mainFrame.pack();
+        mainFrame.setVisible(true);
     }
 
     /**
@@ -332,7 +481,7 @@ public class UI extends JFrame implements IClientListener {
         menu.add(m);
 
         /* submenu of new game */
-        GameListener stuff = new GameListener();
+        GameListener stuff = new GameListener(mainFrame);
         pvp = new JMenuItem("Player vs. Player");
         pvp.addActionListener(stuff);
         m.add(pvp);
@@ -345,7 +494,7 @@ public class UI extends JFrame implements IClientListener {
         m.addActionListener(new OptionsListener(this));
         menu.add(m);
         m = new JMenuItem("Exit");
-        m.addActionListener(new ExitListener(this));
+        m.addActionListener(new ExitListener(mainFrame));
         menu.add(m);
         return menuBar;
     }
@@ -373,8 +522,8 @@ public class UI extends JFrame implements IClientListener {
         titleBorder = BorderFactory.createTitledBorder("Direction");
         cdir.setBorder(titleBorder);
         deploy.setEnabled(false);
-        deploy.addActionListener(new DeployListener(this));
-        deploy.setAlignmentX(CENTER_ALIGNMENT);
+        deploy.addActionListener(new DeployListener(mainFrame));
+        deploy.setAlignmentX(JFrame.CENTER_ALIGNMENT);
         input.add(deploy);
         return input;
     }
@@ -514,8 +663,8 @@ public class UI extends JFrame implements IClientListener {
      * @param s the Ship
      * @return true if possible, otherwise false
      */
-    private static boolean isValidPos(final int x, final int y, final Ship s) {
-        Ship otherShip;
+    private static boolean isValidPos(final int x, final int y, final IShip s) {
+        IShip otherShip;
         IShip.DIRECTION dir = s.getDirection();
 
         final int lower = dir == IShip.DIRECTION.HORIZONTAL ? x : y;
@@ -539,7 +688,7 @@ public class UI extends JFrame implements IClientListener {
         return val;
     }
 
-    private static boolean isContained(final int x, final int y, final Ship s) {
+    private static boolean isContained(final int x, final int y, final IShip s) {
         final int startX = s.getLocStart().getX();
         final int startY = s.getLocStart().getY();
 
@@ -573,7 +722,7 @@ public class UI extends JFrame implements IClientListener {
      * @param s The ship to draw
      * @param col The colour to draw it with (null will remove)
      */
-    private static void colorShip(final int x, final int y, final Ship s, final Color col) {
+    private static void colorShip(final int x, final int y, final IShip s, final Color col) {
         if (s.getDirection() == IShip.DIRECTION.HORIZONTAL) {
             for (int i = x; i < s.getLocEnd().getX(); i++) {
                 ownButtons[i][s.getLocStart().getY()].setBackground(col);
@@ -592,7 +741,7 @@ public class UI extends JFrame implements IClientListener {
      *
      * @param s The ship to handle
      */
-    private static void handleShip(final int x, final int y, final int fieldIndex, final Ship s, final SHIP_PLACE place) {
+    private static void handleShip(final int x, final int y, final int fieldIndex, final IShip s, final SHIP_PLACE place) {
 
         // clear the ship
         colorShip(x, y, s, null);
@@ -621,14 +770,14 @@ public class UI extends JFrame implements IClientListener {
 
     }
 
-    /**
-     * Determines whether or not is shipLayout is set to automatic
-     *
-     * @return
-     */
-    public static boolean isAutoSet() {
-        return Options.SHIP_LAYOUT.getSelectedIndex() != 0;
-    }
+//    /**
+//     * Determines whether or not is shipLayout is set to automatic
+//     *
+//     * @return
+//     */
+//    public static boolean isAutoSet() {
+//        return Options.SHIP_LAYOUT.getSelectedIndex() != 0;
+//    }
 
     /**
      * Update the username, this is called from the login dialog.
@@ -637,7 +786,7 @@ public class UI extends JFrame implements IClientListener {
      * @param pw The password of the user which was entered
      * @param game The server game logic object.
      */
-    public static void updateUser(final String name, final String pw, final IBattleShip game) {
+    public void updateUser(final String name, final String pw) {
         if (name != null && !"".equals(name)) {
             if (me != null) {
                 user = name;
@@ -647,11 +796,10 @@ public class UI extends JFrame implements IClientListener {
                 me = new Player(name);
             }
             try {
-                Statics.isLoggedIn = game.login(user, pw);
+                game.registerClient(this);
             } catch (RemoteException ex) {
                 Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
             }
-
         }
     }
 
@@ -661,25 +809,27 @@ public class UI extends JFrame implements IClientListener {
      * @return The direction selected by the user as defined by the IShip
      * interface.
      */
-    private static IShip.DIRECTION getSelectedDirection() {
+    private IShip.DIRECTION getSelectedDirection() {
         return dindex == 1 ? IShip.DIRECTION.HORIZONTAL : IShip.DIRECTION.VERTICAL;
     }
 
-    private static int getIndexDirection(final IShip.DIRECTION dir) {
+    private int getIndexDirection(final IShip.DIRECTION dir) {
         return dir == IShip.DIRECTION.HORIZONTAL ? 1 : 0;
     }
 
     /**
      * The listener for the buttons on the board. Purpose : Ship placement
      */
-    private static class BoardListener implements ActionListener {
+    private class BoardListener implements ActionListener, Serializable {
+
+        private static final long serialVersionUID = -4491466874423437839L;
 
         private final int x;
         private final int y;
-        private final UI ui;
+        private final JFrame ui;
         private final IBattleShip game;
 
-        public BoardListener(final IBattleShip game, final UI ui, final int x, final int y) {
+        public BoardListener(final IBattleShip game, final JFrame ui, final int x, final int y) {
             this.x = x;
             this.y = y;
             this.ui = ui;
@@ -691,7 +841,7 @@ public class UI extends JFrame implements IClientListener {
             if (ready == 0) {
                 // we are in construction faze
 
-                Ship s = me.getShip(sindex);
+                IShip s = me.getShip(sindex);
 
                 if (isValidPos(x, y, s)) {
                     System.out.println("Ship placement for -> " + s);
@@ -710,7 +860,7 @@ public class UI extends JFrame implements IClientListener {
             } else {
                 try {
                     /* user is fireing at the opponent!!! */
-                    game.fireShot(x, y, ui, me);
+                    game.fireShot(x, y, me);
                 } catch (RemoteException ex) {
                     Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -722,7 +872,9 @@ public class UI extends JFrame implements IClientListener {
      * Direction combobox listener. Purpose : Alters which ship that should be
      * placed.
      */
-    private class DirectListener implements ActionListener {
+    private class DirectListener implements ActionListener, Serializable {
+
+        private static final long serialVersionUID = -7008156667372188463L;
 
         @Override
         public void actionPerformed(ActionEvent v) {
@@ -730,7 +882,7 @@ public class UI extends JFrame implements IClientListener {
 
             System.out.println("Direction combobox used");
 
-            final Ship s = me.getShip(sindex);
+            final IShip s = me.getShip(sindex);
 
             if (s.isPlaced()) {
                 if (isValidPos(s.getLocStart().getX(), s.getLocStart().getY(), s)) {
@@ -756,11 +908,13 @@ public class UI extends JFrame implements IClientListener {
      * Exit menu item listener. Purpose : Handles the users request to exit the
      * program.
      */
-    private class ExitListener implements ActionListener {
+    private class ExitListener implements ActionListener, Serializable {
 
-        private final UI ui;
+        private static final long serialVersionUID = 3268256726483475544L;
 
-        public ExitListener(final UI ui) {
+        private final JFrame ui;
+
+        public ExitListener(final JFrame ui) {
             this.ui = ui;
         }
 
@@ -770,7 +924,7 @@ public class UI extends JFrame implements IClientListener {
                 try {
                     // TODO : Add forefeit command in game object
 
-                    UIHelpers.messageDialog(game.logout(ui, me) ? "You have been logged out." : "Failed to log out, server could be unresponsive.", "Logged out");
+                    UIHelpers.messageDialog(game.logout(me) ? "You have been logged out." : "Failed to log out, server could be unresponsive.", "Logged out");
                 } catch (RemoteException ex) {
                     Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
                 } finally {
@@ -785,7 +939,9 @@ public class UI extends JFrame implements IClientListener {
      * Combobox for layout of ships listener. Purpose : Alters the direction of
      * the current selected ship.
      */
-    private class ShipsListener implements ActionListener {
+    private class ShipsListener implements ActionListener, Serializable {
+
+        private static final long serialVersionUID = 1L;
 
         @Override
         public void actionPerformed(ActionEvent v) {
@@ -808,7 +964,15 @@ public class UI extends JFrame implements IClientListener {
      * let the player know and get the session ID. 6. Let the server create the
      * game session and retrieve the new session ID.
      */
-    private class GameListener implements ActionListener {
+    private class GameListener implements ActionListener, Serializable {
+
+        private static final long serialVersionUID = 6218048618794489254L;
+
+        private JFrame ui;
+
+        public GameListener(final JFrame ui) {
+            this.ui = ui;
+        }
 
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -840,8 +1004,8 @@ public class UI extends JFrame implements IClientListener {
                             // TODO : Ask server for opponent here !
                             //ready=1;
                         }
-                        pack();
-                        repaint();
+                        ui.pack();
+                        ui.repaint();
                     }
                 }
             }
@@ -867,13 +1031,13 @@ public class UI extends JFrame implements IClientListener {
 
                     try {
                         // TODO : Add RMI interface to actually let the server know about it.
-                        game.logout(ui, me);
+                        game.logout(me);
                     } catch (RemoteException ex) {
                         Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 } else {
                     // TODO : Move this entire bullcrap to the login dialog and implement observer.
-                    ui.setLoginDialog(LoginDialog.login(ui.game));
+                    ui.setLoginDialog(LoginDialog.login(ui.game, ui));
                 }
             }
         }
@@ -882,9 +1046,9 @@ public class UI extends JFrame implements IClientListener {
     /* Listener for Deploy Button */
     private class DeployListener implements ActionListener {
 
-        private final UI ui;
+        private final JFrame ui;
 
-        public DeployListener(final UI ui) {
+        public DeployListener(final JFrame ui) {
             this.ui = ui;
         }
 
@@ -893,9 +1057,9 @@ public class UI extends JFrame implements IClientListener {
             if (UIHelpers.confirmDialog("Are you sure you would like to deploy your ships?", "Deploy Ships?") == 0) {
                 try {
                     System.out.println("The player to deploy : " + me);
-                    game.deployShips(ui, me);
-                    pack();
-                    repaint();
+                    game.deployShips(me);
+                    ui.pack();
+                    ui.repaint();
                 } catch (RemoteException ex) {
                     Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -927,14 +1091,14 @@ public class UI extends JFrame implements IClientListener {
         }
     }
 
-    /**
-     * Returns ship colour, as selected by the user
-     *
-     * @return
-     */
-    public static Color getColor() {
-        return Options.COLOURS[Options.SHIP_COLOUR.getSelectedIndex()];
-    }
+//    /**
+//     * Returns ship colour, as selected by the user
+//     *
+//     * @return
+//     */
+//    public static Color getColor() {
+//        return Options.COLOURS[Options.SHIP_COLOUR.getSelectedIndex()];
+//    }
 
     public void setGame(final IBattleShip game) {
         this.game = game;
@@ -968,7 +1132,7 @@ public class UI extends JFrame implements IClientListener {
         deploy.setEnabled(k);
     }
 
-    public static Player getMe() {
+    public static IPlayer getMe() {
         return me;
     }
 

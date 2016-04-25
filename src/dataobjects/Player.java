@@ -26,8 +26,6 @@ package dataobjects;
 import interfaces.IPlayer;
 import interfaces.IShip;
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Objects;
 
 /**
  * The Player class for BattleShip.<br>
@@ -61,7 +59,7 @@ public class Player implements Serializable, IPlayer {
     /**
      * The ships which are available to the player.
      */
-    private Ship[] ships = new Ship[5];
+    private IShip[] ships = new Ship[5];
 
     /**
      * Empty constructor
@@ -74,8 +72,7 @@ public class Player implements Serializable, IPlayer {
     }
 
     public Player(final Player player) {
-        this();
-        name = player.getName();
+        this(player.getName());
         id = player.getId();
         token = player.getToken();
         for (int i = 0; i < BOARD_SIZE; i++) {
@@ -92,13 +89,14 @@ public class Player implements Serializable, IPlayer {
         }
     }
 
+    @Override
     public void initShips() {
         ships[0] = new Ship(0, 0, IShip.TYPE.CARRIER, IShip.DIRECTION.VERTICAL);
         ships[1] = new Ship(0, 1, IShip.TYPE.CRUISER, IShip.DIRECTION.VERTICAL);
         ships[2] = new Ship(0, 2, IShip.TYPE.DESTROYER, IShip.DIRECTION.VERTICAL);
         ships[3] = new Ship(0, 3, IShip.TYPE.SUBMARINE, IShip.DIRECTION.VERTICAL);
         ships[4] = new Ship(0, 4, IShip.TYPE.PATROL, IShip.DIRECTION.VERTICAL);
-        for (Ship s : ships) {
+        for (IShip s : ships) {
             s.setIsPlaced(false);
         }
     }
@@ -158,7 +156,8 @@ public class Player implements Serializable, IPlayer {
         ships[index] = ship;
     }
 
-    public Ship getShip(final int index) {
+    @Override
+    public IShip getShip(final int index) {
         return ships[index];
     }
 
@@ -180,45 +179,45 @@ public class Player implements Serializable, IPlayer {
         return sb.toString();
     }
 
-    @Override
-    protected Object clone() throws CloneNotSupportedException {
-        super.clone();
-        Player p = new Player();
-        p.setId(id);
-        p.setBoard(board);
-        p.setName(name);
-        p.setShips(ships);
-        p.setToken(token);
-        return p;
-    }
+//    @Override
+//    protected Object clone() throws CloneNotSupportedException {
+//        super.clone();
+//        Player p = new Player();
+//        p.setId(id);
+//        p.setBoard(board);
+//        p.setName(name);
+//        p.setShips(ships);
+//        p.setToken(token);
+//        return p;
+//    }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof Player) {
-            Player p = (Player) obj;
-            if (p.id != id) {
-                return false;
-            }
-            if (!p.name.equals(name)) {
-                return false;
-            }
-            if (obj.hashCode() != hashCode()) {
-                return false;
-            }
-        }
-        return super.equals(obj);
-    }
+//    @Override
+//    public boolean equals(Object obj) {
+//        if (obj instanceof Player) {
+//            Player p = (Player) obj;
+//            if (p.id != id) {
+//                return false;
+//            }
+//            if (!p.name.equals(name)) {
+//                return false;
+//            }
+//            if (obj.hashCode() != hashCode()) {
+//                return false;
+//            }
+//        }
+//        return super.equals(obj);
+//    }
 
-    @Override
-    public int hashCode() {
-        int hash = 7;
-        hash = 43 * hash + Objects.hashCode(id);
-        hash = 43 * hash + Objects.hashCode(name);
-        hash = 43 * hash + Objects.hashCode(token);
-        hash = 43 * hash + Arrays.deepHashCode(board);
-        hash = 43 * hash + Arrays.deepHashCode(ships);
-        return hash;
-    }
+//    @Override
+//    public int hashCode() {
+//        int hash = 7;
+//        hash = 43 * hash + Objects.hashCode(id);
+//        hash = 43 * hash + Objects.hashCode(name);
+//        hash = 43 * hash + Objects.hashCode(token);
+//        hash = 43 * hash + Arrays.deepHashCode(board);
+//        hash = 43 * hash + Arrays.deepHashCode(ships);
+//        return hash;
+//    }
 
     /* getters & setters */
     @Override
@@ -272,13 +271,19 @@ public class Player implements Serializable, IPlayer {
     }
 
     @Override
-    public Ship[] getShips() {
+    public IShip[] getShips() {
         return ships;
     }
 
     @Override
-    public void setShips(Ship[] ships) {
+    public void setShips(IShip[] ships) {
         this.ships = ships;
     }
+
+    @Override
+    public void setShip(int index, IShip ship) {
+        ships[index] = ship;
+    }
+
 
 }

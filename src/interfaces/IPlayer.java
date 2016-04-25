@@ -23,25 +23,20 @@
  */
 package interfaces;
 
-import dataobjects.Ship;
-
 /**
  *
  * @author Rudy Alex Kohn <s133235@student.dtu.dk>
  */
 public interface IPlayer {
 
+    void initShips();
+    
+    IShip getShip(int index);
+    
+    void setShip(int index, IShip ship);
+    
     void boardHit(final int x, final int y);
 
-    @Override
-    String toString();
-
-    @Override
-    boolean equals(Object obj);
-
-    @Override
-    int hashCode();
-    
     byte getHits();
     
     void setHits(byte hits);
@@ -62,9 +57,9 @@ public interface IPlayer {
 
     void setBoard(int[][] board);
 
-    Ship[] getShips();
+    IShip[] getShips();
 
-    void setShips(Ship[] ships);
+    void setShips(IShip[] ships);
 
              
 }
