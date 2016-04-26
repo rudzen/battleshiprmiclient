@@ -23,14 +23,17 @@
  */
 package battleshiprmiclient;
 
+import com.google.gson.Gson;
 import dataobjects.Player;
 import interfaces.IBattleShip;
-import interfaces.IPlayer;
+import interfaces.IClientListener;
+import interfaces.IShip;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -99,13 +102,13 @@ public class Battleship {
 
             System.out.println("RMI SEEMS OKAY!");
 
-            game.login(ui.toString(), "password");
+            //game.login(ui.toString(), "password");
 
-            IPlayer p = new Player("Palle");
+            Player p = new Player("Palle");
             p.initShips();
 
-            game.registerClient(ui);
-            //registerClient(p);
+            Gson g = new Gson();
+            game.registerClient(ui, g.toJson(p, Player.class));
 
             //game.fireShot(3, 5, new Player("abe"));
         } catch (final RemoteException re) {
@@ -123,4 +126,15 @@ public class Battleship {
         //UI.runGame(registry);
     }
 
+//    private void register() {
+//        Player p = new Player("Palle");
+//        p.initShips();
+//        Gson g = new Gson();
+//        
+//        try {
+//            game.registerClient(this, g.toJson(p, Player.class));
+//        } catch (RemoteException ex) {
+//            Logger.getLogger(Battleship.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//    }
 }

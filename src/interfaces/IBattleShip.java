@@ -23,6 +23,7 @@
  */
 package interfaces;
 
+import dataobjects.Player;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
@@ -40,7 +41,7 @@ public interface IBattleShip extends Remote {
      * @return true if okay, else false.
      * @throws RemoteException 
      */
-    boolean registerClient(IClientListener clientInterface) throws RemoteException;
+    boolean registerClient(IClientListener clientInterface, String player) throws RemoteException;
     
     /**
      * Removes a client registration at the server.
@@ -49,7 +50,7 @@ public interface IBattleShip extends Remote {
      * @return true if removed, otherwise false.
      * @throws RemoteException 
      */
-    boolean removeClient(IClientListener clientInterface) throws RemoteException;
+    boolean removeClient(IClientListener clientInterface, Player player) throws RemoteException;
 
     
     /**
@@ -57,7 +58,7 @@ public interface IBattleShip extends Remote {
      * @return The Player object which contains public information about the opponent.
      * @throws RemoteException 
      */
-    IPlayer getOther() throws RemoteException;
+    Player getOther() throws RemoteException;
 
     /**
      * Let the server know at what location you attempted to fire a shot at.
@@ -66,7 +67,7 @@ public interface IBattleShip extends Remote {
      * @param player The player shooting
      * @throws RemoteException 
      */
-    void fireShot(int x, int y, IPlayer player) throws RemoteException;
+    void fireShot(int x, int y, Player player) throws RemoteException;
     
     /**
      * Login attempt
@@ -83,21 +84,21 @@ public interface IBattleShip extends Remote {
      * @return true if logged out, false if failed (should NEVER happend!)
      * @throws RemoteException Meh..
      */
-    boolean logout(IPlayer player) throws RemoteException;
+    boolean logout(Player player) throws RemoteException;
     
     /**
      * Response to client callback method ping().
      * @param player The player
      * @throws RemoteException 
      */
-    void pong(IPlayer player) throws RemoteException;
+    void pong(Player player) throws RemoteException;
     
     /**
      * Deploy set-up of ships to the server.
      * @param player The player
      * @throws RemoteException 
      */
-    void deployShips(IPlayer player) throws RemoteException;
+    void deployShips(Player player) throws RemoteException;
 
     
     /**
@@ -105,7 +106,7 @@ public interface IBattleShip extends Remote {
      * @param player This is my player object.
      * @throws RemoteException 
      */
-    void requestPlayers(IPlayer player) throws RemoteException;
+    void requestPlayers(Player player) throws RemoteException;
     
     
     /**
@@ -113,6 +114,17 @@ public interface IBattleShip extends Remote {
      * @param newPlayer The new player object
      * @throws RemoteException
      */
-    void updatePlayer(IPlayer newPlayer) throws RemoteException;
+    void updatePlayer(Player newPlayer) throws RemoteException;
+    
+    
+    /**
+     * Sends a message to all the other RMI clients.
+     * @param message The message
+     * @param title The title of the message
+     * @param modal The dialog modal
+     * @throws RemoteException 
+     */
+    void publicMessage(String message, String title, int modal) throws RemoteException;
+    
     
 }

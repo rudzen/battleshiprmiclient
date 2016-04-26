@@ -23,12 +23,12 @@
  */
 package ui;
 
+import com.google.gson.Gson;
 import dataobjects.PPoint;
 import dataobjects.Player;
 import dataobjects.Ship;
 import interfaces.IBattleShip;
 import interfaces.IClientListener;
-import interfaces.IPlayer;
 import interfaces.IShip;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -57,6 +57,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 import utility.Statics;
 
@@ -64,179 +65,13 @@ import utility.Statics;
  *
  * @author rudz
  */
-public class UI extends UnicastRemoteObject implements IClientListener, Serializable {
+public class UI extends UnicastRemoteObject implements IClientListener {
 
-    private static final long serialVersionUID = 6911438361535703573L;
+    //private static final long serialVersionUID = 6911438361535703573L;
 
     private IBattleShip game;
 
-    public static JButton[][] getOwnButtons() {
-        return ownButtons;
-    }
-
-    public static void setOwnButtons(JButton[][] ownButtons) {
-        UI.ownButtons = ownButtons;
-    }
-
-    public static JButton[][] getOppButtons() {
-        return oppButtons;
-    }
-
-    public static void setOppButtons(JButton[][] oppButtons) {
-        UI.oppButtons = oppButtons;
-    }
-
-    public static JPanel[] getBoards() {
-        return boards;
-    }
-
-    public static void setBoards(JPanel[] boards) {
-        UI.boards = boards;
-    }
-
-    public static JPanel getInputpanel() {
-        return inputpanel;
-    }
-
-    public static void setInputpanel(JPanel inputpanel) {
-        UI.inputpanel = inputpanel;
-    }
-
-    public static JPanel getStatusBar() {
-        return statusBar;
-    }
-
-    public static void setStatusBar(JPanel statusBar) {
-        UI.statusBar = statusBar;
-    }
-
-    public static Container getB() {
-        return b;
-    }
-
-    public static void setB(Container b) {
-        UI.b = b;
-    }
-
-    public static Container getC() {
-        return c;
-    }
-
-    public static void setC(Container c) {
-        UI.c = c;
-    }
-
-    public static Container getD() {
-        return d;
-    }
-
-    public static void setD(Container d) {
-        UI.d = d;
-    }
-
-    public JPanel getInput() {
-        return input;
-    }
-
-    public void setInput(JPanel input) {
-        this.input = input;
-    }
-
-    public static JMenuItem getM() {
-        return m;
-    }
-
-    public static void setM(JMenuItem m) {
-        UI.m = m;
-    }
-
-    public static JMenuItem getPvp() {
-        return pvp;
-    }
-
-    public static void setPvp(JMenuItem pvp) {
-        UI.pvp = pvp;
-    }
-
-    public JTextField getMbar() {
-        return mbar;
-    }
-
-    public void setMbar(JTextField mbar) {
-        this.mbar = mbar;
-    }
-
-    public static JMenuItem getGametype() {
-        return gametype;
-    }
-
-    public static void setGametype(JMenuItem gametype) {
-        UI.gametype = gametype;
-    }
-
-    public static int getLength() {
-        return length;
-    }
-
-    public static void setLength(int length) {
-        UI.length = length;
-    }
-
-    public static int getSindex() {
-        return sindex;
-    }
-
-    public static void setSindex(int sindex) {
-        UI.sindex = sindex;
-    }
-
-    public static int getDindex() {
-        return dindex;
-    }
-
-    public static void setDindex(int dindex) {
-        UI.dindex = dindex;
-    }
-
-    public DirectListener getDirectionListener() {
-        return directionListener;
-    }
-
-    public void setDirectionListener(DirectListener directionListener) {
-        this.directionListener = directionListener;
-    }
-
-    public static IPlayer getOther() {
-        return other;
-    }
-
-    public static void setOther(Player other) {
-        UI.other = other;
-    }
-
-    public static String getUser() {
-        return user;
-    }
-
-    public static void setUser(String user) {
-        UI.user = user;
-    }
-
-    public static String getUser2() {
-        return user2;
-    }
-
-    public static void setUser2(String user2) {
-        UI.user2 = user2;
-    }
-
-    public static boolean isGameover() {
-        return gameover;
-    }
-
-    public static void setGameover(boolean gameover) {
-        UI.gameover = gameover;
-    }
+    private Gson g = new Gson();
 
     private String registry;
 
@@ -309,8 +144,8 @@ public class UI extends UnicastRemoteObject implements IClientListener, Serializ
     //BoardListener boardListener = new BoardListener();
     DirectListener directionListener = new DirectListener();
 
-    private static IPlayer me;
-    private static IPlayer other;
+    private static Player me;
+    private static Player other;
 
     /* this is just to save time! */
     // TODO : move to GameState
@@ -337,7 +172,12 @@ public class UI extends UnicastRemoteObject implements IClientListener, Serializ
 
     @Override
     public void showMessage(String title, String message, int modal) throws RemoteException {
-        UIHelpers.messageDialog(title, message, modal);
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                UIHelpers.messageDialog(title, message, modal);
+            }
+        });
     }
 
     @Override
@@ -347,7 +187,7 @@ public class UI extends UnicastRemoteObject implements IClientListener, Serializ
     }
 
     @Override
-    public void updateOpponent(IPlayer player) throws RemoteException {
+    public void updateOpponent(Player player) throws RemoteException {
         other = player;
     }
 
@@ -380,12 +220,12 @@ public class UI extends UnicastRemoteObject implements IClientListener, Serializ
     }
 
     @Override
-    public void playerList(ArrayList<IPlayer> players) throws RemoteException {
+    public void playerList(ArrayList<Player> players) throws RemoteException {
         System.out.println("Player list received : " + players);
     }
 
     @Override
-    public IPlayer getPlayer() throws RemoteException {
+    public Player getPlayer() throws RemoteException {
         return me;
     }
 
@@ -664,28 +504,29 @@ public class UI extends UnicastRemoteObject implements IClientListener, Serializ
      * @return true if possible, otherwise false
      */
     private static boolean isValidPos(final int x, final int y, final IShip s) {
-        IShip otherShip;
-        IShip.DIRECTION dir = s.getDirection();
-
-        final int lower = dir == IShip.DIRECTION.HORIZONTAL ? x : y;
-        final int upper = lower + s.getLength();
-
-        /* determin if the ship is placed within the board boundries */
-        boolean val = upper <= ownButtons.length;
-
-        /* determin if we will intersect another ship */
-        for (int i = 0; i < me.getShips().length; i++) {
-            otherShip = me.getShips()[i];
-            if (s.getType() != otherShip.getType() && otherShip.isPlaced()) {
-                System.out.println("Validation : " + s.getShipType() + " v " + otherShip.getShipType());
-                if (isContained(x, y, otherShip)) {
-                    val = false;
-                    break;
-                }
-            }
-        }
-        System.out.println("Position is valid : " + val);
-        return val;
+        return true;
+//        IShip otherShip;
+//        IShip.DIRECTION dir = s.getDirection();
+//
+//        final int lower = dir == IShip.DIRECTION.HORIZONTAL ? x : y;
+//        final int upper = lower + s.getLength();
+//
+//        /* determin if the ship is placed within the board boundries */
+//        boolean val = upper <= ownButtons.length;
+//
+//        /* determin if we will intersect another ship */
+//        for (int i = 0; i < me.getShips().length; i++) {
+//            otherShip = me.getShips()[i];
+//            if (s.getType() != otherShip.getType() && otherShip.isPlaced()) {
+//                System.out.println("Validation : " + s.getShipType() + " v " + otherShip.getShipType());
+//                if (isContained(x, y, otherShip)) {
+//                    val = false;
+//                    break;
+//                }
+//            }
+//        }
+//        System.out.println("Position is valid : " + val);
+//        return val;
     }
 
     private static boolean isContained(final int x, final int y, final IShip s) {
@@ -778,7 +619,6 @@ public class UI extends UnicastRemoteObject implements IClientListener, Serializ
 //    public static boolean isAutoSet() {
 //        return Options.SHIP_LAYOUT.getSelectedIndex() != 0;
 //    }
-
     /**
      * Update the username, this is called from the login dialog.
      *
@@ -796,7 +636,7 @@ public class UI extends UnicastRemoteObject implements IClientListener, Serializ
                 me = new Player(name);
             }
             try {
-                game.registerClient(this);
+                game.registerClient(this, g.toJson(me, Player.class));
             } catch (RemoteException ex) {
                 Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -1099,7 +939,6 @@ public class UI extends UnicastRemoteObject implements IClientListener, Serializ
 //    public static Color getColor() {
 //        return Options.COLOURS[Options.SHIP_COLOUR.getSelectedIndex()];
 //    }
-
     public void setGame(final IBattleShip game) {
         this.game = game;
     }
@@ -1132,7 +971,7 @@ public class UI extends UnicastRemoteObject implements IClientListener, Serializ
         deploy.setEnabled(k);
     }
 
-    public static IPlayer getMe() {
+    public static Player getMe() {
         return me;
     }
 
@@ -1162,6 +1001,174 @@ public class UI extends UnicastRemoteObject implements IClientListener, Serializ
 
     public static int getDIndex() {
         return dindex;
+    }
+
+    public static JButton[][] getOwnButtons() {
+        return ownButtons;
+    }
+
+    public static void setOwnButtons(JButton[][] ownButtons) {
+        UI.ownButtons = ownButtons;
+    }
+
+    public static JButton[][] getOppButtons() {
+        return oppButtons;
+    }
+
+    public static void setOppButtons(JButton[][] oppButtons) {
+        UI.oppButtons = oppButtons;
+    }
+
+    public static JPanel[] getBoards() {
+        return boards;
+    }
+
+    public static void setBoards(JPanel[] boards) {
+        UI.boards = boards;
+    }
+
+    public static JPanel getInputpanel() {
+        return inputpanel;
+    }
+
+    public static void setInputpanel(JPanel inputpanel) {
+        UI.inputpanel = inputpanel;
+    }
+
+    public static JPanel getStatusBar() {
+        return statusBar;
+    }
+
+    public static void setStatusBar(JPanel statusBar) {
+        UI.statusBar = statusBar;
+    }
+
+    public static Container getB() {
+        return b;
+    }
+
+    public static void setB(Container b) {
+        UI.b = b;
+    }
+
+    public static Container getC() {
+        return c;
+    }
+
+    public static void setC(Container c) {
+        UI.c = c;
+    }
+
+    public static Container getD() {
+        return d;
+    }
+
+    public static void setD(Container d) {
+        UI.d = d;
+    }
+
+    public JPanel getInput() {
+        return input;
+    }
+
+    public void setInput(JPanel input) {
+        this.input = input;
+    }
+
+    public static JMenuItem getM() {
+        return m;
+    }
+
+    public static void setM(JMenuItem m) {
+        UI.m = m;
+    }
+
+    public static JMenuItem getPvp() {
+        return pvp;
+    }
+
+    public static void setPvp(JMenuItem pvp) {
+        UI.pvp = pvp;
+    }
+
+    public JTextField getMbar() {
+        return mbar;
+    }
+
+    public void setMbar(JTextField mbar) {
+        this.mbar = mbar;
+    }
+
+    public static JMenuItem getGametype() {
+        return gametype;
+    }
+
+    public static void setGametype(JMenuItem gametype) {
+        UI.gametype = gametype;
+    }
+
+    public static int getLength() {
+        return length;
+    }
+
+    public static void setLength(int length) {
+        UI.length = length;
+    }
+
+    public static int getSindex() {
+        return sindex;
+    }
+
+    public static void setSindex(int sindex) {
+        UI.sindex = sindex;
+    }
+
+    public static int getDindex() {
+        return dindex;
+    }
+
+    public static void setDindex(int dindex) {
+        UI.dindex = dindex;
+    }
+
+    public DirectListener getDirectionListener() {
+        return directionListener;
+    }
+
+    public void setDirectionListener(DirectListener directionListener) {
+        this.directionListener = directionListener;
+    }
+
+    public static Player getOther() {
+        return other;
+    }
+
+    public static void setOther(Player other) {
+        UI.other = other;
+    }
+
+    public static String getUser() {
+        return user;
+    }
+
+    public static void setUser(String user) {
+        UI.user = user;
+    }
+
+    public static String getUser2() {
+        return user2;
+    }
+
+    public static void setUser2(String user2) {
+        UI.user2 = user2;
+    }
+
+    public static boolean isGameover() {
+        return gameover;
+    }
+
+    public static void setGameover(boolean gameover) {
+        UI.gameover = gameover;
     }
 
 }
