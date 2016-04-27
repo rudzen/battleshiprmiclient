@@ -31,7 +31,7 @@ import java.io.Serializable;
  * Basic ship class, it defines what ship type it is, and what else there is to
  * know about it.
  *
- * @author rudz
+ * @author Rudy Alex Kohn <s133235@student.dtu.dk>
  * @version 1.0
  * @since 16-04-2016
  */
@@ -78,7 +78,7 @@ public class Ship implements Serializable, IShip {
     /**
      * The basic hit index. 0 = not hit, 1 = hit
      */
-    private int[] hits;
+    private int[] hits = new int[0];
 
     /**
      * Is the ship placed on the board?

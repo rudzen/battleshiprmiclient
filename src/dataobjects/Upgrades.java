@@ -26,7 +26,8 @@ package dataobjects;
 import java.io.Serializable;
 
 /**
- *
+ * Basic upgrade class for Battlehip ships.<br>
+ * This might not be used, but still important for future updates!
  * @author Rudy Alex Kohn <s133235@student.dtu.dk>
  */
 public class Upgrades implements Serializable {

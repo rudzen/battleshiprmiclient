@@ -29,7 +29,7 @@ import java.io.Serializable;
 /**
  * The Player class for BattleShip.<br>
  *
- * @author rudz
+ * @author Rudy Alex Kohn <s133235@student.dtu.dk>
  */
 public class Player implements Serializable {
 

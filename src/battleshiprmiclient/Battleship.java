@@ -27,13 +27,12 @@ import com.google.gson.Gson;
 import dataobjects.Player;
 import interfaces.IBattleShip;
 import interfaces.IClientListener;
-import interfaces.IShip;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -41,16 +40,19 @@ import ui.UI;
 import ui.UIHelpers;
 
 /**
+ * The main launcher class for the Battleship RMI client
  *
- * @author rudz
+ * @author Rudy Alex Kohn <s133235@student.dtu.dk>
  */
 public class Battleship {
 
     public static void main(String args[]) {
 
-        // Only required for dynamic class loading
-        //System.setSecurityManager(new RMISecurityManager());
-        // Check to see if a registry was specified
+        if (System.getSecurityManager() == null) {
+            System.setSecurityManager(new SecurityManager());
+            System.out.println("SecurityManager created.");
+        }
+
         String registry;
         if (args.length >= 1) {
             registry = args[0];
@@ -73,7 +75,7 @@ public class Battleship {
     private String registry;
 
     //private UI ui;
-    private IBattleShip game;
+    public static IBattleShip game;
 
     public Battleship() throws RemoteException {
     }
@@ -83,11 +85,6 @@ public class Battleship {
 
         try {
 
-            if (System.getSecurityManager() == null) {
-                System.setSecurityManager(new SecurityManager());
-                System.out.println("SecurityManager created.");
-            }
-
             // Registration format
             //registry_hostname :port/service
             // Note the :port field is optional
@@ -95,20 +92,22 @@ public class Battleship {
             /* Lookup the service in the registry, and obtain a remote service */
             Remote remoteService = Naming.lookup(registration);
 
-            //UI.runGame(registry);
-            UI ui = new UI(registry);
-
             game = (IBattleShip) remoteService;
+
+            IClientListener ui = new UI(registry, game);
 
             System.out.println("RMI SEEMS OKAY!");
 
             //game.login(ui.toString(), "password");
-
-            Player p = new Player("Palle");
+            Player p = new Player("Palle" + Double.toString(Math.random() * 10));
             p.initShips();
 
+            
             Gson g = new Gson();
-            game.registerClient(ui, g.toJson(p, Player.class));
+            
+            game.registerClient(ui, p.getName());
+            
+            game.publicMessage(p.getName(), "OFFENTLIGE MIDLER ER NOGET CRAP!", "Her en er titel", 0);
 
             //game.fireShot(3, 5, new Player("abe"));
         } catch (final RemoteException re) {

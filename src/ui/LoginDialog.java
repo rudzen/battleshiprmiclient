@@ -47,7 +47,7 @@ import java.io.Serializable;
  * Simple login dialog.<br>
  * Communicates with BattleShipRMIServer.
  *
- * @author rudz
+ * @author Rudy Alex Kohn <s133235@student.dtu.dk>
  */
 public final class LoginDialog extends JDialog implements Serializable {
 
@@ -60,7 +60,6 @@ public final class LoginDialog extends JDialog implements Serializable {
     private static final JProgressBar progressBar = new JProgressBar();
 
     private UI ui;
-    
     
     public static JDialog login(final IBattleShip game, final UI ui) {
         try {

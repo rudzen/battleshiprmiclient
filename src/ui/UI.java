@@ -57,22 +57,42 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
+import ui.LoginDialog;
+import ui.UIHelpers;
 import utility.Statics;
 
 /**
+ * The User-Interface for the Swing client.<br>
+ * This class is build from scratch to support new data structure with basic
+ * idea taken from:
+ * http://www.cs.princeton.edu/academics/ugradpgm/spe/summer04/chwillia/
  *
- * @author rudz
+ * It handles : - Swing events - Server callbacks - Holding the Login dialog
+ * using a tight leash.
+ *
+ * Since the data for the client needs to be represented through awt/swing
+ * objects, it will not need to send everything back and forth, but only the
+ * indexes etc.
+ *
+ * @author Rudy Alex Kohn <s133235@student.dtu.dk>
  */
 public class UI extends UnicastRemoteObject implements IClientListener {
 
-    //private static final long serialVersionUID = 6911438361535703573L;
+    private static final long serialVersionUID = -7140601918400361891L;
 
     private IBattleShip game;
 
     private Gson g = new Gson();
 
+    public static UI getInstance() {
+        return SingletonHolder.INSTANCE;
+    }
+
+    private static class SingletonHolder {
+        public static UI INSTANCE;
+    }
+    
     private String registry;
 
     /* UI Stuff */
@@ -96,9 +116,6 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     /* for manually inputting ships */
     private static JPanel inputpanel;
 
-    /* status bar */
-    private static JPanel statusBar;
-
     /* board and input panel */
     private static Container b, c, d;
 
@@ -115,10 +132,12 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     private static final String[] direction = {"Horizontal", "Vertical"};
 
     /* ships */
-    private final JComboBox cshi = new JComboBox(ships);
+    private final JComboBox combo_ship = new JComboBox(ships);
+    private static int index_ship;
 
     /* directions */
-    private final JComboBox cdir = new JComboBox(direction);
+    private final JComboBox combo_direction = new JComboBox(direction);
+    private static int index_direction;
 
     /* message bar */
     private JTextField mbar = new JTextField();
@@ -131,103 +150,31 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
     private static int length = 5;
 
-    /* is game ready to receive next action from human player? */
-    static int ready;
+    /* is game ready to receive next action from human player?
+     0 = in deployment mode
+     1 = game in progress, this players turn
+     2 = game in progress, opponents turn
+     */
+    private static int ready;
 
-    /* ship index tracker */
-    private static int sindex;
-
-    /* direction array tracker */
-    private static int dindex;
 
     /* and the local action listeners! */
-    //BoardListener boardListener = new BoardListener();
     DirectListener directionListener = new DirectListener();
 
+    /* the player whom plays from this UI */
     private static Player me;
+
+    /* the opponent.
+     Just basic information :
+    the board (without ships)
+    the name
+     */
     private static Player other;
 
     /* this is just to save time! */
-    // TODO : move to GameState
-    protected static String user, user2;
-    protected static boolean gameover;
+    private static String user, user2;
 
-    /* RMI callback methods */
-    @Override
-    public void shotFired(int x, int y, boolean hit) throws RemoteException {
-        ownButtons[x][y].setBackground(hit ? Color.YELLOW : Color.CYAN);
-    }
-
-    @Override
-    public void gameOver(boolean won) throws RemoteException {
-        StringBuilder sb = new StringBuilder();
-        sb.append("You have ").append(won ? "won the game over " : "lost the game to ").append(other.getName());
-        UIHelpers.messageDialog(sb.toString(), UIHelpers.MSG_GAME_OVER, JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    @Override
-    public void canPlay(boolean canPlay) throws RemoteException {
-        deploy.setEnabled(canPlay);
-    }
-
-    @Override
-    public void showMessage(String title, String message, int modal) throws RemoteException {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                UIHelpers.messageDialog(title, message, modal);
-            }
-        });
-    }
-
-    @Override
-    public void opponentQuit() throws RemoteException {
-        UIHelpers.messageDialog(other.getName() + " has left the game.", "Game is terminated", JOptionPane.ERROR_MESSAGE);
-        UIHelpers.messageDialog("You have gained 0 points, but don't worry as " + other.getName() + " has lost points.", "Game is terminated", JOptionPane.ERROR_MESSAGE);
-    }
-
-    @Override
-    public void updateOpponent(Player player) throws RemoteException {
-        other = player;
-    }
-
-    @Override
-    public void updateOpponentBoard(int[][] board) throws RemoteException {
-        other.setBoard(board);
-        drawBoard(board, 1);
-    }
-
-    @Override
-    public void updateBoard(int[][] board) throws RemoteException {
-        me.setBoard(board);
-        drawBoard(board, 0);
-    }
-
-    @Override
-    public void ping() throws RemoteException {
-        game.pong(me);
-    }
-
-    @Override
-    public void isLoggedOut(boolean status) throws RemoteException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void shipSunk(IShip ship) throws RemoteException {
-        UIHelpers.messageDialog("Your " + ship.getShipType() + " has been sunk by " + other.getName(), "Ship sunk!!!!");
-        colorShip(ship.getLocStart().getX(), ship.getLocStart().getY(), ship, Color.BLACK);
-    }
-
-    @Override
-    public void playerList(ArrayList<Player> players) throws RemoteException {
-        System.out.println("Player list received : " + players);
-    }
-
-    @Override
-    public Player getPlayer() throws RemoteException {
-        return me;
-    }
+    private static boolean gameover;
 
     private enum SHIP_PLACE {
         REMOVE, ADD, SUNK
@@ -236,15 +183,17 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     private static class RunnableImpl implements Runnable {
 
         private final String registry;
-
-        public RunnableImpl(final String registry) {
+        private final IBattleShip game;
+        
+        public RunnableImpl(final String registry, final IBattleShip game) {
             this.registry = registry;
+            this.game = game;
         }
 
         @Override
         public void run() {
             try {
-                UI ui = new UI(registry);
+                SingletonHolder.INSTANCE = new UI(registry, game);
             } catch (RemoteException ex) {
                 Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -252,13 +201,14 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         }
     }
 
-    public static void runGame(final String registry) {
-        EventQueue.invokeLater(new RunnableImpl(registry));
+    public static void runGame(final String registry, final IBattleShip game) {
+        EventQueue.invokeLater(new RunnableImpl(registry, game));
     }
 
-    public UI(final String registry) throws RemoteException {
+    public UI(final String registry, final IBattleShip game) throws RemoteException {
         super();
 
+        this.game = game;
         this.registry = registry;
         me = new Player("");
 
@@ -350,17 +300,17 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         mbar.setFont(new Font("Ariel", Font.BOLD, 14));
         mbar.setEditable(false);
         //input.add(mbar);
-        cshi.setSelectedIndex(0);
-        cshi.addActionListener(new ShipsListener());
+        combo_ship.setSelectedIndex(0);
+        combo_ship.addActionListener(new ShipsListener());
         TitledBorder titleBorder;//used for titles around combo boxes
         titleBorder = BorderFactory.createTitledBorder("Ships");
-        cshi.setBorder(titleBorder);
-        input.add(cshi);
-        cdir.setSelectedIndex(0);
-        cdir.addActionListener(directionListener);
-        input.add(cdir);
+        combo_ship.setBorder(titleBorder);
+        input.add(combo_ship);
+        combo_direction.setSelectedIndex(0);
+        combo_direction.addActionListener(directionListener);
+        input.add(combo_direction);
         titleBorder = BorderFactory.createTitledBorder("Direction");
-        cdir.setBorder(titleBorder);
+        combo_direction.setBorder(titleBorder);
         deploy.setEnabled(false);
         deploy.addActionListener(new DeployListener(mainFrame));
         deploy.setAlignmentX(JFrame.CENTER_ALIGNMENT);
@@ -602,7 +552,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             s.setIsPlaced(true);
 
             /* update the ship in the player */
-            me.setShip(sindex, s);
+            me.setShip(index_ship, s);
 
         } else if (place == SHIP_PLACE.REMOVE) {
             /* if the ship is to be removed */
@@ -650,7 +600,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
      * interface.
      */
     private IShip.DIRECTION getSelectedDirection() {
-        return dindex == 1 ? IShip.DIRECTION.HORIZONTAL : IShip.DIRECTION.VERTICAL;
+        return index_direction == 1 ? IShip.DIRECTION.HORIZONTAL : IShip.DIRECTION.VERTICAL;
     }
 
     private int getIndexDirection(final IShip.DIRECTION dir) {
@@ -681,7 +631,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             if (ready == 0) {
                 // we are in construction faze
 
-                IShip s = me.getShip(sindex);
+                IShip s = me.getShip(index_ship);
 
                 if (isValidPos(x, y, s)) {
                     System.out.println("Ship placement for -> " + s);
@@ -700,7 +650,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             } else {
                 try {
                     /* user is fireing at the opponent!!! */
-                    game.fireShot(x, y, me);
+                    game.fireShot(x, y, me.getName());
                 } catch (RemoteException ex) {
                     Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -718,11 +668,11 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
         @Override
         public void actionPerformed(ActionEvent v) {
-            dindex = cdir.getSelectedIndex();
+            index_direction = combo_direction.getSelectedIndex();
 
             System.out.println("Direction combobox used");
 
-            final IShip s = me.getShip(sindex);
+            final IShip s = me.getShip(index_ship);
 
             if (s.isPlaced()) {
                 if (isValidPos(s.getLocStart().getX(), s.getLocStart().getY(), s)) {
@@ -735,7 +685,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
                     handleShip(s.getLocStart().getX(), s.getLocStart().getY(), 0, s, SHIP_PLACE.ADD);
 
-                    me.setShip(sindex, s);
+                    me.setShip(index_ship, s);
                 } else {
                     UIHelpers.messageDialog("You can not turn the ship direction based on it's location.\nMove the ship first", "Error");
                 }
@@ -764,7 +714,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
                 try {
                     // TODO : Add forefeit command in game object
 
-                    UIHelpers.messageDialog(game.logout(me) ? "You have been logged out." : "Failed to log out, server could be unresponsive.", "Logged out");
+                    UIHelpers.messageDialog(game.logout(me.getName()) ? "You have been logged out." : "Failed to log out, server could be unresponsive.", "Logged out");
                 } catch (RemoteException ex) {
                     Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
                 } finally {
@@ -785,12 +735,12 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
         @Override
         public void actionPerformed(ActionEvent v) {
-            sindex = cshi.getSelectedIndex();
+            index_ship = combo_ship.getSelectedIndex();
             System.out.println("Ship used");
 
-            if (me.getShip(sindex).isPlaced() && cdir.getSelectedIndex() != getIndexDirection(me.getShip(sindex).getDirection())) {
+            if (me.getShip(index_ship).isPlaced() && combo_direction.getSelectedIndex() != getIndexDirection(me.getShip(index_ship).getDirection())) {
                 System.out.println("Direction combobox changed because ship has different direction.");
-                cdir.setSelectedIndex(getIndexDirection(me.getShip(sindex).getDirection()));
+                combo_direction.setSelectedIndex(getIndexDirection(me.getShip(index_ship).getDirection()));
             }
         }
     }
@@ -871,7 +821,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
                     try {
                         // TODO : Add RMI interface to actually let the server know about it.
-                        game.logout(me);
+                        game.logout(me.getName());
                     } catch (RemoteException ex) {
                         Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -897,7 +847,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             if (UIHelpers.confirmDialog("Are you sure you would like to deploy your ships?", "Deploy Ships?") == 0) {
                 try {
                     System.out.println("The player to deploy : " + me);
-                    game.deployShips(me);
+                    game.deployShips(me.getName(), me.getShips());
                     ui.pack();
                     ui.repaint();
                 } catch (RemoteException ex) {
@@ -939,6 +889,78 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 //    public static Color getColor() {
 //        return Options.COLOURS[Options.SHIP_COLOUR.getSelectedIndex()];
 //    }
+    /* RMI callback methods */
+    @Override
+    public void shotFired(int x, int y, boolean hit) throws RemoteException {
+        ownButtons[x][y].setBackground(hit ? Color.YELLOW : Color.CYAN);
+    }
+
+    @Override
+    public void gameOver(boolean won) throws RemoteException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("You have ").append(won ? "won the game over " : "lost the game to ").append(other.getName());
+        UIHelpers.messageDialog(sb.toString(), UIHelpers.MSG_GAME_OVER, JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    @Override
+    public void canPlay(boolean canPlay) throws RemoteException {
+        deploy.setEnabled(canPlay);
+    }
+
+    @Override
+    public void showMessage(String title, String message, int modal) throws RemoteException {
+        UIHelpers.messageDialog(title, message, modal);
+    }
+
+    @Override
+    public void opponentQuit() throws RemoteException {
+        UIHelpers.messageDialog(other.getName() + " has left the game.", "Game is terminated", JOptionPane.ERROR_MESSAGE);
+        UIHelpers.messageDialog("You have gained 0 points, but don't worry as " + other.getName() + " has lost points.", "Game is terminated", JOptionPane.ERROR_MESSAGE);
+    }
+
+    @Override
+    public void updateOpponent(String player) throws RemoteException {
+        other.setName(player);
+    }
+
+    @Override
+    public void updateOpponentBoard(int[][] board) throws RemoteException {
+        other.setBoard(board);
+        drawBoard(board, 1);
+    }
+
+    @Override
+    public void updateBoard(int[][] board) throws RemoteException {
+        me.setBoard(board);
+        drawBoard(board, 0);
+    }
+
+    @Override
+    public void ping() throws RemoteException {
+        game.pong(me.getName());
+    }
+
+    @Override
+    public void isLoggedOut(boolean status) throws RemoteException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void shipSunk(int shipindex) throws RemoteException {
+        UIHelpers.messageDialog("Your " + me.getShip(shipindex).getShipType() + " has been sunk by " + other.getName(), "Ship sunk!!!!");
+        colorShip(me.getShip(shipindex).getLocStart().getX(), me.getShip(shipindex).getLocStart().getY(), me.getShip(shipindex), Color.BLACK);
+    }
+
+    @Override
+    public void playerList(ArrayList<String> players) throws RemoteException {
+        System.out.println("Player list received : " + players);
+    }
+
+    @Override
+    public String getPlayer() throws RemoteException {
+        return me.getName();
+    }
+
     public void setGame(final IBattleShip game) {
         this.game = game;
     }
@@ -996,11 +1018,11 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     }
 
     public static int getSIndex() {
-        return sindex;
+        return index_ship;
     }
 
     public static int getDIndex() {
-        return dindex;
+        return index_direction;
     }
 
     public static JButton[][] getOwnButtons() {
@@ -1033,14 +1055,6 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
     public static void setInputpanel(JPanel inputpanel) {
         UI.inputpanel = inputpanel;
-    }
-
-    public static JPanel getStatusBar() {
-        return statusBar;
-    }
-
-    public static void setStatusBar(JPanel statusBar) {
-        UI.statusBar = statusBar;
     }
 
     public static Container getB() {
@@ -1115,20 +1129,20 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         UI.length = length;
     }
 
-    public static int getSindex() {
-        return sindex;
+    public static int getIndex_ship() {
+        return index_ship;
     }
 
-    public static void setSindex(int sindex) {
-        UI.sindex = sindex;
+    public static void setIndex_ship(int index_ship) {
+        UI.index_ship = index_ship;
     }
 
-    public static int getDindex() {
-        return dindex;
+    public static int getIndex_direction() {
+        return index_direction;
     }
 
-    public static void setDindex(int dindex) {
-        UI.dindex = dindex;
+    public static void setIndex_direction(int index_direction) {
+        UI.index_direction = index_direction;
     }
 
     public DirectListener getDirectionListener() {

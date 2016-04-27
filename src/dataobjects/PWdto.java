@@ -27,10 +27,13 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * Simple user/pw transfer class
- * @author rudz
+ * Simple user/pw transfer class<br>
+ * Contents will be B64 encoded + encrypted.
+ * @author Rudy Alex Kohn <s133235@student.dtu.dk>
  */
 public final class PWdto implements Serializable {
+
+    private static final long serialVersionUID = -3890947183587343366L;
     
     private String u;
     private String p;
