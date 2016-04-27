@@ -23,6 +23,7 @@
  */
 package interfaces;
 
+import dataobjects.Player;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
@@ -54,10 +55,11 @@ public interface IBattleShip extends Remote {
     
     /**
      * Get the opponent information object.
+     * @param playerOne
      * @return The Player object which contains public information about the opponent.
      * @throws RemoteException 
      */
-    String getOther() throws RemoteException;
+    String getOther(String playerOne) throws RemoteException;
 
     /**
      * Let the server know at what location you attempted to fire a shot at.
@@ -72,10 +74,11 @@ public interface IBattleShip extends Remote {
      * Login attempt
      * @param user username
      * @param pw password
+     * @param player
      * @return true/false depending on success.
      * @throws RemoteException 
      */
-    boolean login(final String user, final String pw) throws RemoteException;
+    boolean login(final String user, final String pw, Player player) throws RemoteException;
     
     /**
      * Logs the user out from the system

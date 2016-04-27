@@ -72,12 +72,12 @@ public interface IClientListener extends Remote {
 
     /**
      * Show a message from the server
-     * @param title The window title of the message
      * @param message The message to show
+     * @param title The window title of the message
      * @param modal The modal (JOPtionPane constant!)
      * @throws RemoteException 
      */
-    void showMessage(final String title, final String message, final int modal) throws RemoteException;
+    void showMessage(final String message, final String title, final int modal) throws RemoteException;
 
     /**
      * If this is called, the opponent has either quit or lost contact completely to server.

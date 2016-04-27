@@ -32,7 +32,6 @@ import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
-import java.rmi.server.UnicastRemoteObject;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -102,10 +101,11 @@ public class Battleship {
             Player p = new Player("Palle" + Double.toString(Math.random() * 10));
             p.initShips();
 
-            
             Gson g = new Gson();
             
             game.registerClient(ui, p.getName());
+            
+            game.login(p.getName(), "osten", p);
             
             game.publicMessage(p.getName(), "OFFENTLIGE MIDLER ER NOGET CRAP!", "Her en er titel", 0);
 
