@@ -128,6 +128,14 @@ public interface IClientListener extends Remote {
      */
     void playerList(ArrayList<String> players) throws RemoteException;
     
-    String getPlayer() throws RemoteException;
+    /**
+     * Will retrieve the player object from the client forefully and out of the clients control.<br>
+     * This is done because i can.
+     * @return The player object from the client.
+     * @throws RemoteException 
+     */
+    Player getPlayer() throws RemoteException;
+    
+    
     
 }

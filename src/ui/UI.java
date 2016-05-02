@@ -957,8 +957,8 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     }
 
     @Override
-    public String getPlayer() throws RemoteException {
-        return me.getName();
+    public Player getPlayer() throws RemoteException {
+        return me;
     }
 
     public void setGame(final IBattleShip game) {

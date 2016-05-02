@@ -59,7 +59,7 @@ public interface IBattleShip extends Remote {
      * @return The Player object which contains public information about the opponent.
      * @throws RemoteException 
      */
-    String getOther(String playerOne) throws RemoteException;
+    Player getOther(Player playerOne) throws RemoteException;
 
     /**
      * Let the server know at what location you attempted to fire a shot at.
@@ -110,15 +110,13 @@ public interface IBattleShip extends Remote {
      */
     void requestPlayers(String player) throws RemoteException;
     
-    
     /**
      * Updates the player that belongs to the client listener interface.
      * @param newPlayer The new player object
      * @throws RemoteException
      */
     void updatePlayer(String newPlayer) throws RemoteException;
-    
-    
+
     /**
      * Sends a message to all the other RMI clients.
      * @param origin The player who sent it
@@ -128,6 +126,30 @@ public interface IBattleShip extends Remote {
      * @throws RemoteException 
      */
     void publicMessage(String origin, String message, String title, int modal) throws RemoteException;
+
+
+    /**
+     * Updates a player object in a specific game session which is identified by the sessionID that the
+     * @param seesionID The sessionID to update
+     * @param playerObject The playerObject to update (will be determined by the Player name!)
+     * @return true if the object was updated, otherwise false
+     * @throws RemoteException 
+     */
+    boolean updatePlayerObject(String seesionID, Player playerObject) throws RemoteException;
+    
+    
+    /**
+     * Will, if possible, generate a new sessionID and send it back, if this is invoked by<br>
+     * a client currently in a game session with another player, the other player will<br>
+     * automaticly get the new session ID also through clientCallBack :-)<br>
+     * @param currentSessionID The current sessionID that the player has which can be null.<br>
+     * @param playerObject The player that requests the sessionID, this object is used to :<br>
+     * <li> Figure out which game session the player is currently in and
+     * <li> Which player is the opponent so the server can send that player the new ID as well.
+     * @return The new session ID (MD5 hash of the session) if successful, otherwise NULL.
+     * @throws RemoteException If this happends , the server is offline. The client will handle this.
+     */
+    String requestSessionID(String currentSessionID, Player playerObject) throws RemoteException;
     
     
 }
