@@ -212,7 +212,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         this.registry = registry;
         me = new Player("");
 
-        System.out.println("Registry : " + registry);
+        //System.out.println("Registry : " + registry);
 
         me.initShips();
 

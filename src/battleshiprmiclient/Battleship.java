@@ -49,7 +49,7 @@ public class Battleship {
 
         if (System.getSecurityManager() == null) {
             System.setSecurityManager(new SecurityManager());
-            System.out.println("SecurityManager created.");
+            UIHelpers.messageDialog("New SecurityManager created.", "Security manager.");
         }
 
         String registry;
@@ -95,7 +95,7 @@ public class Battleship {
 
             IClientListener ui = new UI(registry, game);
 
-            System.out.println("RMI SEEMS OKAY!");
+            //System.out.println("RMI SEEMS OKAY!");
 
             //game.login(ui.toString(), "password");
             Player p = new Player("Palle" + Double.toString(Math.random() * 10));
@@ -109,6 +109,8 @@ public class Battleship {
             
             game.publicMessage(p.getName(), "OFFENTLIGE MIDLER ER NOGET CRAP!", "Her en er titel", 0);
 
+            game.fireShot(2, 4, p.getName());
+            
             //game.fireShot(3, 5, new Player("abe"));
         } catch (final RemoteException re) {
             UIHelpers.messageDialog("RMI Error - RemoteException()\n" + re.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);

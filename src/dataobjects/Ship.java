@@ -180,7 +180,7 @@ public class Ship implements Serializable, IShip {
      */
     public boolean isHit(byte x, byte y) {
         if (isPlaced) {
-            System.out.println("isHit is running on : " + getShipType());
+            //System.out.println("isHit is running on : " + getShipType());
             if (direction == DIRECTION.HORIZONTAL) {
                 for (int i = 0; i < length; i++) {
                     if (x == locStart.getX() + i || y == locStart.getX() + i) {
