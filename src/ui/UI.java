@@ -650,7 +650,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             } else {
                 try {
                     /* user is fireing at the opponent!!! */
-                    game.fireShot(x, y, me.getName());
+                    game.fireShot(x, y, me.getName(), "XXX");
                 } catch (RemoteException ex) {
                     Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
                 }

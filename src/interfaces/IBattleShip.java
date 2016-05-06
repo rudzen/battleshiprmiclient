@@ -28,90 +28,102 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 /**
- * The server's interface.
- * Called by the client.
+ * The server's interface. Called by the client.
+ *
  * @author Rudy Alex Kohn <s133235@student.dtu.dk>
  */
 public interface IBattleShip extends Remote {
 
     /**
      * Registers a client at the server.
+     *
      * @param clientInterface The client's interface.
-     * @param player The player
+     * @param playerName The player
      * @return true if okay, else false.
-     * @throws RemoteException 
+     * @throws RemoteException
      */
-    boolean registerClient(IClientListener clientInterface, String player) throws RemoteException;
-    
+    boolean registerClient(final IClientListener clientInterface, final String playerName) throws RemoteException;
+
     /**
      * Removes a client registration at the server.
+     *
      * @param clientInterface The client interface to remove
-     * @param player The player
+     * @param playerName The player
+     * @param sessionID
      * @return true if removed, otherwise false.
-     * @throws RemoteException 
+     * @throws RemoteException
      */
-    boolean removeClient(IClientListener clientInterface, String player) throws RemoteException;
+    boolean removeClient(IClientListener clientInterface, String playerName, String sessionID) throws RemoteException;
 
-    
     /**
      * Get the opponent information object.
+     *
      * @param playerOne
-     * @return The Player object which contains public information about the opponent.
-     * @throws RemoteException 
+     * @return The Player object which contains public information about the
+     * opponent.
+     * @throws RemoteException
      */
     Player getOther(Player playerOne) throws RemoteException;
 
     /**
      * Let the server know at what location you attempted to fire a shot at.
+     *
      * @param x the X
      * @param y the Y
      * @param player The player shooting
-     * @throws RemoteException 
+     * @param sessionID The session ID
+     * @throws RemoteException
      */
-    void fireShot(int x, int y, String player) throws RemoteException;
-    
+    void fireShot(int x, int y, String player, String sessionID) throws RemoteException;
+
     /**
      * Login attempt
+     *
      * @param user username
      * @param pw password
      * @param player
      * @return true/false depending on success.
-     * @throws RemoteException 
+     * @throws RemoteException
      */
     boolean login(final String user, final String pw, Player player) throws RemoteException;
-    
+
     /**
      * Logs the user out from the system
+     *
      * @param player The Player
      * @return true if logged out, false if failed (should NEVER happend!)
      * @throws RemoteException Meh..
      */
     boolean logout(String player) throws RemoteException;
-    
+
     /**
      * Response to client callback method ping().
+     *
      * @param player The player
-     * @throws RemoteException 
+     * @throws RemoteException
      */
     void pong(String player) throws RemoteException;
-    
+
     /**
      * Deploy set-up of ships to the server.
+     *
      * @param player The player
      * @param ships
-     * @throws RemoteException 
+     * @throws RemoteException
      */
     void deployShips(String player, IShip[] ships) throws RemoteException;
-    
+
     /**
      * Requests a list of players currently available to play against.
+     *
      * @param player This is my player name, do not send myself.
-     * @throws RemoteException 
+     * @throws RemoteException
      */
     void requestPlayers(String player) throws RemoteException;
-    
+
     /**
      * Updates the player that belongs to the client listener interface.
+     *
      * @param newPlayer The new player object
      * @throws RemoteException
      */
@@ -119,37 +131,56 @@ public interface IBattleShip extends Remote {
 
     /**
      * Sends a message to all the other RMI clients.
+     *
      * @param origin The player who sent it
      * @param message The message
      * @param title The title of the message
      * @param modal The dialog modal
-     * @throws RemoteException 
+     * @throws RemoteException
      */
     void publicMessage(String origin, String message, String title, int modal) throws RemoteException;
 
-
     /**
-     * Updates a player object in a specific game session which is identified by the sessionID that the
+     * Updates a player object in a specific game session which is identified by
+     * the sessionID that the
+     *
      * @param seesionID The sessionID to update
-     * @param playerObject The playerObject to update (will be determined by the Player name!)
+     * @param playerObject The playerObject to update (will be determined by the
+     * Player name!)
      * @return true if the object was updated, otherwise false
-     * @throws RemoteException 
+     * @throws RemoteException
      */
     boolean updatePlayerObject(String seesionID, Player playerObject) throws RemoteException;
-    
-    
+
     /**
-     * Will, if possible, generate a new sessionID and send it back, if this is invoked by<br>
-     * a client currently in a game session with another player, the other player will<br>
+     * Will, if possible, generate a new sessionID and send it back, if this is
+     * invoked by<br>
+     * a client currently in a game session with another player, the other
+     * player will<br>
      * automaticly get the new session ID also through clientCallBack :-)<br>
-     * @param currentSessionID The current sessionID that the player has which can be null.<br>
-     * @param playerObject The player that requests the sessionID, this object is used to :<br>
+     *
+     * @param currentSessionID The current sessionID that the player has which
+     * can be null.<br>
+     * @param playerObject The player that requests the sessionID, this object
+     * is used to :<br>
      * <li> Figure out which game session the player is currently in and
-     * <li> Which player is the opponent so the server can send that player the new ID as well.
-     * @return The new session ID (MD5 hash of the session) if successful, otherwise NULL.
-     * @throws RemoteException If this happends , the server is offline. The client will handle this.
+     * <li> Which player is the opponent so the server can send that player the
+     * new ID as well.
+     * @return The new session ID (MD5 hash of the session) if successful,
+     * otherwise NULL.
+     * @throws RemoteException If this happends , the server is offline. The
+     * client will handle this.
      */
     String requestSessionID(String currentSessionID, Player playerObject) throws RemoteException;
-    
-    
+
+    /**
+     * Send a message to the opponent.<br>
+     * Requires that the opponent is playing through a interface which supports the functionality.<br>
+     * @param title The title of the message
+     * @param message The message body
+     * @return true if the opponent's interface support the feature, otherwise false.
+     * @throws RemoteException
+     */
+    boolean messageOpponent(String title, String message) throws RemoteException;
+
 }

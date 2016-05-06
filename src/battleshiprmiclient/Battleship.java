@@ -109,7 +109,7 @@ public class Battleship {
             
             game.publicMessage(p.getName(), "OFFENTLIGE MIDLER ER NOGET CRAP!", "Her en er titel", 0);
 
-            game.fireShot(2, 4, p.getName());
+            game.fireShot(2, 4, p.getName(), "XXX");
             
             //game.fireShot(3, 5, new Player("abe"));
         } catch (final RemoteException re) {
