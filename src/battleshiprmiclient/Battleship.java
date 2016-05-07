@@ -56,6 +56,7 @@ public class Battleship {
         if (args.length >= 1) {
             registry = args[0];
         } else {
+            //registry = "212.60.120.4";
             registry = "localhost";
         }
 
@@ -84,33 +85,28 @@ public class Battleship {
 
         try {
 
-            // Registration format
-            //registry_hostname :port/service
-            // Note the :port field is optional
-            String registration = "rmi://" + registry + "/Battleship";
             /* Lookup the service in the registry, and obtain a remote service */
-            Remote remoteService = Naming.lookup(registration);
+            Remote remoteService = Naming.lookup("rmi://" + registry + "/Battleship");
 
             game = (IBattleShip) remoteService;
 
-            IClientListener ui = new UI(registry, game);
-
             //System.out.println("RMI SEEMS OKAY!");
-
             //game.login(ui.toString(), "password");
             Player p = new Player("Palle" + Double.toString(Math.random() * 10));
             p.initShips();
 
+            IClientListener ui = new UI(registry, game);
+
             Gson g = new Gson();
-            
+
             game.registerClient(ui, p.getName());
-            
+
             game.login(p.getName(), "osten", p);
-            
+
             game.publicMessage(p.getName(), "OFFENTLIGE MIDLER ER NOGET CRAP!", "Her en er titel", 0);
 
             game.fireShot(2, 4, p.getName(), "XXX");
-            
+
             //game.fireShot(3, 5, new Player("abe"));
         } catch (final RemoteException re) {
             UIHelpers.messageDialog("RMI Error - RemoteException()\n" + re.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);

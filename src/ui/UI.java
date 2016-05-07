@@ -219,10 +219,12 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         setupUI();
     }
 
-    public void connect() {
-
+    public UI(final String registry, final IBattleShip game, final Player me) throws RemoteException {
+        this(registry, game);
+        UI.me = me;
     }
-
+    
+    
     /**
      * Sets up the window and stuff.
      */
