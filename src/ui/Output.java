@@ -76,6 +76,7 @@ public class Output extends java.awt.Frame {
         jScrollPane1.setAutoscrolls(true);
         jScrollPane1.setFont(new java.awt.Font("Courier New", 0, 10)); // NOI18N
 
+        jList1.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jScrollPane1.setViewportView(jList1);
 
         add(jScrollPane1, java.awt.BorderLayout.WEST);
