@@ -14,10 +14,11 @@
  */
 package com.css.rmi;
 
-import java.rmi.server.*;
-import java.net.*;
-import java.io.*;
-import java.util.*;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.rmi.server.RMISocketFactory;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Socket factory for clients who want servers to be able to call them back even
@@ -52,13 +53,21 @@ import java.util.*;
  * socket to the server for the server to use in the callback.
  *
  * @author Tim Taylor -- tttaylor@cssassociates.com
+ * 
+ * 09.May.2016
+ * -----------
+ * @author Rudy Alex Kohn <s133235@student.dtu.dk>
+ * - Reworked syntax for modern Java (8).
+ * - Added usage of Java 8 concurrency library for better performance.
+ * 
  */
 public class ClientTwoWaySocketFactory extends RMISocketFactory {
 
     /**
      * Registered gateways
      */
-    private Map gatewayMap = Collections.synchronizedMap(new HashMap());
+    private final ConcurrentHashMap<String, EndpointInfo> gatewayMap = new ConcurrentHashMap<>();
+    //private Map gatewayMap = Collections.synchronizedMap(new HashMap());
 
     /**
      * Signalling channel used to handshake with server. Currently supports one

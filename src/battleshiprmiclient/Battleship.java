@@ -23,15 +23,17 @@
  */
 package battleshiprmiclient;
 
-import com.google.gson.Gson;
-import dataobjects.Player;
+import com.css.rmi.ClientTwoWaySocketFactory;
 import interfaces.IBattleShip;
 import interfaces.IClientListener;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.rmi.server.RMISocketFactory;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -77,6 +79,7 @@ public class Battleship {
 
     public Battleship(final String registry) throws RemoteException {
         this.registry = registry;
+        ClientTwoWaySocketFactory fac = null;
 
         try {
 
@@ -85,10 +88,16 @@ public class Battleship {
                 //UIHelpers.messageDialog("New SecurityManager created.", "Security manager.");
             }
 
-            /* Lookup the service in the registry, and obtain a remote service */
-            Remote remoteService = Naming.lookup("rmi://" + registry + "/Battleship");
+            fac = new ClientTwoWaySocketFactory();
+            RMISocketFactory.setSocketFactory(fac);
+            fac.establishSignallingChannel("localhost", 6769);
 
-            game = (IBattleShip) remoteService;
+            /* Lookup the service in the registry, and obtain a remote service */
+            Remote helloServer = Naming.lookup("rmi://localhost:6769/Battleship");
+
+            //Remote remoteService = Naming.lookup("rmi://" + registry + "/Battleship");
+            game = (IBattleShip) helloServer;
+
 
             //System.out.println("RMI SEEMS OKAY!");
             //game.login(ui.toString(), "password");
@@ -103,6 +112,8 @@ public class Battleship {
             Logger.getLogger(Battleship.class.getName()).log(Level.SEVERE, null, ex);
         } catch (final MalformedURLException ex) {
             UIHelpers.messageDialog("No game server available - MalformedURLException()", "Error", JOptionPane.ERROR_MESSAGE);
+            Logger.getLogger(Battleship.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
             Logger.getLogger(Battleship.class.getName()).log(Level.SEVERE, null, ex);
         }
 

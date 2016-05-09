@@ -23,7 +23,6 @@
  */
 package ui;
 
-import static battleshiprmiclient.Battleship.game;
 import com.google.gson.Gson;
 import dataobjects.PPoint;
 import dataobjects.Player;
@@ -39,9 +38,6 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.io.Serializable;
 import java.lang.ref.WeakReference;
 import java.rmi.RemoteException;
@@ -50,7 +46,6 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -63,8 +58,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
-import ui.LoginDialog;
-import ui.UIHelpers;
 import utility.Statics;
 
 /**
@@ -218,12 +211,13 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
         this.game = game;
         this.registry = registry;
+        //UnicastRemoteObject.exportObject(this, 6770);
 
         me = new Player("User" + Double.toString(Math.random() * 10)); // temporary Player object
         me.initShips();
         game.registerClient(this, me.getName());
         setupUI();
-        
+
         java.awt.EventQueue.invokeLater(() -> {
             output = new Output();
             output.setVisible(true);
