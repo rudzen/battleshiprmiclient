@@ -23,6 +23,7 @@
  */
 package ui;
 
+import static battleshiprmiclient.Battleship.game;
 import com.google.gson.Gson;
 import dataobjects.PPoint;
 import dataobjects.Player;
@@ -38,6 +39,9 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.Serializable;
 import java.lang.ref.WeakReference;
 import java.rmi.RemoteException;
@@ -46,6 +50,7 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -90,15 +95,18 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     }
 
     private static class SingletonHolder {
+
         public static UI INSTANCE;
     }
-    
+
     private String registry;
+
+    private static String sessionID;
 
     /* UI Stuff */
     private JDialog loginDialog;
     private JFrame mainFrame;
-
+    private Output output;
 
     /* the two playing field button arrays, shown on the UI when playing.. */
     private static JButton[][] ownButtons = new JButton[10][10];
@@ -184,7 +192,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
         private final String registry;
         private final IBattleShip game;
-        
+
         public RunnableImpl(final String registry, final IBattleShip game) {
             this.registry = registry;
             this.game = game;
@@ -210,21 +218,26 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
         this.game = game;
         this.registry = registry;
-        me = new Player("");
 
-        //System.out.println("Registry : " + registry);
-
+        me = new Player("User" + Double.toString(Math.random() * 10)); // temporary Player object
         me.initShips();
-
+        game.registerClient(this, me.getName());
         setupUI();
+        
+        java.awt.EventQueue.invokeLater(() -> {
+            output = new Output();
+            output.setVisible(true);
+            Output.redirectSystemStreams(true, output);
+            System.out.println("Meeeeeeeeee");
+        });
+
     }
 
     public UI(final String registry, final IBattleShip game, final Player me) throws RemoteException {
         this(registry, game);
         UI.me = me;
     }
-    
-    
+
     /**
      * Sets up the window and stuff.
      */
@@ -588,7 +601,12 @@ public class UI extends UnicastRemoteObject implements IClientListener {
                 me = new Player(name);
             }
             try {
-                game.registerClient(this, g.toJson(me, Player.class));
+                LoginDialog.closeThis(loginDialog);
+//                if (loginDialog != null) {
+//                    loginDialog.dispose();
+//                }
+                game.registerClient(this, name);
+                game.login(name, pw, this);
             } catch (RemoteException ex) {
                 Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -720,6 +738,9 @@ public class UI extends UnicastRemoteObject implements IClientListener {
                 } catch (RemoteException ex) {
                     Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
                 } finally {
+                    if (loginDialog != null) {
+                        loginDialog.dispose();
+                    }
                     ui.dispose();
                     System.exit(0);
                 }
@@ -829,7 +850,9 @@ public class UI extends UnicastRemoteObject implements IClientListener {
                     }
                 } else {
                     // TODO : Move this entire bullcrap to the login dialog and implement observer.
-                    ui.setLoginDialog(LoginDialog.login(ui.game, ui));
+                    loginDialog = LoginDialog.getInstance(ui);
+                    loginDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+                    loginDialog.setVisible(true);
                 }
             }
         }
@@ -849,7 +872,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             if (UIHelpers.confirmDialog("Are you sure you would like to deploy your ships?", "Deploy Ships?") == 0) {
                 try {
                     System.out.println("The player to deploy : " + me);
-                    game.deployShips(me.getName(), me.getShips());
+                    game.deployShips(me, sessionID);
                     ui.pack();
                     ui.repaint();
                 } catch (RemoteException ex) {
@@ -963,24 +986,17 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         return me;
     }
 
-    public void setGame(final IBattleShip game) {
-        this.game = game;
+    @Override
+    public void setPlayer(Player player) throws RemoteException {
+        me = player;
     }
 
-    public IBattleShip getGame() {
-        return game;
-    }
-
-    public static boolean getGameOver() {
-        return gameover;
-    }
-
-    public static void setGameOver(boolean b) {
-        gameover = b;
-    }
-
-    public static int getReady() {
-        return ready;
+    @Override
+    public void loginstatus(boolean wasOkay) throws RemoteException {
+        UIHelpers.messageDialog(user, user);
+        if (wasOkay) {
+            canPlay(true);
+        }
     }
 
     public JDialog getLoginDialog() {
@@ -991,28 +1007,8 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         this.loginDialog = loginDialog;
     }
 
-    public static void setDeploy(boolean k) {
-        deploy.setEnabled(k);
-    }
-
-    public static Player getMe() {
-        return me;
-    }
-
-    public static void setMe(final Player me) {
-        UI.me = me;
-    }
-
-    public static String getDirection(int i) {
-        return direction[i];
-    }
-
     public static String getCletters(int i) {
         return cletters[i];
-    }
-
-    public static String getShips(int i) {
-        return ships[i];
     }
 
     public static String getCnumbers(int i) {
@@ -1095,42 +1091,6 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         return m;
     }
 
-    public static void setM(JMenuItem m) {
-        UI.m = m;
-    }
-
-    public static JMenuItem getPvp() {
-        return pvp;
-    }
-
-    public static void setPvp(JMenuItem pvp) {
-        UI.pvp = pvp;
-    }
-
-    public JTextField getMbar() {
-        return mbar;
-    }
-
-    public void setMbar(JTextField mbar) {
-        this.mbar = mbar;
-    }
-
-    public static JMenuItem getGametype() {
-        return gametype;
-    }
-
-    public static void setGametype(JMenuItem gametype) {
-        UI.gametype = gametype;
-    }
-
-    public static int getLength() {
-        return length;
-    }
-
-    public static void setLength(int length) {
-        UI.length = length;
-    }
-
     public static int getIndex_ship() {
         return index_ship;
     }
@@ -1145,14 +1105,6 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
     public static void setIndex_direction(int index_direction) {
         UI.index_direction = index_direction;
-    }
-
-    public DirectListener getDirectionListener() {
-        return directionListener;
-    }
-
-    public void setDirectionListener(DirectListener directionListener) {
-        this.directionListener = directionListener;
     }
 
     public static Player getOther() {

@@ -63,8 +63,8 @@ public interface IClientListener extends Remote {
 
     /**
      * Informs client if it can play or not, this is called with basic lee every
-     * callback.
-     * When this is called, player action will be send to server.
+     * callback. When this is called, player action will be send to server.
+     *
      * @param canPlay
      * @throws RemoteException
      */
@@ -72,70 +72,96 @@ public interface IClientListener extends Remote {
 
     /**
      * Show a message from the server
+     *
      * @param message The message to show
      * @param title The window title of the message
      * @param modal The modal (JOPtionPane constant!)
-     * @throws RemoteException 
+     * @throws RemoteException
      */
     void showMessage(final String message, final String title, final int modal) throws RemoteException;
 
     /**
-     * If this is called, the opponent has either quit or lost contact completely to server.
-     * @throws RemoteException 
+     * If this is called, the opponent has either quit or lost contact
+     * completely to server.
+     *
+     * @throws RemoteException
      */
     void opponentQuit() throws RemoteException;
 
     /**
      * The client should update the information about the opponent
+     *
      * @param player The opponent data object which contains the new information
-     * @throws RemoteException 
+     * @throws RemoteException
      */
     void updateOpponent(final String player) throws RemoteException;
 
     /**
-     * The client should update the playing field.
-     * This method is usually called when the opponent has deployed.
+     * The client should update the playing field. This method is usually called
+     * when the opponent has deployed.
+     *
      * @param board The board to update it with.
-     * @throws RemoteException 
+     * @throws RemoteException
      */
     void updateOpponentBoard(final int[][] board) throws RemoteException;
 
     /**
-     * The client should update it's own board.
-     * This method should RARELY (if ever) be called.
+     * The client should update it's own board. This method should RARELY (if
+     * ever) be called.
+     *
      * @param board The board to update it with.
-     * @throws RemoteException 
+     * @throws RemoteException
      */
     void updateBoard(final int[][] board) throws RemoteException;
-    
+
     /**
-     * Just to test if the client is alive! .. if this throws an exception, terminate the game.
-     * @throws RemoteException 
+     * Just to test if the client is alive! .. if this throws an exception,
+     * terminate the game.
+     *
+     * @throws RemoteException
      */
     void ping() throws RemoteException;
 
     /**
      * Sends a notification to the client that the user has been logged out.
-     * @param status The status of the log out attempt, true if logged out, false if not.
-     * @throws RemoteException 
+     *
+     * @param status The status of the log out attempt, true if logged out,
+     * false if not.
+     * @throws RemoteException
      */
     void isLoggedOut(boolean status) throws RemoteException;
-    
+
     /**
      * Receive a list of players to pick between
+     *
      * @param players The list of players from which you can play against.
-     * @throws RemoteException 
+     * @throws RemoteException
      */
     void playerList(ArrayList<String> players) throws RemoteException;
-    
+
     /**
-     * Will retrieve the player object from the client forefully and out of the clients control.<br>
+     * Will retrieve the player object from the client forefully and out of the
+     * clients control.<br>
      * This is done because i can.
+     *
      * @return The player object from the client.
-     * @throws RemoteException 
+     * @throws RemoteException
      */
     Player getPlayer() throws RemoteException;
+
+    /**
+     * Sets the Player object on the client
+     * @param player The player object.
+     * @throws RemoteException 
+     */
+    void setPlayer(Player player) throws RemoteException;
     
-    
-    
+    /**
+     * Returns the status to the client about it's current login status.
+     *
+     * @param wasOkay true if login was ok, false if failed.
+     * @throws RemoteException
+     */
+    void loginstatus(boolean wasOkay) throws RemoteException;
+
 }

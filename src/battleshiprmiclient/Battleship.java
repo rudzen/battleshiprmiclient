@@ -47,11 +47,6 @@ public class Battleship {
 
     public static void main(String args[]) {
 
-        if (System.getSecurityManager() == null) {
-            System.setSecurityManager(new SecurityManager());
-            UIHelpers.messageDialog("New SecurityManager created.", "Security manager.");
-        }
-
         String registry;
         if (args.length >= 1) {
             registry = args[0];
@@ -85,6 +80,11 @@ public class Battleship {
 
         try {
 
+            if (System.getSecurityManager() == null) {
+                System.setSecurityManager(new SecurityManager());
+                //UIHelpers.messageDialog("New SecurityManager created.", "Security manager.");
+            }
+
             /* Lookup the service in the registry, and obtain a remote service */
             Remote remoteService = Naming.lookup("rmi://" + registry + "/Battleship");
 
@@ -92,20 +92,7 @@ public class Battleship {
 
             //System.out.println("RMI SEEMS OKAY!");
             //game.login(ui.toString(), "password");
-            Player p = new Player("Palle" + Double.toString(Math.random() * 10));
-            p.initShips();
-
             IClientListener ui = new UI(registry, game);
-
-            Gson g = new Gson();
-
-            game.registerClient(ui, p.getName());
-
-            game.login(p.getName(), "osten", p);
-
-            game.publicMessage(p.getName(), "OFFENTLIGE MIDLER ER NOGET CRAP!", "Her en er titel", 0);
-
-            game.fireShot(2, 4, p.getName(), "XXX");
 
             //game.fireShot(3, 5, new Player("abe"));
         } catch (final RemoteException re) {

@@ -30,6 +30,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 
 /**
  * Simple UI helper functions
@@ -39,8 +40,7 @@ import javax.swing.SwingConstants;
 public final class UIHelpers {
 
     public static String MSG_GAME_OVER = "Game is over!";
-    
-    
+
     public static String getPlayerName() {
         String daName = inputDialog("Please enter your name.", "Enter name.");
         int dummy = 0;
@@ -48,11 +48,9 @@ public final class UIHelpers {
             daName = inputDialog("You have to input something.", "Enter name.");
             if ((daName != null) && (!daName.equals(""))) {
                 break;
-            } else {
-                if (++dummy == 3) {
-                    messageDialog("Since you're having trouble inputting your name, I'll just call you stupid.", "");
-                    daName = "Stupid";
-                }
+            } else if (++dummy == 3) {
+                messageDialog("Since you're having trouble inputting your name, I'll just call you stupid.", "");
+                daName = "Stupid";
             }
         }
         return daName;
@@ -75,7 +73,9 @@ public final class UIHelpers {
     }
 
     public static void messageDialog(final String text, final String title, final int messageType) {
-        JOptionPane.showMessageDialog(null, text, title, messageType);
+        SwingUtilities.invokeLater(() -> {
+            JOptionPane.showMessageDialog(null, text, title, messageType);
+        });
     }
 
     public static String inputDialog(final String text, final String title) {
@@ -97,5 +97,5 @@ public final class UIHelpers {
         }
         return true;
     }
-    
+
 }
