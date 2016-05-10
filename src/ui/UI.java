@@ -24,7 +24,6 @@
 package ui;
 
 import com.google.gson.Gson;
-import dataobjects.PPoint;
 import dataobjects.Player;
 import dataobjects.Ship;
 import interfaces.IBattleShip;
@@ -36,6 +35,7 @@ import java.awt.Container;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.Serializable;
@@ -243,8 +243,11 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         for (int k = 0; k < ownButtons.length; k++) {
             for (int j = 0; j < ownButtons.length; j++) {
                 ownButtons[j][k] = new JButton();
-                ownButtons[j][k].setBackground(null);
+                ownButtons[j][k].setBackground(Color.GRAY);
                 ownButtons[j][k].addActionListener(new BoardListener(game, mainFrame, j, k));
+
+                oppButtons[j][k] = new JButton();
+                ownButtons[j][k].setBackground(Color.GRAY);
             }
         }
 
@@ -454,6 +457,17 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         return false;
     }
 
+    private static void clearBoard() {
+        for (int x = 0; x < 10; x++) {
+            for (int y = 0; y < 10; y++) {
+                ownButtons[x][y].setBackground(Color.GRAY);
+            }
+        }
+        for (int i = 0; i < me.getShips().length; i++) {
+            handleShip(me.getShip(i).getLocStart().x, me.getShip(i).getLocStart().y, 0, me.getShip(i), SHIP_PLACE.ADD);
+        }
+    }
+
     /**
      * Helper function to determine if the location is valid..
      *
@@ -463,6 +477,22 @@ public class UI extends UnicastRemoteObject implements IClientListener {
      * @return true if possible, otherwise false
      */
     private static boolean isValidPos(final int x, final int y, final IShip s) {
+        if (s.getDirection() == IShip.DIRECTION.HORIZONTAL && x + s.getLength() > 10) {
+            return false;
+        } else if (s.getDirection() == IShip.DIRECTION.VERTICAL && y + s.getLength() > 10) {
+            return false;
+        }
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                if (ownButtons[i][j].getBackground() != Color.GRAY) {
+                    return false;
+                }
+            }
+        }
+        
+        clearBoard();
+        
+
         return true;
 //        IShip otherShip;
 //        IShip.DIRECTION dir = s.getDirection();
@@ -489,8 +519,8 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     }
 
     private static boolean isContained(final int x, final int y, final IShip s) {
-        final int startX = s.getLocStart().getX();
-        final int startY = s.getLocStart().getY();
+        final int startX = s.getLocStart().x;
+        final int startY = s.getLocStart().y;
 
         if (y == startX || x == startY || x == s.getLocEnd().getX() || y == s.getLocEnd().getY()) {
             return true;
@@ -525,11 +555,11 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     private static void colorShip(final int x, final int y, final IShip s, final Color col) {
         if (s.getDirection() == IShip.DIRECTION.HORIZONTAL) {
             for (int i = x; i < s.getLocEnd().getX(); i++) {
-                ownButtons[i][s.getLocStart().getY()].setBackground(col);
+                ownButtons[i][s.getLocStart().y].setBackground(col);
             }
         } else if (s.getDirection() == IShip.DIRECTION.VERTICAL) {
             for (int i = y; i < s.getLocEnd().getY(); i++) {
-                ownButtons[s.getLocStart().getX()][i].setBackground(col);
+                ownButtons[s.getLocStart().x][i].setBackground(col);
             }
         }
     }
@@ -552,7 +582,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             /* if the ship is to be added */
 
  /* update the ship with the new coordinated */
-            s.setLocStart(new PPoint(x, y));
+            s.setLocStart(new Point(x, y));
             s.setLocEnd(Ship.setEnd(s.getLocStart(), s.getLength(), s.getDirection()));
 
             /* re-draw the ship with the new coordinated */
@@ -650,13 +680,18 @@ public class UI extends UnicastRemoteObject implements IClientListener {
                 if (isValidPos(x, y, s)) {
                     System.out.println("Ship placement for -> " + s);
                     if (s.isPlaced()) {
-
                         /* since the ship appears to be placed, just remove it if user clicked another button */
-                        handleShip(s.getLocStart().getX(), s.getLocStart().getY(), 0, s, SHIP_PLACE.REMOVE);
+                        handleShip(s.getLocStart().x, s.getLocStart().y, 0, s, SHIP_PLACE.REMOVE);
                     }
-
                     handleShip(x, y, 0, s, SHIP_PLACE.ADD);
-
+                    boolean ok = true;
+                    for (int i = 0; i < me.getShips().length; i++) {
+                        if (!me.getShip(i).isPlaced()) {
+                            ok = false;
+                            break;
+                        }
+                    }
+                    deploy.setEnabled(ok);
                 } else {
                     UIHelpers.messageDialog("Unable to place the selected ship at this location.", "Error");
                 }
@@ -689,15 +724,15 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             final IShip s = me.getShip(index_ship);
 
             if (s.isPlaced()) {
-                if (isValidPos(s.getLocStart().getX(), s.getLocStart().getY(), s)) {
+                if (isValidPos(s.getLocStart().y, s.getLocStart().y, s)) {
                     if (s.isPlaced()) {
-                        handleShip(s.getLocStart().getX(), s.getLocStart().getY(), 0, s, SHIP_PLACE.REMOVE);
+                        handleShip(s.getLocStart().x, s.getLocStart().x, 0, s, SHIP_PLACE.REMOVE);
                     }
 
                     s.setDirection(getSelectedDirection());
                     s.setLocEnd(Ship.setEnd(s.getLocStart(), s.getLength(), s.getDirection()));
 
-                    handleShip(s.getLocStart().getX(), s.getLocStart().getY(), 0, s, SHIP_PLACE.ADD);
+                    handleShip(s.getLocStart().x, s.getLocStart().y, 0, s, SHIP_PLACE.ADD);
 
                     me.setShip(index_ship, s);
                 } else {
@@ -967,7 +1002,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     @Override
     public void shipSunk(int shipindex) throws RemoteException {
         UIHelpers.messageDialog("Your " + me.getShip(shipindex).getShipType() + " has been sunk by " + other.getName(), "Ship sunk!!!!");
-        colorShip(me.getShip(shipindex).getLocStart().getX(), me.getShip(shipindex).getLocStart().getY(), me.getShip(shipindex), Color.BLACK);
+        colorShip(me.getShip(shipindex).getLocStart().x, me.getShip(shipindex).getLocStart().y, me.getShip(shipindex), Color.BLACK);
     }
 
     @Override

@@ -90,14 +90,13 @@ public class Battleship {
 
             fac = new ClientTwoWaySocketFactory();
             RMISocketFactory.setSocketFactory(fac);
-            fac.establishSignallingChannel("localhost", 6769);
-
+            fac.establishSignallingChannel(registry, 6769);
+            
             /* Lookup the service in the registry, and obtain a remote service */
-            Remote helloServer = Naming.lookup("rmi://localhost:6769/Battleship");
+            Remote server = Naming.lookup("rmi://" + registry + ":6769/Battleship");
 
             //Remote remoteService = Naming.lookup("rmi://" + registry + "/Battleship");
-            game = (IBattleShip) helloServer;
-
+            game = (IBattleShip) server;
 
             //System.out.println("RMI SEEMS OKAY!");
             //game.login(ui.toString(), "password");

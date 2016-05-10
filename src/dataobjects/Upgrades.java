@@ -26,8 +26,7 @@ package dataobjects;
 import java.io.Serializable;
 
 /**
- * Basic upgrade class for Battlehip ships.<br>
- * This might not be used, but still important for future updates!
+ *
  * @author Rudy Alex Kohn <s133235@student.dtu.dk>
  */
 public class Upgrades implements Serializable {
@@ -38,7 +37,7 @@ public class Upgrades implements Serializable {
      * The possible ship upgrades.
      */
     public enum UPGRADES {
-        ARMOR, SONAR, POWER
+        ARMOR, SONAR, POWER, DECOY
     }
 
     /**
@@ -56,6 +55,13 @@ public class Upgrades implements Serializable {
      */
     private int power;
 
+    
+    /**
+     * The decoy
+     */
+    private int decoy;
+    
+    
     /**
      * Default constructor
      */
@@ -69,10 +75,11 @@ public class Upgrades implements Serializable {
      * @param sonar The sonar
      * @param power The power
      */
-    public Upgrades(final int armor, final int sonar, final int power) {
+    public Upgrades(final int armor, final int sonar, final int power, final int decoy) {
         this.armor = armor;
         this.sonar = sonar;
         this.power = power;
+        this.decoy = decoy;
     }
 
     /**
@@ -81,19 +88,19 @@ public class Upgrades implements Serializable {
      * @param upgrades The object to copy from
      */
     public Upgrades(final Upgrades upgrades) {
-        this(upgrades.armor, upgrades.sonar, upgrades.power);
+        this(upgrades.armor, upgrades.sonar, upgrades.power, upgrades.decoy);
     }
 
     @Override
     public String toString() {
-        return "Upgrades{" + "armor=" + armor + ", sonar=" + sonar + ", power=" + power + '}';
+        return "Upgrades{" + "armor=" + armor + ", sonar=" + sonar + ", power=" + power + ", decoy=" + decoy + '}';
     }
 
     /**
      * Resets the upgrades to 0 (ZERO!)
      */
     public void reset() {
-        armor = sonar = power = 0;
+        armor = sonar = power = decoy = 0;
     }
 
     /**
@@ -121,6 +128,9 @@ public class Upgrades implements Serializable {
             case SONAR:
                 sonar++;
                 break;
+            case DECOY:
+                decoy++;
+                break;
         }
     }
 
@@ -146,6 +156,11 @@ public class Upgrades implements Serializable {
                     sonar--;
                 }
                 break;
+            case DECOY:
+                if (decoy > 0) {
+                    decoy--;
+                }
+                break;
         }
     }
 
@@ -155,7 +170,7 @@ public class Upgrades implements Serializable {
      * @param upgrade The upgrade type to add
      * @param amount The amount of upgrades to add
      */
-    public void addUpgrades(final UPGRADES upgrade, final int amount) {
+    public void addUpgrade(final UPGRADES upgrade, final int amount) {
         if (amount > 0) {
             switch (upgrade) {
                 case ARMOR:
@@ -166,6 +181,9 @@ public class Upgrades implements Serializable {
                     break;
                 case SONAR:
                     sonar += amount;
+                    break;
+                case DECOY:
+                    decoy += amount;
                     break;
             }
         }
@@ -194,4 +212,13 @@ public class Upgrades implements Serializable {
     public void setPower(int power) {
         this.power = power;
     }
+    
+    public void setDecoy(int decoy) {
+        this.decoy = decoy;
+    }
+    
+    public int getDecoy() {
+        return decoy;
+    }
+    
 }

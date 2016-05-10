@@ -25,13 +25,14 @@ package dataobjects;
 
 import dataobjects.Upgrades.UPGRADES;
 import interfaces.IShip;
+import java.awt.Point;
 import java.io.Serializable;
 
 /**
  * Basic ship class, it defines what ship type it is, and what else there is to
  * know about it.
  *
- * @author Rudy Alex Kohn <s133235@student.dtu.dk>
+ * @author rudz
  * @version 1.0
  * @since 16-04-2016
  */
@@ -57,8 +58,8 @@ public class Ship implements Serializable, IShip {
     /**
      * Points for ship location locStart = start locEnd = end
      */
-    private PPoint locStart;
-    private PPoint locEnd;
+    private Point locStart;
+    private Point locEnd;
 
     /**
      * The length of the ship
@@ -78,7 +79,12 @@ public class Ship implements Serializable, IShip {
     /**
      * The basic hit index. 0 = not hit, 1 = hit
      */
-    private int[] hits = new int[0];
+    private int[] hits;
+
+    /**
+     * The location of the ship on the board
+     */
+    private Point[] location;
 
     /**
      * Is the ship placed on the board?
@@ -100,8 +106,9 @@ public class Ship implements Serializable, IShip {
      * @param direction The direction of placement
      */
     public Ship(final int x, final int y, final IShip.TYPE type, final IShip.DIRECTION direction) {
-        locStart = new PPoint(x, y);
+        locStart = new Point(x, y);
         length = getLen(type);
+        location = new Point[length];
         locEnd = setEnd(locStart, length, direction);
         this.type = type;
         this.direction = direction;
@@ -141,6 +148,11 @@ public class Ship implements Serializable, IShip {
         upgrades.addUpgrade(upgradeType);
     }
 
+    @Override
+    public void addUpgrade(final UPGRADES upgradeType, final int amount) {
+        upgrades.addUpgrade(upgradeType, amount);
+    }
+
     /**
      * Removes an upgrade from the ship (wahh, what why?)
      *
@@ -164,6 +176,7 @@ public class Ship implements Serializable, IShip {
 
     /**
      * Hit the ship!! (argh!)
+     * @deprecated 
      */
     private void hit(final int location) {
         life--;
@@ -177,10 +190,11 @@ public class Ship implements Serializable, IShip {
      * @param x The X coordinate to check
      * @param y The Y coordinate to check
      * @return true if ship is hit, otherwise false.
+     * @deprecated 
      */
     public boolean isHit(byte x, byte y) {
         if (isPlaced) {
-            //System.out.println("isHit is running on : " + getShipType());
+            System.out.println("isHit is running on : " + getShipType());
             if (direction == DIRECTION.HORIZONTAL) {
                 for (int i = 0; i < length; i++) {
                     if (x == locStart.getX() + i || y == locStart.getX() + i) {
@@ -207,6 +221,7 @@ public class Ship implements Serializable, IShip {
      * @param x The X coordinate to check
      * @param y The Y coordinate to check
      * @return true if ship is hit, otherwise false.
+     * @deprecated 
      */
     @Override
     public boolean isHit(int x, int y) {
@@ -221,8 +236,8 @@ public class Ship implements Serializable, IShip {
      * @param direction The direction of the ship
      * @return The end PPoint object
      */
-    public static PPoint setEnd(final PPoint start, final int length, final DIRECTION direction) {
-        return (direction == DIRECTION.HORIZONTAL) ? new PPoint(start.getX() + length, start.getY()) : new PPoint(start.getX(), start.getY() + length);
+    public static Point setEnd(final Point start, final int length, final DIRECTION direction) {
+        return (direction == DIRECTION.HORIZONTAL) ? new Point(start.x + length, start.y) : new Point(start.x, start.y + length);
     }
 
     /**
@@ -277,22 +292,22 @@ public class Ship implements Serializable, IShip {
     }
 
     @Override
-    public PPoint getLocStart() {
+    public Point getLocStart() {
         return locStart;
     }
 
     @Override
-    public void setLocStart(PPoint locStart) {
+    public void setLocStart(Point locStart) {
         this.locStart = locStart;
     }
 
     @Override
-    public PPoint getLocEnd() {
+    public Point getLocEnd() {
         return locEnd;
     }
 
     @Override
-    public void setLocEnd(PPoint locEnd) {
+    public void setLocEnd(Point locEnd) {
         this.locEnd = locEnd;
     }
 

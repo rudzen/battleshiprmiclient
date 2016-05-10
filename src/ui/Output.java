@@ -49,6 +49,7 @@ public class Output extends java.awt.Frame {
         listModel.addElement(String.format("%sStart.", getTimeString()));
         jList1.setModel(listModel);
         jList1.setPreferredSize(new Dimension(400, 300));
+        jScrollPane1.setAutoscrolls(true);
         pack();
     }
 
