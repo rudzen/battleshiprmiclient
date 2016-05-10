@@ -26,7 +26,6 @@ package interfaces;
 import dataobjects.Upgrades;
 import java.awt.Point;
 
-
 /**
  *
  * @author Rudy Alex Kohn <s133235@student.dtu.dk>
@@ -58,7 +57,11 @@ public interface IShip {
     void addUpgrade(final Upgrades.UPGRADES upgradeType);
 
     void addUpgrade(final Upgrades.UPGRADES upgradeType, final int amount);
-    
+
+    void addLocation(int x, int y, int pos);
+
+    Point getLocation(int pos);
+
     DIRECTION getDirection();
 
     int getLength();
@@ -81,6 +84,8 @@ public interface IShip {
 
     Upgrades getUpgrades();
 
+    Point[] getLocation();
+
     /* helper methods */
     /**
      * Is the ship dead?
@@ -92,42 +97,45 @@ public interface IShip {
     boolean isHasUpgrade();
 
     boolean isPlaced();
-    
-    /**
-     * Overload of {@link #isHit(byte x, byte y)} to check for hit with
-     * integers.
-     *
-     * @param x The X coordinate to check
-     * @param y The Y coordinate to check
-     * @return true if ship is hit, otherwise false.
-     */
-    boolean isHit(int x, int y);
 
     /**
      * Removes an upgrade from the ship (wahh, what why?)
      *
      * @param upgradeType The upgrade type.
      */
-    void removeUpgrade(final Upgrades.UPGRADES upgradeType);
+    void removeUpgrade(final Upgrades.UPGRADES upgradeType
+    );
 
-    void setDirection(DIRECTION direction);
+    void setDirection(DIRECTION direction
+    );
 
-    void setHasUpgrade(boolean hasUpgrade);
+    void setHasUpgrade(boolean hasUpgrade
+    );
 
-    void setLength(int length);
+    void setLength(int length
+    );
 
-    void setLife(int life);
+    void setLife(int life
+    );
 
-    void setLocEnd(Point locEnd);
+    void setLocEnd(Point locEnd
+    );
 
-    void setLocStart(Point locStart);
+    void setLocStart(Point locStart
+    );
 
-    void setType(TYPE type);
+    void setType(TYPE type
+    );
 
-    void setUpgrades(Upgrades upgrades);
+    void setUpgrades(Upgrades upgrades
+    );
 
-    void setIsPlaced(boolean isPlaced);
-    
+    void setIsPlaced(boolean isPlaced
+    );
+
+    void setLocation(Point[] location
+    );
+
     @Override
     String toString();
 

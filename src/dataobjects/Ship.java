@@ -109,6 +109,9 @@ public class Ship implements Serializable, IShip {
         locStart = new Point(x, y);
         length = getLen(type);
         location = new Point[length];
+        for (int i = 0; i < length; i++) {
+            location[i] = new Point(0, 0);
+        }
         locEnd = setEnd(locStart, length, direction);
         this.type = type;
         this.direction = direction;
@@ -175,60 +178,6 @@ public class Ship implements Serializable, IShip {
     }
 
     /**
-     * Hit the ship!! (argh!)
-     * @deprecated 
-     */
-    private void hit(final int location) {
-        life--;
-        hits[location] = 1;
-    }
-
-    /**
-     * Determines if the ship has been hit.<br>
-     * The ship will loose 1 life if hit.
-     *
-     * @param x The X coordinate to check
-     * @param y The Y coordinate to check
-     * @return true if ship is hit, otherwise false.
-     * @deprecated 
-     */
-    public boolean isHit(byte x, byte y) {
-        if (isPlaced) {
-            System.out.println("isHit is running on : " + getShipType());
-            if (direction == DIRECTION.HORIZONTAL) {
-                for (int i = 0; i < length; i++) {
-                    if (x == locStart.getX() + i || y == locStart.getX() + i) {
-                        hit(i);
-                        return true;
-                    }
-                }
-            } else if (direction == DIRECTION.VERTICAL) {
-                for (int i = 0; i < length; i++) {
-                    if (x == locStart.getY() + i || y == locStart.getY() + i) {
-                        hit(i);
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Overload of {@link #isHit(byte x, byte y)} to check for hit with
-     * integers.
-     *
-     * @param x The X coordinate to check
-     * @param y The Y coordinate to check
-     * @return true if ship is hit, otherwise false.
-     * @deprecated 
-     */
-    @Override
-    public boolean isHit(int x, int y) {
-        return isHit((byte) x, (byte) y);
-    }
-
-    /**
      * Set the end specified by the start and the type combined with direction.
      *
      * @param start The start PPoint object containing the start coordinates
@@ -280,6 +229,17 @@ public class Ship implements Serializable, IShip {
         }
     }
 
+    @Override
+    public void addLocation(int x, int y, int pos) {
+        location[pos] = new Point(x, y);
+    }
+    
+    @Override
+    public Point getLocation(int pos) {
+        return location[pos];
+    }
+    
+    
     /* getters & setters */
     @Override
     public int getLife() {
@@ -376,4 +336,14 @@ public class Ship implements Serializable, IShip {
         this.isPlaced = isPlaced;
     }
 
+    @Override
+    public Point[] getLocation() {
+        return location;
+    }
+
+    @Override
+    public void setLocation(Point[] location) {
+        this.location = location;
+    }
+    
 }

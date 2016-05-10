@@ -48,7 +48,8 @@ public class Output extends java.awt.Frame {
         listModel = new DefaultListModel();
         listModel.addElement(String.format("%sStart.", getTimeString()));
         jList1.setModel(listModel);
-        jList1.setPreferredSize(new Dimension(400, 300));
+        jList1.setPreferredSize(new Dimension(800, 500));
+        setPreferredSize(new Dimension(800, 500));
         jScrollPane1.setAutoscrolls(true);
         pack();
     }
@@ -101,6 +102,7 @@ public class Output extends java.awt.Frame {
     private final SimpleDateFormat SDF = new SimpleDateFormat("HH:mm:ss", Locale.US);
 
     public void addToList(final String text) {
+        if ("".equals(text.trim())) return;
         try {
             listModel.addElement(String.format("%s %s", getTimeString(), text));
             int lastIndex = listModel.getSize() - 1;

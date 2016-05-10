@@ -36,6 +36,7 @@ import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.Serializable;
@@ -85,6 +86,16 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
     public static UI getInstance() {
         return SingletonHolder.INSTANCE;
+    }
+
+    @Override
+    public void setOtherPlayer(Player player) throws RemoteException {
+        other = player;
+    }
+
+    @Override
+    public void setFreeLobbies(ArrayList<String> lobbies) throws RemoteException {
+        UIHelpers.messageDialog(lobbies.toString(), "Free Lobbys");
     }
 
     private static class SingletonHolder {
@@ -148,8 +159,6 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
     /* the game type */
     private static JMenuItem gametype;
-
-    private static int length = 5;
 
     /* is game ready to receive next action from human player?
      0 = in deployment mode
@@ -247,7 +256,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
                 ownButtons[j][k].addActionListener(new BoardListener(game, mainFrame, j, k));
 
                 oppButtons[j][k] = new JButton();
-                ownButtons[j][k].setBackground(Color.GRAY);
+                oppButtons[j][k].setBackground(Color.GRAY);
             }
         }
 
@@ -477,71 +486,33 @@ public class UI extends UnicastRemoteObject implements IClientListener {
      * @return true if possible, otherwise false
      */
     private static boolean isValidPos(final int x, final int y, final IShip s) {
-        if (s.getDirection() == IShip.DIRECTION.HORIZONTAL && x + s.getLength() > 10) {
-            return false;
-        } else if (s.getDirection() == IShip.DIRECTION.VERTICAL && y + s.getLength() > 10) {
-            return false;
-        }
-        for (int i = 0; i < 10; i++) {
-            for (int j = 0; j < 10; j++) {
-                if (ownButtons[i][j].getBackground() != Color.GRAY) {
-                    return false;
-                }
-            }
-        }
-        
-        clearBoard();
-        
-
-        return true;
-//        IShip otherShip;
-//        IShip.DIRECTION dir = s.getDirection();
-//
-//        final int lower = dir == IShip.DIRECTION.HORIZONTAL ? x : y;
-//        final int upper = lower + s.getLength();
-//
-//        /* determin if the ship is placed within the board boundries */
-//        boolean val = upper <= ownButtons.length;
-//
-//        /* determin if we will intersect another ship */
-//        for (int i = 0; i < me.getShips().length; i++) {
-//            otherShip = me.getShips()[i];
-//            if (s.getType() != otherShip.getType() && otherShip.isPlaced()) {
-//                System.out.println("Validation : " + s.getShipType() + " v " + otherShip.getShipType());
-//                if (isContained(x, y, otherShip)) {
-//                    val = false;
-//                    break;
-//                }
-//            }
-//        }
-//        System.out.println("Position is valid : " + val);
-//        return val;
-    }
-
-    private static boolean isContained(final int x, final int y, final IShip s) {
-        final int startX = s.getLocStart().x;
-        final int startY = s.getLocStart().y;
-
-        if (y == startX || x == startY || x == s.getLocEnd().getX() || y == s.getLocEnd().getY()) {
-            return true;
-        }
-        int pos;
+        Point high = new Point(s.getLocStart().x, s.getLocStart().y);
+        Rectangle boundry = new Rectangle(x, y, 1, 1);
+        System.out.println("isValidPos() boundry " + boundry);
+        /* determine the max value of coordinates based on the direction */
         if (s.getDirection() == IShip.DIRECTION.HORIZONTAL) {
-            for (int i = 1; i < s.getLength() - 1; i++) {
-                pos = i + startX;
-                if (pos == x) {
-                    return true;
-                }
-            }
-        } else {
-            for (int i = 1; i < s.getLength() - 1; i++) {
-                pos = i + startY;
-                if (pos == y) {
-                    return true;
+
+            high.x += s.getLength();
+        } else if (s.getDirection() == IShip.DIRECTION.VERTICAL) {
+            high.y += s.getLength();
+        }
+
+        /* if out of bounds */
+        if (high.x > 9 || high.y > 9) {
+            return false;
+        }
+
+        /* check if there is a ship in the new ships path */
+        for (int i = 0; i < me.getShips().length; i++) {
+            if (!me.getShip(i).isPlaced() && s.getType() != me.getShip(i).getType()) {
+                for (int j = 0; j < me.getShip(i).getLocation().length; j++) {
+                    if (x == me.getShip(i).getLocation(j).x || y == me.getShip(i).getLocation(j).y) {
+                        return false;
+                    }
                 }
             }
         }
-        return false;
+        return true;
     }
 
     /**
@@ -574,7 +545,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     private static void handleShip(final int x, final int y, final int fieldIndex, final IShip s, final SHIP_PLACE place) {
 
         // clear the ship
-        colorShip(x, y, s, null);
+        colorShip(x, y, s, Color.GRAY);
 
         System.out.println("Ship placement at : [" + x + ", " + y + "] lenght = " + s.getLength());
 
@@ -584,6 +555,19 @@ public class UI extends UnicastRemoteObject implements IClientListener {
  /* update the ship with the new coordinated */
             s.setLocStart(new Point(x, y));
             s.setLocEnd(Ship.setEnd(s.getLocStart(), s.getLength(), s.getDirection()));
+
+            Point[] newLoc = new Point[s.getLength()];
+            if (s.getDirection() == IShip.DIRECTION.HORIZONTAL) {
+                for (int i = 0; i < newLoc.length; i++) {
+                    newLoc[i] = new Point(x, y + i);
+                }
+            } else {
+                for (int i = 0; i < newLoc.length; i++) {
+                    newLoc[i] = new Point(x + i, y);
+                }
+            }
+            s.setLocation(newLoc);
+
 
             /* re-draw the ship with the new coordinated */
             colorShip(x, y, s, Color.YELLOW);
@@ -617,20 +601,23 @@ public class UI extends UnicastRemoteObject implements IClientListener {
      */
     public void updateUser(final String name, final String pw) {
         if (name != null && !"".equals(name)) {
-            if (me != null) {
-                user = name;
-                me.setName(user);
-            } else {
-                user = name;
-                me = new Player(name);
-            }
             try {
+                //game.removeClient(this, user, sessionID);
+                if (me != null) {
+                    user = name;
+                    me.setName(user);
+                } else {
+                    user = name;
+                    me = new Player(name);
+                }
                 LoginDialog.closeThis(loginDialog);
 //                if (loginDialog != null) {
 //                    loginDialog.dispose();
 //                }
                 game.registerClient(this, name);
                 game.login(name, pw, this);
+                game.requestFreeLobbies(this);
+
             } catch (RemoteException ex) {
                 Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -1007,7 +994,8 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
     @Override
     public void playerList(ArrayList<String> players) throws RemoteException {
-        System.out.println("Player list received : " + players);
+        UIHelpers.messageDialog(players.toString(), "Possible opponents.");
+        //System.out.println("Player list received : " + players);
     }
 
     @Override
@@ -1026,6 +1014,12 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         if (wasOkay) {
             canPlay(true);
         }
+    }
+
+    @Override
+    public void updateSessionID(String newID) throws RemoteException {
+        sessionID = newID;
+        System.out.println("New session ID from server : " + sessionID);
     }
 
     public JDialog getLoginDialog() {

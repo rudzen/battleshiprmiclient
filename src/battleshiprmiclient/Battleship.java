@@ -33,7 +33,6 @@ import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.server.RMISocketFactory;
-import java.rmi.server.UnicastRemoteObject;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -65,12 +64,6 @@ public class Battleship {
 
     }
 
-    private static final long serialVersionUID = 1L;
-
-    private String username;
-
-    private String registry;
-
     //private UI ui;
     public static IBattleShip game;
 
@@ -78,31 +71,24 @@ public class Battleship {
     }
 
     public Battleship(final String registry) throws RemoteException {
-        this.registry = registry;
         ClientTwoWaySocketFactory fac = null;
-
         try {
 
             if (System.getSecurityManager() == null) {
                 System.setSecurityManager(new SecurityManager());
-                //UIHelpers.messageDialog("New SecurityManager created.", "Security manager.");
             }
 
+            /* configure custom socket interface for RMI */
             fac = new ClientTwoWaySocketFactory();
             RMISocketFactory.setSocketFactory(fac);
             fac.establishSignallingChannel(registry, 6769);
-            
+
             /* Lookup the service in the registry, and obtain a remote service */
             Remote server = Naming.lookup("rmi://" + registry + ":6769/Battleship");
-
-            //Remote remoteService = Naming.lookup("rmi://" + registry + "/Battleship");
             game = (IBattleShip) server;
 
-            //System.out.println("RMI SEEMS OKAY!");
-            //game.login(ui.toString(), "password");
             IClientListener ui = new UI(registry, game);
 
-            //game.fireShot(3, 5, new Player("abe"));
         } catch (final RemoteException re) {
             UIHelpers.messageDialog("RMI Error - RemoteException()\n" + re.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             Logger.getLogger(Battleship.class.getName()).log(Level.SEVERE, null, re);
@@ -116,19 +102,5 @@ public class Battleship {
             Logger.getLogger(Battleship.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        /* Create a new game window and register it as a listener with remote game */
-        //UI.runGame(registry);
     }
-
-//    private void register() {
-//        Player p = new Player("Palle");
-//        p.initShips();
-//        Gson g = new Gson();
-//        
-//        try {
-//            game.registerClient(this, g.toJson(p, Player.class));
-//        } catch (RemoteException ex) {
-//            Logger.getLogger(Battleship.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//    }
 }

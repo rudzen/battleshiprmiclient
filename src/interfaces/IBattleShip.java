@@ -55,14 +55,6 @@ public interface IBattleShip extends Remote {
      */
     boolean removeClient(IClientListener clientInterface, String playerName, String sessionID) throws RemoteException;
 
-    /**
-     * Get the opponent information object.
-     *
-     * @param playerOne
-     * @return The Player object which contains public information about the
-     * opponent.
-     * @throws RemoteException
-     */
     Player getOther(Player playerOne) throws RemoteException;
 
     /**
@@ -81,7 +73,8 @@ public interface IBattleShip extends Remote {
      *
      * @param user username The username
      * @param pw password The password
-     * @param client The client interface that attempts to login, needed for callback
+     * @param client The client interface that attempts to login, needed for
+     * callback
      * @throws RemoteException
      */
     void login(String user, String pw, IClientListener client) throws RemoteException;
@@ -174,12 +167,29 @@ public interface IBattleShip extends Remote {
 
     /**
      * Send a message to the opponent.<br>
-     * Requires that the opponent is playing through a interface which supports the functionality.<br>
+     * Requires that the opponent is playing through a interface which supports
+     * the functionality.<br>
+     *
      * @param title The title of the message
      * @param message The message body
-     * @return true if the opponent's interface support the feature, otherwise false.
+     * @return true if the opponent's interface support the feature, otherwise
+     * false.
      * @throws RemoteException
      */
     boolean messageOpponent(String title, String message) throws RemoteException;
 
+    /**
+     * Request the opponent information object.
+     * @param client
+     * @throws RemoteException
+     */
+    void requestOtherPlayer(IClientListener client) throws RemoteException;
+
+    /**
+     * Request free lobbies (lobbies with just one player) from the server.
+     * @param client ME!
+     * @throws RemoteException 
+     */
+    void requestFreeLobbies(IClientListener client) throws RemoteException;
+    
 }

@@ -164,4 +164,25 @@ public interface IClientListener extends Remote {
      */
     void loginstatus(boolean wasOkay) throws RemoteException;
 
+    /**
+     * Update the sessionID for the client.
+     * @param newID The new session ID
+     * @throws RemoteException 
+     */
+    void updateSessionID(String newID) throws RemoteException;
+    
+    /**
+     * Set the opponent player object (for name)
+     * @param player
+     * @throws RemoteException 
+     */
+    void setOtherPlayer(Player player) throws RemoteException;
+    
+    /**
+     * If list contains at least one element, open a list box to let player choose which to join.
+     * @param lobbies The list of free joinable lobbies
+     * @throws RemoteException 
+     */
+    void setFreeLobbies(ArrayList<String> lobbies) throws RemoteException;
+    
 }
