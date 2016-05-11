@@ -65,8 +65,6 @@ public class Output extends java.awt.Frame {
         jScrollPane1 = new javax.swing.JScrollPane();
         jList1 = new javax.swing.JList<>();
 
-        setAlwaysOnTop(true);
-        setResizable(false);
         setTitle("Output takeover - af s133235");
         setType(java.awt.Window.Type.UTILITY);
         addWindowListener(new java.awt.event.WindowAdapter() {

@@ -28,7 +28,6 @@ import dataobjects.Player;
 import dataobjects.Ship;
 import interfaces.IBattleShip;
 import interfaces.IClientListener;
-import interfaces.IShip;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
@@ -292,7 +291,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         menu.add(m);
 
         /* submenu of new game */
-        GameListener stuff = new GameListener(mainFrame);
+        GameListener stuff = new GameListener(this);
         pvp = new JMenuItem("Player vs. Player");
         pvp.addActionListener(stuff);
         m.add(pvp);
@@ -333,7 +332,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         titleBorder = BorderFactory.createTitledBorder("Direction");
         combo_direction.setBorder(titleBorder);
         deploy.setEnabled(false);
-        deploy.addActionListener(new DeployListener(mainFrame));
+        deploy.addActionListener(new DeployListener(this));
         deploy.setAlignmentX(JFrame.CENTER_ALIGNMENT);
         input.add(deploy);
         return input;
@@ -485,15 +484,15 @@ public class UI extends UnicastRemoteObject implements IClientListener {
      * @param s the Ship
      * @return true if possible, otherwise false
      */
-    private static boolean isValidPos(final int x, final int y, final IShip s) {
+    private static boolean isValidPos(final int x, final int y, final Ship s) {
         Point high = new Point(s.getLocStart().x, s.getLocStart().y);
         Rectangle boundry = new Rectangle(x, y, 1, 1);
         System.out.println("isValidPos() boundry " + boundry);
         /* determine the max value of coordinates based on the direction */
-        if (s.getDirection() == IShip.DIRECTION.HORIZONTAL) {
+        if (s.getDirection() == Ship.DIRECTION.HORIZONTAL) {
 
             high.x += s.getLength();
-        } else if (s.getDirection() == IShip.DIRECTION.VERTICAL) {
+        } else if (s.getDirection() == Ship.DIRECTION.VERTICAL) {
             high.y += s.getLength();
         }
 
@@ -523,12 +522,12 @@ public class UI extends UnicastRemoteObject implements IClientListener {
      * @param s The ship to draw
      * @param col The colour to draw it with (null will remove)
      */
-    private static void colorShip(final int x, final int y, final IShip s, final Color col) {
-        if (s.getDirection() == IShip.DIRECTION.HORIZONTAL) {
+    private static void colorShip(final int x, final int y, final Ship s, final Color col) {
+        if (s.getDirection() == Ship.DIRECTION.HORIZONTAL) {
             for (int i = x; i < s.getLocEnd().getX(); i++) {
                 ownButtons[i][s.getLocStart().y].setBackground(col);
             }
-        } else if (s.getDirection() == IShip.DIRECTION.VERTICAL) {
+        } else if (s.getDirection() == Ship.DIRECTION.VERTICAL) {
             for (int i = y; i < s.getLocEnd().getY(); i++) {
                 ownButtons[s.getLocStart().x][i].setBackground(col);
             }
@@ -542,7 +541,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
      *
      * @param s The ship to handle
      */
-    private static void handleShip(final int x, final int y, final int fieldIndex, final IShip s, final SHIP_PLACE place) {
+    private static void handleShip(final int x, final int y, final int fieldIndex, final Ship s, final SHIP_PLACE place) {
 
         // clear the ship
         colorShip(x, y, s, Color.GRAY);
@@ -557,7 +556,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             s.setLocEnd(Ship.setEnd(s.getLocStart(), s.getLength(), s.getDirection()));
 
             Point[] newLoc = new Point[s.getLength()];
-            if (s.getDirection() == IShip.DIRECTION.HORIZONTAL) {
+            if (s.getDirection() == Ship.DIRECTION.HORIZONTAL) {
                 for (int i = 0; i < newLoc.length; i++) {
                     newLoc[i] = new Point(x, y + i);
                 }
@@ -630,12 +629,12 @@ public class UI extends UnicastRemoteObject implements IClientListener {
      * @return The direction selected by the user as defined by the IShip
      * interface.
      */
-    private IShip.DIRECTION getSelectedDirection() {
-        return index_direction == 1 ? IShip.DIRECTION.HORIZONTAL : IShip.DIRECTION.VERTICAL;
+    private Ship.DIRECTION getSelectedDirection() {
+        return index_direction == 0 ? Ship.DIRECTION.HORIZONTAL : Ship.DIRECTION.VERTICAL;
     }
 
-    private int getIndexDirection(final IShip.DIRECTION dir) {
-        return dir == IShip.DIRECTION.HORIZONTAL ? 1 : 0;
+    private int getIndexDirection(final Ship.DIRECTION dir) {
+        return dir == Ship.DIRECTION.HORIZONTAL ? 0 : 1;
     }
 
     /**
@@ -662,7 +661,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             if (ready == 0) {
                 // we are in construction faze
 
-                IShip s = me.getShip(index_ship);
+                Ship s = me.getShip(index_ship);
 
                 if (isValidPos(x, y, s)) {
                     System.out.println("Ship placement for -> " + s);
@@ -708,7 +707,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
             System.out.println("Direction combobox used");
 
-            final IShip s = me.getShip(index_ship);
+            final Ship s = me.getShip(index_ship);
 
             if (s.isPlaced()) {
                 if (isValidPos(s.getLocStart().y, s.getLocStart().y, s)) {
@@ -797,9 +796,9 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
         private static final long serialVersionUID = 6218048618794489254L;
 
-        private JFrame ui;
+        private UI ui;
 
-        public GameListener(final JFrame ui) {
+        public GameListener(final UI ui) {
             this.ui = ui;
         }
 
@@ -833,8 +832,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
                             // TODO : Ask server for opponent here !
                             //ready=1;
                         }
-                        ui.pack();
-                        ui.repaint();
+                        
                     }
                 }
             }
@@ -877,9 +875,9 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     /* Listener for Deploy Button */
     private class DeployListener implements ActionListener {
 
-        private final JFrame ui;
+        private final UI ui;
 
-        public DeployListener(final JFrame ui) {
+        public DeployListener(final UI ui) {
             this.ui = ui;
         }
 
@@ -888,9 +886,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             if (UIHelpers.confirmDialog("Are you sure you would like to deploy your ships?", "Deploy Ships?") == 0) {
                 try {
                     System.out.println("The player to deploy : " + me);
-                    game.deployShips(me, sessionID);
-                    ui.pack();
-                    ui.repaint();
+                    game.deployShips(ui, me, sessionID);
                 } catch (RemoteException ex) {
                     Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -1000,12 +996,14 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
     @Override
     public Player getPlayer() throws RemoteException {
+        System.out.println("Player sent to server -> " + me.getId() + " : " + me.getName());
         return me;
     }
 
     @Override
     public void setPlayer(Player player) throws RemoteException {
         me = player;
+        System.out.println("Player update from server -> " + me.getId() + " : " + me.getName());
     }
 
     @Override

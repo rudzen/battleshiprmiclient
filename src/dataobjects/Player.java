@@ -23,13 +23,12 @@
  */
 package dataobjects;
 
-import interfaces.IShip;
 import java.io.Serializable;
 
 /**
  * The Player class for BattleShip.<br>
  *
- * @author Rudy Alex Kohn <s133235@student.dtu.dk>
+ * @author Rudy Alex Kohn s133235@student.dtu.dk
  */
 public class Player implements Serializable {
 
@@ -56,7 +55,7 @@ public class Player implements Serializable {
     /**
      * The ships which are available to the player.
      */
-    private IShip[] ships = new Ship[5];
+    private Ship[] ships = new Ship[5];
 
     /**
      * Empty constructor
@@ -87,12 +86,12 @@ public class Player implements Serializable {
     }
 
     public void initShips() {
-        ships[0] = new Ship(0, 0, IShip.TYPE.CARRIER, IShip.DIRECTION.VERTICAL);
-        ships[1] = new Ship(0, 1, IShip.TYPE.CRUISER, IShip.DIRECTION.VERTICAL);
-        ships[2] = new Ship(0, 2, IShip.TYPE.DESTROYER, IShip.DIRECTION.VERTICAL);
-        ships[3] = new Ship(0, 3, IShip.TYPE.SUBMARINE, IShip.DIRECTION.VERTICAL);
-        ships[4] = new Ship(0, 4, IShip.TYPE.PATROL, IShip.DIRECTION.VERTICAL);
-        for (IShip s : ships) {
+        ships[0] = new Ship(0, 0, Ship.TYPE.CARRIER, Ship.DIRECTION.VERTICAL);
+        ships[1] = new Ship(0, 1, Ship.TYPE.CRUISER, Ship.DIRECTION.VERTICAL);
+        ships[2] = new Ship(0, 2, Ship.TYPE.DESTROYER, Ship.DIRECTION.VERTICAL);
+        ships[3] = new Ship(0, 3, Ship.TYPE.SUBMARINE, Ship.DIRECTION.VERTICAL);
+        ships[4] = new Ship(0, 4, Ship.TYPE.PATROL, Ship.DIRECTION.VERTICAL);
+        for (Ship s : ships) {
             s.setIsPlaced(false);
         }
     }
@@ -101,7 +100,7 @@ public class Player implements Serializable {
         ships[index] = ship;
     }
 
-    public IShip getShip(final int index) {
+    public Ship getShip(final int index) {
         return ships[index];
     }
 
@@ -156,16 +155,12 @@ public class Player implements Serializable {
         this.board = board;
     }
 
-    public IShip[] getShips() {
+    public Ship[] getShips() {
         return ships;
     }
 
-    public void setShips(IShip[] ships) {
+    public void setShips(Ship[] ships) {
         this.ships = ships;
-    }
-
-    public void setShip(int index, IShip ship) {
-        ships[index] = ship;
     }
 
 }

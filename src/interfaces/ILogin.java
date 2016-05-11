@@ -27,7 +27,7 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 /**
- * Login interface for RMI Client<->Server login attempt.
+ * Login interface for RMI Client to-from Server login attempt.
  * @author rudz
  */
 public interface ILogin extends Remote {

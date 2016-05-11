@@ -99,11 +99,12 @@ public interface IBattleShip extends Remote {
     /**
      * Deploy set-up of ships to the server.
      *
+     * @param client
      * @param player The player
      * @param sessionID
      * @throws RemoteException
      */
-    void deployShips(final Player player, String sessionID) throws RemoteException;
+    void deployShips(final IClientListener client, final Player player, String sessionID) throws RemoteException;
 
     /**
      * Requests a list of players currently available to play against.

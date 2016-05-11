@@ -45,7 +45,7 @@ import java.awt.event.WindowEvent;
  * Simple login dialog.<br>
  * Communicates with BattleShipRMIServer.
  *
- * @author Rudy Alex Kohn <s133235@student.dtu.dk>
+ * @author Rudy Alex Kohn s133235@student.dtu.dk
  */
 @SuppressWarnings("serial")
 public final class LoginDialog extends JDialog {

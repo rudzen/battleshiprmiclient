@@ -21,13 +21,13 @@ package com.css.rmi;
  */
 public class EndpointInfo {
 
-    private String host;
-    private int port;
+    private final String host;
+    private final int port;
 
     /**
      * Constructor.
-     * @param host
-     * @param port
+     * @param host the host address
+     * @param port the port
      */
     public EndpointInfo(String host, int port) {
         this.host = host;

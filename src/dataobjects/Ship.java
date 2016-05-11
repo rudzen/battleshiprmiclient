@@ -24,7 +24,6 @@
 package dataobjects;
 
 import dataobjects.Upgrades.UPGRADES;
-import interfaces.IShip;
 import java.awt.Point;
 import java.io.Serializable;
 
@@ -36,19 +35,39 @@ import java.io.Serializable;
  * @version 1.0
  * @since 16-04-2016
  */
-public class Ship implements Serializable, IShip {
+public class Ship implements Serializable {
 
     private static final long serialVersionUID = -5311711410232026986L;
 
     /**
+     * The type of possible ship types.<br>
+     * Patrol = 2 length<br>
+     * Destroyer, Submarine = 3 length<br>
+     * Cruiser = 4 length<br>
+     * Carrier = 5 length
+     */
+    public enum TYPE {
+        PATROL, DESTROYER, SUBMARINE, CRUISER, CARRIER
+    }
+
+    /**
+     * The possible directions for the ship<br>
+     * HORIZONTAL = right-left<br>
+     * VERTICAL = up-down
+     */
+    public enum DIRECTION {
+        HORIZONTAL, VERTICAL;
+    }
+
+    /**
      * The ship type
      */
-    private IShip.TYPE type;
+    private TYPE type;
 
     /**
      * The ship direction
      */
-    private IShip.DIRECTION direction;
+    private DIRECTION direction;
 
     /**
      * The upgrades for the ship.
@@ -105,7 +124,7 @@ public class Ship implements Serializable, IShip {
      * @param type The type of the ship
      * @param direction The direction of placement
      */
-    public Ship(final int x, final int y, final IShip.TYPE type, final IShip.DIRECTION direction) {
+    public Ship(final int x, final int y, final TYPE type, final DIRECTION direction) {
         locStart = new Point(x, y);
         length = getLen(type);
         location = new Point[length];
@@ -129,7 +148,7 @@ public class Ship implements Serializable, IShip {
      * @param direction The placement direction
      * @param upgrades The upgrades for the ship.
      */
-    public Ship(final int x, final int y, final IShip.TYPE type, final IShip.DIRECTION direction, final Upgrades upgrades) {
+    public Ship(final int x, final int y, final TYPE type, final DIRECTION direction, final Upgrades upgrades) {
         this(x, y, type, direction);
         hasUpgrade = upgrades.hasUpgrades();
         if (hasUpgrade) {
@@ -146,12 +165,10 @@ public class Ship implements Serializable, IShip {
      *
      * @param upgradeType The upgrade type.
      */
-    @Override
     public void addUpgrade(final UPGRADES upgradeType) {
         upgrades.addUpgrade(upgradeType);
     }
 
-    @Override
     public void addUpgrade(final UPGRADES upgradeType, final int amount) {
         upgrades.addUpgrade(upgradeType, amount);
     }
@@ -161,7 +178,6 @@ public class Ship implements Serializable, IShip {
      *
      * @param upgradeType The upgrade type.
      */
-    @Override
     public void removeUpgrade(final UPGRADES upgradeType) {
         upgrades.removeUpgrade(upgradeType);
     }
@@ -172,7 +188,6 @@ public class Ship implements Serializable, IShip {
      *
      * @return true if ship if dead, otherwise false
      */
-    @Override
     public boolean isDead() {
         return life == 0;
     }
@@ -214,7 +229,6 @@ public class Ship implements Serializable, IShip {
      *
      * @return The string name of the ship
      */
-    @Override
     public String getShipType() {
         if (type == TYPE.CARRIER) {
             return "Carrier";
@@ -229,94 +243,75 @@ public class Ship implements Serializable, IShip {
         }
     }
 
-    @Override
     public void addLocation(int x, int y, int pos) {
         location[pos] = new Point(x, y);
     }
-    
-    @Override
+
     public Point getLocation(int pos) {
         return location[pos];
     }
-    
-    
+
     /* getters & setters */
-    @Override
     public int getLife() {
         return life;
     }
 
-    @Override
     public void setLife(int life) {
         this.life = life;
     }
 
-    @Override
     public Point getLocStart() {
         return locStart;
     }
 
-    @Override
     public void setLocStart(Point locStart) {
         this.locStart = locStart;
     }
 
-    @Override
     public Point getLocEnd() {
         return locEnd;
     }
 
-    @Override
     public void setLocEnd(Point locEnd) {
         this.locEnd = locEnd;
     }
 
-    @Override
     public TYPE getType() {
         return type;
     }
 
-    @Override
     public void setType(TYPE type) {
         this.type = type;
     }
 
-    @Override
     public DIRECTION getDirection() {
         return direction;
     }
 
-    @Override
     public void setDirection(DIRECTION direction) {
         this.direction = direction;
     }
 
-    @Override
     public int getLength() {
         return length;
     }
 
-    @Override
     public void setLength(int length) {
         this.length = length;
     }
 
-    @Override
     public boolean isHasUpgrade() {
         return hasUpgrade;
     }
 
-    @Override
     public void setHasUpgrade(boolean hasUpgrade) {
         this.hasUpgrade = hasUpgrade;
     }
 
-    @Override
     public Upgrades getUpgrades() {
         return upgrades;
     }
 
-    @Override
     public void setUpgrades(Upgrades upgrades) {
         this.upgrades = upgrades;
     }
@@ -326,24 +321,20 @@ public class Ship implements Serializable, IShip {
         return "Ship{" + "type=" + type + ", direction=" + direction + ", upgrades=" + upgrades + ", locStart=" + locStart + ", locEnd=" + locEnd + ", length=" + length + ", life=" + life + ", hasUpgrade=" + hasUpgrade + ", hits=" + hits + ", isPlaced=" + isPlaced + '}';
     }
 
-    @Override
     public boolean isPlaced() {
         return isPlaced;
     }
 
-    @Override
     public void setIsPlaced(boolean isPlaced) {
         this.isPlaced = isPlaced;
     }
 
-    @Override
     public Point[] getLocation() {
         return location;
     }
 
-    @Override
     public void setLocation(Point[] location) {
         this.location = location;
     }
-    
+
 }

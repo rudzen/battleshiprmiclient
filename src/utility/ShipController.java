@@ -17,7 +17,7 @@ package utility;
 
 /**
  * Basic class to help with ship arrangements in the UI
- * @author Rudy Alex Kohn <s133235@student.dtu.dk>
+ * @author Rudy Alex Kohn s133235@student.dtu.dk
  */
 public final class ShipController {
     

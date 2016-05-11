@@ -27,7 +27,7 @@ import java.io.Serializable;
 
 /**
  *
- * @author Rudy Alex Kohn <s133235@student.dtu.dk>
+ * @author Rudy Alex Kohn s133235@student.dtu.dk
  */
 public class Upgrades implements Serializable {
 

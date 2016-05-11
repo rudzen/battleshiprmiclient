@@ -27,7 +27,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  *
  * The factory provides two main capabilities:
- * <p>
  * <ul>
  * <li>A gateway registry for going through firewalls</li>
  * <li>A signalling channel for establishing callback sockets</li>
@@ -56,7 +55,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 
  * 09.May.2016
  * -----------
- * @author Rudy Alex Kohn <s133235@student.dtu.dk>
+ * @author Rudy Alex Kohn s133235@student.dtu.dk
  * - Reworked syntax for modern Java (8).
  * - Added usage of Java 8 concurrency library for better performance.
  * 
