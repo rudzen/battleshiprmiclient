@@ -25,7 +25,6 @@ package battleshiprmiclient;
 
 import com.css.rmi.ClientTwoWaySocketFactory;
 import interfaces.IBattleShip;
-import interfaces.IClientListener;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
@@ -87,7 +86,7 @@ public class Battleship {
             Remote server = Naming.lookup("rmi://" + registry + ":6769/Battleship");
             game = (IBattleShip) server;
 
-            UI.setInstance(new UI(registry, game));
+            UI.setInstance(new UI(game));
 
         } catch (final RemoteException re) {
             UIHelpers.messageDialog("RMI Error - RemoteException()\n" + re.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);

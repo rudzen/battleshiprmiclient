@@ -23,7 +23,6 @@
  */
 package ui;
 
-import com.google.gson.Gson;
 import dataobjects.Player;
 import dataobjects.Ship;
 import interfaces.IBattleShip;
@@ -84,42 +83,12 @@ public class UI extends UnicastRemoteObject implements IClientListener {
      */
     private IBattleShip game;
 
-    private Gson g = new Gson();
-
     public static UI getInstance() {
         return SingletonHolder.INSTANCE;
     }
-    
+
     public static void setInstance(UI ui) {
         SingletonHolder.INSTANCE = ui;
-    }
-
-    @Override
-    public void shipSunk(int shipType, boolean yourShip) throws RemoteException {
-        if (shipType == 0) {
-            if (yourShip) {
-                UIHelpers.messageDialog("Your " + me.getShip(shipType).getShipType() + " has been sunk by " + other.getName(), "Ship sunk!!!!");
-                colorShip(me.getShip(shipType).getLocStart().x, me.getShip(shipType).getLocStart().y, me.getShip(shipType), Color.BLACK);
-            } else {
-                // TODO : Implement
-            }
-        }
-    }
-
-    @Override
-    public void ping(long time) throws RemoteException {
-        System.out.println("PING: Latency (ms) : " + (System.currentTimeMillis() - time));
-    }
-
-    @Override
-    public void setLobbyID(int lobbyID) throws RemoteException {
-        UI.lobbyID = lobbyID;
-        System.out.println("Lobby id updated from server : " + lobbyID);
-    }
-
-    @Override
-    public void hello() throws RemoteException {
-        System.out.println("Server said hello.");
     }
 
     private static class SingletonHolder {
@@ -127,10 +96,12 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         public static UI INSTANCE;
     }
 
-    private String registry;
-
+    /** for expansion of game system */
     private static String sessionID;
 
+    /** The game state of the client, this controls what the client can and can't do */
+    private static UIHelpers.GAMESTATE gamestate;
+    
     /**
      * Current game lobby ID
      */
@@ -216,32 +187,8 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         REMOVE, ADD, SUNK
     }
 
-    private static class RunnableImpl implements Runnable {
 
-        private final String registry;
-        private final IBattleShip game;
-
-        public RunnableImpl(final String registry, final IBattleShip game) {
-            this.registry = registry;
-            this.game = game;
-        }
-
-        @Override
-        public void run() {
-            try {
-                SingletonHolder.INSTANCE = new UI(registry, game);
-            } catch (RemoteException ex) {
-                Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-        }
-    }
-
-    public static void runGame(final String registry, final IBattleShip game) {
-        EventQueue.invokeLater(new RunnableImpl(registry, game));
-    }
-
-    public UI(final String registry, final IBattleShip game) throws RemoteException {
+    public UI(final IBattleShip game) throws RemoteException {
         super();
         java.awt.EventQueue.invokeLater(() -> {
             output = new Output();
@@ -250,7 +197,6 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         });
 
         this.game = game;
-        this.registry = registry;
 
         me = new Player("User" + Double.toString(Math.random() * 10)); // temporary Player object
         me.initShips();
@@ -259,8 +205,8 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
     }
 
-    public UI(final String registry, final IBattleShip game, final Player me) throws RemoteException {
-        this(registry, game);
+    public UI(final IBattleShip game, final Player me) throws RemoteException {
+        this(game);
         UI.me = me;
     }
 
@@ -347,7 +293,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
         /* regular menu */
         m = new JMenuItem(Statics.isLoggedIn ? "Logout" : "Login");
-        m.addActionListener(new LoginListener(this));
+        m.addActionListener(new LoginListener());
         menu.add(m);
 
         m = new JMenuItem("Options");
@@ -667,7 +613,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 //                }
                 game.registerClient(this, name);
                 game.login(name, pw, this);
-                game.requestFreeLobbies(this);
+                //game.requestFreeLobbies(this);
 
             } catch (RemoteException ex) {
                 Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
@@ -877,12 +823,6 @@ public class UI extends UnicastRemoteObject implements IClientListener {
      */
     private class LoginListener implements ActionListener {
 
-        private final UI ui;
-
-        public LoginListener(final UI ui) {
-            this.ui = ui;
-        }
-
         @Override
         public void actionPerformed(ActionEvent e) {
             if (UIHelpers.isConnected(game)) {
@@ -961,9 +901,9 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
     @Override
     public void canPlay(boolean canPlay) throws RemoteException {
-        UI.boards[0].setEnabled(canPlay);
-        UI.boards[1].setEnabled(canPlay);
-        deploy.setEnabled(canPlay);
+//        UI.boards[0].setEnabled(canPlay);
+//        UI.boards[1].setEnabled(canPlay);
+//        deploy.setEnabled(canPlay);
     }
 
     @Override
@@ -1046,140 +986,40 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         }
     }
 
-    public JDialog getLoginDialog() {
-        return loginDialog;
+        @Override
+    public void shipSunk(int shipType, boolean yourShip) throws RemoteException {
+        if (shipType == 0) {
+            if (yourShip) {
+                UIHelpers.messageDialog("Your " + me.getShip(shipType).getShipType() + " has been sunk by " + other.getName(), "Ship sunk!!!!");
+                colorShip(me.getShip(shipType).getLocStart().x, me.getShip(shipType).getLocStart().y, me.getShip(shipType), Color.BLACK);
+            } else {
+                // TODO : Implement
+            }
+        }
     }
 
-    public void setLoginDialog(JDialog loginDialog) {
-        this.loginDialog = loginDialog;
+    @Override
+    public void ping(long time) throws RemoteException {
+        System.out.println("PING: Latency (ms) : " + (System.currentTimeMillis() - time));
     }
 
+    @Override
+    public void setLobbyID(int lobbyID) throws RemoteException {
+        UI.lobbyID = lobbyID;
+        System.out.println("Lobby id updated from server : " + lobbyID);
+    }
+
+    @Override
+    public void hello() throws RemoteException {
+        System.out.println("Server said hello.");
+    }
+    
     public static String getCletters(int i) {
         return cletters[i];
     }
 
     public static String getCnumbers(int i) {
         return cnumbers[i];
-    }
-
-    public static int getSIndex() {
-        return index_ship;
-    }
-
-    public static int getDIndex() {
-        return index_direction;
-    }
-
-    public static JButton[][] getOwnButtons() {
-        return ownButtons;
-    }
-
-    public static void setOwnButtons(JButton[][] ownButtons) {
-        UI.ownButtons = ownButtons;
-    }
-
-    public static JButton[][] getOppButtons() {
-        return oppButtons;
-    }
-
-    public static void setOppButtons(JButton[][] oppButtons) {
-        UI.oppButtons = oppButtons;
-    }
-
-    public static JPanel[] getBoards() {
-        return boards;
-    }
-
-    public static void setBoards(JPanel[] boards) {
-        UI.boards = boards;
-    }
-
-    public static JPanel getInputpanel() {
-        return inputpanel;
-    }
-
-    public static void setInputpanel(JPanel inputpanel) {
-        UI.inputpanel = inputpanel;
-    }
-
-    public static Container getB() {
-        return b;
-    }
-
-    public static void setB(Container b) {
-        UI.b = b;
-    }
-
-    public static Container getC() {
-        return c;
-    }
-
-    public static void setC(Container c) {
-        UI.c = c;
-    }
-
-    public static Container getD() {
-        return d;
-    }
-
-    public static void setD(Container d) {
-        UI.d = d;
-    }
-
-    public JPanel getInput() {
-        return input;
-    }
-
-    public void setInput(JPanel input) {
-        this.input = input;
-    }
-
-    public static int getIndex_ship() {
-        return index_ship;
-    }
-
-    public static void setIndex_ship(int index_ship) {
-        UI.index_ship = index_ship;
-    }
-
-    public static int getIndex_direction() {
-        return index_direction;
-    }
-
-    public static void setIndex_direction(int index_direction) {
-        UI.index_direction = index_direction;
-    }
-
-    public static Player getOther() {
-        return other;
-    }
-
-    public static void setOther(Player other) {
-        UI.other = other;
-    }
-
-    public static String getUser() {
-        return user;
-    }
-
-    public static void setUser(String user) {
-        UI.user = user;
-    }
-
-    public static String getUser2() {
-        return user2;
-    }
-
-    public static void setUser2(String user2) {
-        UI.user2 = user2;
-    }
-
-    public static boolean isGameover() {
-        return gameover;
-    }
-
-    public static void setGameover(boolean gameover) {
-        UI.gameover = gameover;
     }
 
     /**

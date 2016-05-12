@@ -41,6 +41,12 @@ public final class UIHelpers {
 
     public static String MSG_GAME_OVER = "Game is over!";
 
+    public enum GAMESTATE {
+        OFFLINE, PLACEMENT, PLAYING, WAITING
+    }
+    
+    
+    
     public static String getPlayerName() {
         String daName = inputDialog("Please enter your name.", "Enter name.");
         int dummy = 0;
