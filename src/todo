@@ -1,0 +1,5 @@
+- Board[] implement
+- Set up two playingfields when needed
+- Login doublecheck
+- ready state needs to be set correctly when needed
+

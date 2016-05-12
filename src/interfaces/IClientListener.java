@@ -29,44 +29,19 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 
 /**
- * Server -> Client callback interface.
+ * Server -> Client callback interface. These are the methods being called on
+ * the client.
  *
- * @author rudz
+ * @author Rudy Alex Kohn (s133235@student.dtu.dk)
  */
 public interface IClientListener extends Remote {
-
-    /**
-     * The opponent fired a shot!
-     *
-     * @param x The X coordinate
-     * @param y The Y coordinate
-     * @param hit was it a hit?
-     * @throws RemoteException
-     */
-    void shotFired(final int x, final int y, final boolean hit) throws RemoteException;
-
-    /**
-     * Ship has been sunk.
-     *
-     * @param shipindex the ship that are sunk
-     * @throws RemoteException
-     */
-    void shipSunk(final int shipindex) throws RemoteException;
-
-    /**
-     * The game is over
-     *
-     * @param won did you win?
-     * @throws RemoteException
-     */
-    void gameOver(final boolean won) throws RemoteException;
 
     /**
      * Informs client if it can play or not, this is called with basic lee every
      * callback. When this is called, player action will be send to server.
      *
-     * @param canPlay
-     * @throws RemoteException
+     * @param canPlay The client will en-/disable it's controls based on this
+     * @throws RemoteException If client is unavailable
      */
     void canPlay(final boolean canPlay) throws RemoteException;
 
@@ -76,15 +51,42 @@ public interface IClientListener extends Remote {
      * @param message The message to show
      * @param title The window title of the message
      * @param modal The modal (JOPtionPane constant!)
-     * @throws RemoteException
+     * @throws RemoteException If client is unavailable
      */
     void showMessage(final String message, final String title, final int modal) throws RemoteException;
+
+    /**
+     * The opponent fired a shot!
+     *
+     * @param x The X coordinate
+     * @param y The Y coordinate
+     * @param hit was it a hit?
+     * @throws RemoteException If client is unavailable
+     */
+    void shotFired(final int x, final int y, final boolean hit) throws RemoteException;
+
+    /**
+     * Ship has been sunk.
+     *
+     * @param shipType The type of ship sunk
+     * @param yourShip This is true if the ship is belonging to the client
+     * @throws RemoteException If client is unavailable
+     */
+    void shipSunk(final int shipType, final boolean yourShip) throws RemoteException;
+
+    /**
+     * The game is over
+     *
+     * @param won did you win?
+     * @throws RemoteException If client is unavailable
+     */
+    void gameOver(final boolean won) throws RemoteException;
 
     /**
      * If this is called, the opponent has either quit or lost contact
      * completely to server.
      *
-     * @throws RemoteException
+     * @throws RemoteException If client is unavailable
      */
     void opponentQuit() throws RemoteException;
 
@@ -92,7 +94,7 @@ public interface IClientListener extends Remote {
      * The client should update the information about the opponent
      *
      * @param player The opponent data object which contains the new information
-     * @throws RemoteException
+     * @throws RemoteException If client is unavailable
      */
     void updateOpponent(final String player) throws RemoteException;
 
@@ -101,7 +103,7 @@ public interface IClientListener extends Remote {
      * when the opponent has deployed.
      *
      * @param board The board to update it with.
-     * @throws RemoteException
+     * @throws RemoteException If client is unavailable
      */
     void updateOpponentBoard(final int[][] board) throws RemoteException;
 
@@ -110,7 +112,7 @@ public interface IClientListener extends Remote {
      * ever) be called.
      *
      * @param board The board to update it with.
-     * @throws RemoteException
+     * @throws RemoteException If client is unavailable
      */
     void updateBoard(final int[][] board) throws RemoteException;
 
@@ -118,16 +120,23 @@ public interface IClientListener extends Remote {
      * Just to test if the client is alive! .. if this throws an exception,
      * terminate the game.
      *
-     * @throws RemoteException
+     * @param time The time the ping was called
+     * @throws RemoteException If client is unavailable
      */
-    void ping() throws RemoteException;
+    void ping(long time) throws RemoteException;
 
+    /**
+     * Simple method just to check if the client is still alive.
+     * @throws RemoteException If the client is offline.
+     */
+    void hello() throws RemoteException;
+    
     /**
      * Sends a notification to the client that the user has been logged out.
      *
      * @param status The status of the log out attempt, true if logged out,
      * false if not.
-     * @throws RemoteException
+     * @throws RemoteException If client is unavailable
      */
     void isLoggedOut(boolean status) throws RemoteException;
 
@@ -135,7 +144,7 @@ public interface IClientListener extends Remote {
      * Receive a list of players to pick between
      *
      * @param players The list of players from which you can play against.
-     * @throws RemoteException
+     * @throws RemoteException If client is unavailable
      */
     void playerList(ArrayList<String> players) throws RemoteException;
 
@@ -145,44 +154,57 @@ public interface IClientListener extends Remote {
      * This is done because i can.
      *
      * @return The player object from the client.
-     * @throws RemoteException
+     * @throws RemoteException If client is unavailable
      */
     Player getPlayer() throws RemoteException;
 
     /**
      * Sets the Player object on the client
+     *
      * @param player The player object.
-     * @throws RemoteException 
+     * @throws RemoteException If client is unavailable
      */
     void setPlayer(Player player) throws RemoteException;
-    
+
     /**
      * Returns the status to the client about it's current login status.
      *
      * @param wasOkay true if login was ok, false if failed.
-     * @throws RemoteException
+     * @throws RemoteException If client is unavailable
      */
     void loginstatus(boolean wasOkay) throws RemoteException;
 
     /**
      * Update the sessionID for the client.
+     *
      * @param newID The new session ID
-     * @throws RemoteException 
+     * @throws RemoteException If client is unavailable
      */
     void updateSessionID(String newID) throws RemoteException;
-    
+
     /**
      * Set the opponent player object (for name)
+     *
      * @param player
-     * @throws RemoteException 
+     * @throws RemoteException If client is unavailable
      */
     void setOtherPlayer(Player player) throws RemoteException;
-    
+
     /**
-     * If list contains at least one element, open a list box to let player choose which to join.
+     * If list contains at least one element, open a list box to let player
+     * choose which to join.
+     *
      * @param lobbies The list of free joinable lobbies
-     * @throws RemoteException 
+     * @throws RemoteException If client is unavailable
      */
     void setFreeLobbies(ArrayList<String> lobbies) throws RemoteException;
-    
+
+    /**
+     * Set a new lobbyID @ the client.
+     *
+     * @param lobbyID the new lobby id retrieved from the main game server
+     * @throws RemoteException If client is unavailable
+     */
+    void setLobbyID(int lobbyID) throws RemoteException;
+
 }

@@ -87,7 +87,7 @@ public class Battleship {
             Remote server = Naming.lookup("rmi://" + registry + ":6769/Battleship");
             game = (IBattleShip) server;
 
-            IClientListener ui = new UI(registry, game);
+            UI.setInstance(new UI(registry, game));
 
         } catch (final RemoteException re) {
             UIHelpers.messageDialog("RMI Error - RemoteException()\n" + re.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);

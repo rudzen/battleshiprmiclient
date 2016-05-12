@@ -79,6 +79,9 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
     private static final long serialVersionUID = -7140601918400361891L;
 
+    /**
+     * The remote object
+     */
     private IBattleShip game;
 
     private Gson g = new Gson();
@@ -86,15 +89,37 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     public static UI getInstance() {
         return SingletonHolder.INSTANCE;
     }
-
-    @Override
-    public void setOtherPlayer(Player player) throws RemoteException {
-        other = player;
+    
+    public static void setInstance(UI ui) {
+        SingletonHolder.INSTANCE = ui;
     }
 
     @Override
-    public void setFreeLobbies(ArrayList<String> lobbies) throws RemoteException {
-        UIHelpers.messageDialog(lobbies.toString(), "Free Lobbys");
+    public void shipSunk(int shipType, boolean yourShip) throws RemoteException {
+        if (shipType == 0) {
+            if (yourShip) {
+                UIHelpers.messageDialog("Your " + me.getShip(shipType).getShipType() + " has been sunk by " + other.getName(), "Ship sunk!!!!");
+                colorShip(me.getShip(shipType).getLocStart().x, me.getShip(shipType).getLocStart().y, me.getShip(shipType), Color.BLACK);
+            } else {
+                // TODO : Implement
+            }
+        }
+    }
+
+    @Override
+    public void ping(long time) throws RemoteException {
+        System.out.println("PING: Latency (ms) : " + (System.currentTimeMillis() - time));
+    }
+
+    @Override
+    public void setLobbyID(int lobbyID) throws RemoteException {
+        UI.lobbyID = lobbyID;
+        System.out.println("Lobby id updated from server : " + lobbyID);
+    }
+
+    @Override
+    public void hello() throws RemoteException {
+        System.out.println("Server said hello.");
     }
 
     private static class SingletonHolder {
@@ -105,6 +130,11 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     private String registry;
 
     private static String sessionID;
+
+    /**
+     * Current game lobby ID
+     */
+    private static int lobbyID;
 
     /* UI Stuff */
     private JDialog loginDialog;
@@ -133,9 +163,6 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     /* input bar */
     private JPanel input;
 
-    /* menu items */
-    private static JMenuItem m, pvp;
-
     /* arrays for combo boxes */
     private static final String[] cletters = {" ", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J"};
     private static final String[] cnumbers = {" ", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"};
@@ -157,7 +184,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     private static final JButton deploy = new JButton("DEPLOY");
 
     /* the game type */
-    private static JMenuItem gametype;
+    private static JMenuItem pvp;
 
     /* is game ready to receive next action from human player?
      0 = in deployment mode
@@ -216,22 +243,19 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
     public UI(final String registry, final IBattleShip game) throws RemoteException {
         super();
+        java.awt.EventQueue.invokeLater(() -> {
+            output = new Output();
+            output.setVisible(true);
+            Output.redirectSystemStreams(true, output);
+        });
 
         this.game = game;
         this.registry = registry;
-        //UnicastRemoteObject.exportObject(this, 6770);
 
         me = new Player("User" + Double.toString(Math.random() * 10)); // temporary Player object
         me.initShips();
         game.registerClient(this, me.getName());
         setupUI();
-
-        java.awt.EventQueue.invokeLater(() -> {
-            output = new Output();
-            output.setVisible(true);
-            Output.redirectSystemStreams(true, output);
-            System.out.println("Meeeeeeeeee");
-        });
 
     }
 
@@ -252,7 +276,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             for (int j = 0; j < ownButtons.length; j++) {
                 ownButtons[j][k] = new JButton();
                 ownButtons[j][k].setBackground(Color.GRAY);
-                ownButtons[j][k].addActionListener(new BoardListener(game, mainFrame, j, k));
+                ownButtons[j][k].addActionListener(new BoardListener(game, this, j, k));
 
                 oppButtons[j][k] = new JButton();
                 oppButtons[j][k].setBackground(Color.GRAY);
@@ -283,26 +307,53 @@ public class UI extends UnicastRemoteObject implements IClientListener {
      * @return The menu bar which was created.
      */
     private JMenuBar createMenuBar() {
-        JMenu menu;
+        JMenu menu = new JMenu("Game");
         JMenuBar menuBar = new JMenuBar();
-        menu = new JMenu("Game");
         menuBar.add(menu);
-        m = new JMenu("New Game");
+
+        JMenuItem m = new JMenu("New Game");
         menu.add(m);
 
         /* submenu of new game */
-        GameListener stuff = new GameListener(this);
         pvp = new JMenuItem("Player vs. Player");
-        pvp.addActionListener(stuff);
+        pvp.addActionListener(new GameListener());
         m.add(pvp);
+
+        /* debug sub-menu */
+        JMenu debug = new JMenu("Debug");
+        m = new JMenuItem("Show all player IDs");
+        m.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            }
+        });
+        debug.add(m);
+        m = new JMenuItem("GetLobbys");
+        m.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            }
+        });
+        debug.add(m);
+
+        m = new JMenuItem("Ping RMI server");
+        m.addActionListener(new PingListener(game));
+        debug.add(m);
+
+        menu.add(debug);
 
         /* regular menu */
         m = new JMenuItem(Statics.isLoggedIn ? "Logout" : "Login");
         m.addActionListener(new LoginListener(this));
         menu.add(m);
+
         m = new JMenuItem("Options");
         m.addActionListener(new OptionsListener(this));
         menu.add(m);
+
         m = new JMenuItem("Exit");
         m.addActionListener(new ExitListener(mainFrame));
         menu.add(m);
@@ -332,7 +383,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         titleBorder = BorderFactory.createTitledBorder("Direction");
         combo_direction.setBorder(titleBorder);
         deploy.setEnabled(false);
-        deploy.addActionListener(new DeployListener(this));
+        deploy.addActionListener(new DeployListener());
         deploy.setAlignmentX(JFrame.CENTER_ALIGNMENT);
         input.add(deploy);
         return input;
@@ -511,6 +562,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
                 }
             }
         }
+        s.setIsPlaced(true);
         return true;
     }
 
@@ -646,10 +698,10 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
         private final int x;
         private final int y;
-        private final JFrame ui;
+        private final UI ui;
         private final IBattleShip game;
 
-        public BoardListener(final IBattleShip game, final JFrame ui, final int x, final int y) {
+        public BoardListener(final IBattleShip game, final UI ui, final int x, final int y) {
             this.x = x;
             this.y = y;
             this.ui = ui;
@@ -685,7 +737,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             } else {
                 try {
                     /* user is fireing at the opponent!!! */
-                    game.fireShot(x, y, me.getName(), "XXX");
+                    game.fireShot((IClientListener) ui, UI.lobbyID, UI.me.getId(), x, y);
                 } catch (RemoteException ex) {
                     Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -792,15 +844,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
      * let the player know and get the session ID. 6. Let the server create the
      * game session and retrieve the new session ID.
      */
-    private class GameListener implements ActionListener, Serializable {
-
-        private static final long serialVersionUID = 6218048618794489254L;
-
-        private UI ui;
-
-        public GameListener(final UI ui) {
-            this.ui = ui;
-        }
+    private class GameListener implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -821,18 +865,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
                         ready = 0;
 
-                        gametype = (JMenuItem) e.getSource();
-
-                        if (gametype == pvp) {
-
-                            // TODO : Get playerlist from server *OR* Input name of opponent!
-                            // TODO : Make better abstraction!!!!!
-                            me = new Player(user);
-
-                            // TODO : Ask server for opponent here !
-                            //ready=1;
-                        }
-                        
+                        // TODO : Implement actual gameflow start
                     }
                 }
             }
@@ -855,7 +888,6 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             if (UIHelpers.isConnected(game)) {
                 if (Statics.isLoggedIn) {
                     Statics.isLoggedIn = false;
-
                     try {
                         // TODO : Add RMI interface to actually let the server know about it.
                         game.logout(me.getName());
@@ -864,7 +896,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
                     }
                 } else {
                     // TODO : Move this entire bullcrap to the login dialog and implement observer.
-                    loginDialog = LoginDialog.getInstance(ui);
+                    loginDialog = LoginDialog.getInstance(UI.getInstance());
                     loginDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
                     loginDialog.setVisible(true);
                 }
@@ -872,21 +904,17 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         }
     }
 
-    /* Listener for Deploy Button */
+    /**
+     * Listener for Deploy Button
+     */
     private class DeployListener implements ActionListener {
-
-        private final UI ui;
-
-        public DeployListener(final UI ui) {
-            this.ui = ui;
-        }
 
         @Override
         public void actionPerformed(ActionEvent v) {
             if (UIHelpers.confirmDialog("Are you sure you would like to deploy your ships?", "Deploy Ships?") == 0) {
                 try {
                     System.out.println("The player to deploy : " + me);
-                    game.deployShips(ui, me, sessionID);
+                    game.deployShips(UI.getInstance(), UI.lobbyID, UI.me);
                 } catch (RemoteException ex) {
                     Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -918,14 +946,6 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         }
     }
 
-//    /**
-//     * Returns ship colour, as selected by the user
-//     *
-//     * @return
-//     */
-//    public static Color getColor() {
-//        return Options.COLOURS[Options.SHIP_COLOUR.getSelectedIndex()];
-//    }
     /* RMI callback methods */
     @Override
     public void shotFired(int x, int y, boolean hit) throws RemoteException {
@@ -941,6 +961,8 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
     @Override
     public void canPlay(boolean canPlay) throws RemoteException {
+        UI.boards[0].setEnabled(canPlay);
+        UI.boards[1].setEnabled(canPlay);
         deploy.setEnabled(canPlay);
     }
 
@@ -973,19 +995,8 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     }
 
     @Override
-    public void ping() throws RemoteException {
-        game.pong(me.getName());
-    }
-
-    @Override
     public void isLoggedOut(boolean status) throws RemoteException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void shipSunk(int shipindex) throws RemoteException {
-        UIHelpers.messageDialog("Your " + me.getShip(shipindex).getShipType() + " has been sunk by " + other.getName(), "Ship sunk!!!!");
-        colorShip(me.getShip(shipindex).getLocStart().x, me.getShip(shipindex).getLocStart().y, me.getShip(shipindex), Color.BLACK);
     }
 
     @Override
@@ -1018,6 +1029,21 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     public void updateSessionID(String newID) throws RemoteException {
         sessionID = newID;
         System.out.println("New session ID from server : " + sessionID);
+    }
+
+    @Override
+    public void setOtherPlayer(Player player) throws RemoteException {
+        other = player;
+        System.out.println("Other player updated from server : (name) " + player.getName() + " (id) " + player.getId());
+    }
+
+    @Override
+    public void setFreeLobbies(ArrayList<String> lobbies) throws RemoteException {
+        if (lobbies.isEmpty()) {
+            UIHelpers.messageDialog("No free lobbies found", user);
+        } else {
+            UIHelpers.inputDialog("Choose looby to join", "Current free lobbies", 0, lobbies.toArray(new String[0]));
+        }
     }
 
     public JDialog getLoginDialog() {
@@ -1108,10 +1134,6 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         this.input = input;
     }
 
-    public static JMenuItem getM() {
-        return m;
-    }
-
     public static int getIndex_ship() {
         return index_ship;
     }
@@ -1158,6 +1180,28 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
     public static void setGameover(boolean gameover) {
         UI.gameover = gameover;
+    }
+
+    /**
+     * Listener for the Ping menu option
+     */
+    private class PingListener implements ActionListener {
+
+        private final IBattleShip game;
+
+        public PingListener(final IBattleShip game) {
+            this.game = game;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            System.out.println("Pinging server..");
+            try {
+                game.pong(UI.getInstance(), System.currentTimeMillis());
+            } catch (RemoteException ex) {
+                Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
     }
 
 }

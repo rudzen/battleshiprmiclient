@@ -60,13 +60,14 @@ public interface IBattleShip extends Remote {
     /**
      * Let the server know at what location you attempted to fire a shot at.
      *
+     * @param client
+     * @param lobbyID The lobby ID
+     * @param playerID The player shooting
      * @param x the X
      * @param y the Y
-     * @param player The player shooting
-     * @param sessionID The session ID
      * @throws RemoteException
      */
-    void fireShot(int x, int y, String player, String sessionID) throws RemoteException;
+    void fireShot(final IClientListener client, final int lobbyID, final int playerID, final int x, final int y) throws RemoteException;
 
     /**
      * Login attempt
@@ -89,22 +90,34 @@ public interface IBattleShip extends Remote {
     boolean logout(String player) throws RemoteException;
 
     /**
-     * Response to client callback method ping().
+     * Response to client callback method ping(). This is used to determine the
+     * latency
      *
-     * @param player The player
+     * @param client The client
+     * @param time The time the actual pong was initiated
      * @throws RemoteException
      */
-    void pong(String player) throws RemoteException;
+    void pong(IClientListener client, long time) throws RemoteException;
+
+    /**
+     * Response to client callback method ping(). This is used to determine the
+     * latency
+     *
+     * @param client The client
+     * @param time The time the actual pong was initiated
+     * @throws RemoteException
+     */
+    void ping(IClientListener client, long time) throws RemoteException;
 
     /**
      * Deploy set-up of ships to the server.
      *
      * @param client
      * @param player The player
-     * @param sessionID
+     * @param lobbyID The lobby ID
      * @throws RemoteException
      */
-    void deployShips(final IClientListener client, final Player player, String sessionID) throws RemoteException;
+    void deployShips(final IClientListener client, final int lobbyID, final Player player) throws RemoteException;
 
     /**
      * Requests a list of players currently available to play against.
@@ -181,6 +194,7 @@ public interface IBattleShip extends Remote {
 
     /**
      * Request the opponent information object.
+     *
      * @param client
      * @throws RemoteException
      */
@@ -188,9 +202,18 @@ public interface IBattleShip extends Remote {
 
     /**
      * Request free lobbies (lobbies with just one player) from the server.
+     *
      * @param client ME!
-     * @throws RemoteException 
+     * @throws RemoteException
      */
     void requestFreeLobbies(IClientListener client) throws RemoteException;
-    
+
+    /**
+     * Request that the server sends a new lobbyID
+     *
+     * @param client The client requesting lobbyID
+     * @throws RemoteException
+     */
+    void requestLobbyID(IClientListener client) throws RemoteException;
+
 }
