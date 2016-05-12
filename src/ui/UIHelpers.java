@@ -42,9 +42,8 @@ public final class UIHelpers {
     public static String MSG_GAME_OVER = "Game is over!";
 
     public enum GAMESTATE {
-        OFFLINE, PLACEMENT, PLAYING, WAITING
+        OFFLINE, ONLINE, PLACEMENT, PLACED, PLAYING, WAITING
     }
-    
     
     
     public static String getPlayerName() {

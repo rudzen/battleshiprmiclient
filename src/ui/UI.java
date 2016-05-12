@@ -96,12 +96,17 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         public static UI INSTANCE;
     }
 
-    /** for expansion of game system */
+    /**
+     * for expansion of game system
+     */
     private static String sessionID;
 
-    /** The game state of the client, this controls what the client can and can't do */
+    /**
+     * The game state of the client, this controls what the client can and can't
+     * do
+     */
     private static UIHelpers.GAMESTATE gamestate;
-    
+
     /**
      * Current game lobby ID
      */
@@ -187,7 +192,6 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         REMOVE, ADD, SUNK
     }
 
-
     public UI(final IBattleShip game) throws RemoteException {
         super();
         java.awt.EventQueue.invokeLater(() -> {
@@ -197,6 +201,8 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         });
 
         this.game = game;
+
+        handleState();
 
         me = new Player("User" + Double.toString(Math.random() * 10)); // temporary Player object
         me.initShips();
@@ -388,6 +394,26 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         b.add(setBoard(0), BorderLayout.CENTER);
         inputpanel = shipinput();
         d.add(UI.inputpanel, BorderLayout.NORTH);
+    }
+
+    /**
+     * configures the UI depending on the current state
+     */
+    private static void handleState() {
+        if (gamestate == UIHelpers.GAMESTATE.OFFLINE) {
+            // disable everything except relevant menus
+        } else if (gamestate == UIHelpers.GAMESTATE.PLACEMENT) {
+            // disable everything except menu and placement field
+        } else if (gamestate == UIHelpers.GAMESTATE.ONLINE) {
+            // enable all menus, disable everything else
+        } else if (gamestate == UIHelpers.GAMESTATE.PLACED) {
+            // enable the deployment button
+        } else if (gamestate == UIHelpers.GAMESTATE.PLAYING) {
+            // enable both player fields and set UI
+        } else if (gamestate == UIHelpers.GAMESTATE.WAITING) {
+            // user is waiting for opponent
+        }
+
     }
 
     private void drawBoard(int[][] board, int fieldIndex) throws RemoteException {
@@ -935,14 +961,11 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     }
 
     @Override
-    public void isLoggedOut(boolean status) throws RemoteException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
     public void playerList(ArrayList<String> players) throws RemoteException {
-        UIHelpers.messageDialog(players.toString(), "Possible opponents.");
-        //System.out.println("Player list received : " + players);
+        String sel = UIHelpers.inputDialog("Current players on server", "Server information", JOptionPane.INFORMATION_MESSAGE, players.toArray(new String[0]));
+        if (sel != null) {
+            System.out.println("Selected player : " + sel);
+        }
     }
 
     @Override
@@ -959,10 +982,8 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
     @Override
     public void loginstatus(boolean wasOkay) throws RemoteException {
-        UIHelpers.messageDialog(user, user);
-        if (wasOkay) {
-            canPlay(true);
-        }
+        UI.gamestate = (wasOkay) ? UIHelpers.GAMESTATE.ONLINE : UIHelpers.GAMESTATE.OFFLINE;
+        System.out.println("Login ok..");
     }
 
     @Override
@@ -986,7 +1007,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         }
     }
 
-        @Override
+    @Override
     public void shipSunk(int shipType, boolean yourShip) throws RemoteException {
         if (shipType == 0) {
             if (yourShip) {
@@ -1013,7 +1034,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     public void hello() throws RemoteException {
         System.out.println("Server said hello.");
     }
-    
+
     public static String getCletters(int i) {
         return cletters[i];
     }
