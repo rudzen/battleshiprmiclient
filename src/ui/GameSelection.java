@@ -20,7 +20,6 @@ package ui;
  *
  * @author Rudy Alex Kohn <s133235@student.dtu.dk>
  */
-import java.awt.EventQueue;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -38,17 +37,54 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.DefaultListModel;
 
+/**
+ * GameSelection class, does nothing more than showing the lobbies and offers
+ * the chance to create a new lobby.
+ * <p>
+ * If the action requires it, it will call the corresponding method in the main
+ * UI, since the main UI holds the needed objects to complete the task.
+ *
+ * @author Rudy Alex Kohn (s133235@student.dtu.dk)
+ */
 @SuppressWarnings("serial")
 public class GameSelection extends JFrame {
 
+    // TODO : Scrollpanel in case of many loobys
+    
+    /**
+     * Main content panel
+     */
     private final JPanel contentPane;
+
+    /**
+     * The list of strings to show the lobby text in
+     */
     private final JList<String> list = new JList<>();
-    private DefaultListModel listModel = new DefaultListModel();
-    ;
+
+    /**
+     * The model to hold the strings
+     */
+    private final DefaultListModel listModel = new DefaultListModel();
+
+    /**
+     * Create lobby button
+     */
     private final JButton btnCreateLobby;
+
+    /**
+     * Cancel button
+     */
     private final JButton btnCancel;
+
+    /**
+     * Join lobby button
+     */
     private final JButton btnJoinLobby;
 
+    /**
+     * Main constructor of GameSelection class, it will configure the UI bits
+     * and bobs.
+     */
     @SuppressWarnings("OverridableMethodCallInConstructor")
     public GameSelection() {
         setTitle("Current lobbys to join");
@@ -108,6 +144,7 @@ public class GameSelection extends JFrame {
     }
 
     /**
+     * Adds a string to the list located inside the frame.
      *
      * @param text The text of the lobby entry, format is ID:PlayerName
      */
@@ -115,22 +152,38 @@ public class GameSelection extends JFrame {
         if (!"".equals(text.trim())) {
             try {
                 listModel.addElement(text);
-                int lastIndex = listModel.getSize() - 1;
-                if (lastIndex >= 0) {
-                    list.setSelectedIndex(lastIndex);
-                    list.ensureIndexIsVisible(lastIndex);
-                }
             } catch (final OutOfMemoryError e) {
+                /* This is just a extra security for potential exception.
+                  Should actually never happend (the server would be insane if it did!) */
                 listModel.clear();
+            }
+            int lastIndex = listModel.getSize() - 1;
+            if (lastIndex >= 0) {
+                /* Keeps the selection at the last selected index */
+                list.setSelectedIndex(lastIndex);
+                list.ensureIndexIsVisible(lastIndex);
             }
         }
     }
 
-    private static class CreateLobby implements ActionListener {
+    /**
+     * Clears the list of lobbys and hides the window
+     */
+    public void closeit() {
+        list.clearSelection();
+        listModel.clear();
+        setVisible(false);
+    }
+
+    /**
+     * ActionListener for Create lobby button
+     */
+    private class CreateLobby implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent arg0) {
             UI.createLobby();
+            closeit();
         }
     }
 
@@ -138,22 +191,19 @@ public class GameSelection extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (e.getSource() == btnCancel) {
-                list.clearSelection();
-                listModel.clear();
-                setVisible(false);
-            }
+            closeit();
         }
     }
 
-    private static class JoinLobby implements ActionListener {
+    private class JoinLobby implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            // TODO : Fetch the ID for the lobby selected.
-            int lobbyID = 0;
+            System.out.println(list.getSelectedValue());
+            final int lobbyID = 0;
             UI.joinLobby(lobbyID);
-            System.out.println(e.getSource().toString());
+            // TODO : Fetch the ID for the lobby selected.
+            closeit();
         }
     }
 
