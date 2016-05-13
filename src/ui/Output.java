@@ -28,12 +28,12 @@ import javax.swing.DefaultListModel;
  * Hostile take-over class for default output stream !.<br>
  * <p>
  * How to use :<br>
- <code>java.awt.EventQueue.invokeLater(() -> {<br>
-            output = new Output();<br>
-            output.setVisible(true);<br>
-            Output.redirectSystemStreams(true, output);<br>
-        });<br>
- </code>
+ * <code>java.awt.EventQueue.invokeLater(() -> {<br>
+ * output = new Output();<br>
+ * output.setVisible(true);<br>
+ * Output.redirectSystemStreams(true, output);<br>
+ * });<br>
+ * </code>
  *
  * @author Rudy Alex Kohn <s133235@student.dtu.dk>
  */
@@ -97,19 +97,20 @@ public class Output extends java.awt.Frame {
     // End of variables declaration//GEN-END:variables
 
     public DefaultListModel listModel;
-    private final SimpleDateFormat SDF = new SimpleDateFormat("HH:mm:ss", Locale.US);
+    private final SimpleDateFormat SDF = new SimpleDateFormat("HH:mm:ss", Locale.ENGLISH);
 
     public void addToList(final String text) {
-        if ("".equals(text.trim())) return;
-        try {
-            listModel.addElement(String.format("%s %s", getTimeString(), text));
-            int lastIndex = listModel.getSize() - 1;
-            if (lastIndex >= 0) {
-                jList1.setSelectedIndex(lastIndex);
-                jList1.ensureIndexIsVisible(lastIndex);
+        if (!"".equals(text.trim())) {
+            try {
+                listModel.addElement(String.format("%s %s", getTimeString(), text));
+                int lastIndex = listModel.getSize() - 1;
+                if (lastIndex >= 0) {
+                    jList1.setSelectedIndex(lastIndex);
+                    jList1.ensureIndexIsVisible(lastIndex);
+                }
+            } catch (final OutOfMemoryError e) {
+                listModel.clear();
             }
-        } catch (final OutOfMemoryError e) {
-            listModel.clear();
         }
     }
 
