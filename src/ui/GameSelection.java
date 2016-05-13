@@ -36,6 +36,7 @@ import java.awt.Dialog.ModalExclusionType;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.DefaultListModel;
+import javax.swing.JOptionPane;
 
 /**
  * GameSelection class, does nothing more than showing the lobbies and offers
@@ -208,7 +209,7 @@ public class GameSelection extends JFrame {
             if (lobbyID > 0) {
                 UI.joinLobby(lobbyID);
             } else {
-                UIHelpers.messageDialog("Error while parsing lobby ID", "Error in GameSelection", ERROR);
+                UIHelpers.messageDialog("Error while parsing lobby ID", "Error in GameSelection", JOptionPane.ERROR_MESSAGE);
             }
             closeit();
         }
