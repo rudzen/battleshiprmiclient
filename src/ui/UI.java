@@ -182,13 +182,8 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     private static Player other;
 
     /* this is just to save time! */
-    private static String user, user2;
+    private static String user;
 
-    private static boolean gameover;
-
-    private enum SHIP_PLACE {
-        REMOVE, ADD, SUNK
-    }
 
     public UI(final IBattleShip game) throws RemoteException {
         super();
@@ -202,7 +197,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
         handleState();
 
-        me = new Player("User" + Double.toString(Math.random() * 10)); // temporary Player object
+        me = new Player("User" + Double.toString(Math.random() * 10)); // temporary Player object as player hasnt logged in yet
         me.initShips();
         game.registerClient(this, me.getName());
         setupUI();
@@ -493,46 +488,10 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             }
         }
         for (int i = 0; i < me.getShips().length; i++) {
-            handleShip(me.getShip(i).getLocStart().x, me.getShip(i).getLocStart().y, 0, me.getShip(i), SHIP_PLACE.ADD);
+            handleShip(me.getShip(i).getLocStart().x, me.getShip(i).getLocStart().y, 0, me.getShip(i), UIHelpers.SHIP_PLACE.ADD);
         }
     }
 
-    /**
-     * Helper function to determine if the location is valid..
-     *
-     * @param x the X location clicked
-     * @param y the Y location clicked
-     * @param s the Ship
-     * @return true if possible, otherwise false
-     */
-    private static boolean isValidPos(final int x, final int y, final Ship s) {
-        Point high = new Point(s.getLocStart().x, s.getLocStart().y);
-        /* determine the max value of coordinates based on the direction */
-        if (s.getDirection() == Ship.DIRECTION.HORIZONTAL) {
-
-            high.x += s.getLength();
-        } else if (s.getDirection() == Ship.DIRECTION.VERTICAL) {
-            high.y += s.getLength();
-        }
-
-        /* if out of bounds */
-        if (high.x > 9 || high.y > 9) {
-            return false;
-        }
-
-        /* check if there is a ship in the new ships path */
-        for (int i = 0; i < me.getShips().length; i++) {
-            if (!me.getShip(i).isPlaced() && s.getType() != me.getShip(i).getType()) {
-                for (int j = 0; j < me.getShip(i).getLocation().length; j++) {
-                    if (x == me.getShip(i).getLocation(j).x || y == me.getShip(i).getLocation(j).y) {
-                        return false;
-                    }
-                }
-            }
-        }
-        s.setIsPlaced(true);
-        return true;
-    }
 
     /**
      * Helper function to draw the ship on the buttons
@@ -561,14 +520,14 @@ public class UI extends UnicastRemoteObject implements IClientListener {
      *
      * @param s The ship to handle
      */
-    private static void handleShip(final int x, final int y, final int fieldIndex, final Ship s, final SHIP_PLACE place) {
+    private static void handleShip(final int x, final int y, final int fieldIndex, final Ship s, final UIHelpers.SHIP_PLACE place) {
 
         // clear the ship
         colorShip(x, y, s, Color.GRAY);
 
         System.out.println("Ship placement at : [" + x + ", " + y + "] lenght = " + s.getLength());
 
-        if (place == SHIP_PLACE.ADD) {
+        if (place == UIHelpers.SHIP_PLACE.ADD) {
             /* if the ship is to be added */
 
  /* update the ship with the new coordinated */
@@ -596,27 +555,18 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             /* update the ship in the player */
             me.setShip(index_ship, s);
 
-        } else if (place == SHIP_PLACE.REMOVE) {
+        } else if (place == UIHelpers.SHIP_PLACE.REMOVE) {
             /* if the ship is to be removed */
             s.setIsPlaced(false);
         }
 
     }
 
-//    /**
-//     * Determines whether or not is shipLayout is set to automatic
-//     *
-//     * @return
-//     */
-//    public static boolean isAutoSet() {
-//        return Options.SHIP_LAYOUT.getSelectedIndex() != 0;
-//    }
     /**
      * Update the username, this is called from the login dialog.
      *
      * @param name The name of the user that was entered.
      * @param pw The password of the user which was entered
-     * @param game The server game logic object.
      */
     public void updateUser(final String name, final String pw) {
         if (name != null && !"".equals(name)) {
@@ -643,19 +593,6 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         }
     }
 
-    /**
-     * Convert selected combobox direction to internat data structure.
-     *
-     * @return The direction selected by the user as defined by the IShip
-     * interface.
-     */
-    private Ship.DIRECTION getSelectedDirection() {
-        return index_direction == 0 ? Ship.DIRECTION.HORIZONTAL : Ship.DIRECTION.VERTICAL;
-    }
-
-    private int getIndexDirection(final Ship.DIRECTION dir) {
-        return dir == Ship.DIRECTION.HORIZONTAL ? 0 : 1;
-    }
 
     /**
      * The listener for the buttons on the board. Purpose : Ship placement
@@ -681,13 +618,13 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
                 Ship s = me.getShip(index_ship);
 
-                if (isValidPos(x, y, s)) {
+                if (UIHelpers.isValidPos(x, y, s, me)) {
                     System.out.println("Ship placement for -> " + s);
                     if (s.isPlaced()) {
                         /* since the ship appears to be placed, just remove it if user clicked another button */
-                        handleShip(s.getLocStart().x, s.getLocStart().y, 0, s, SHIP_PLACE.REMOVE);
+                        handleShip(s.getLocStart().x, s.getLocStart().y, 0, s, UIHelpers.SHIP_PLACE.REMOVE);
                     }
-                    handleShip(x, y, 0, s, SHIP_PLACE.ADD);
+                    handleShip(x, y, 0, s, UIHelpers.SHIP_PLACE.ADD);
                     boolean ok = true;
                     for (int i = 0; i < me.getShips().length; i++) {
                         if (!me.getShip(i).isPlaced()) {
@@ -723,18 +660,19 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
             System.out.println("Direction combobox used");
 
-            final Ship s = me.getShip(index_ship);
+            Ship s = me.getShip(index_ship);
 
             if (s.isPlaced()) {
-                if (isValidPos(s.getLocStart().y, s.getLocStart().y, s)) {
+                if (UIHelpers.isValidPos(s.getLocStart().y, s.getLocStart().y, s, me)) {
+                    s = me.getShip(index_ship);
                     if (s.isPlaced()) {
-                        handleShip(s.getLocStart().x, s.getLocStart().x, 0, s, SHIP_PLACE.REMOVE);
+                        handleShip(s.getLocStart().x, s.getLocStart().x, 0, s, UIHelpers.SHIP_PLACE.REMOVE);
                     }
 
-                    s.setDirection(getSelectedDirection());
+                    s.setDirection(UIHelpers.getSelectedDirection(index_direction));
                     s.setLocEnd(Ship.setEnd(s.getLocStart(), s.getLength(), s.getDirection()));
 
-                    handleShip(s.getLocStart().x, s.getLocStart().y, 0, s, SHIP_PLACE.ADD);
+                    handleShip(s.getLocStart().x, s.getLocStart().y, 0, s, UIHelpers.SHIP_PLACE.ADD);
 
                     me.setShip(index_ship, s);
                 } else {
@@ -782,9 +720,9 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             index_ship = combo_ship.getSelectedIndex();
             System.out.println("Ship used");
 
-            if (me.getShip(index_ship).isPlaced() && combo_direction.getSelectedIndex() != getIndexDirection(me.getShip(index_ship).getDirection())) {
+            if (me.getShip(index_ship).isPlaced() && combo_direction.getSelectedIndex() != UIHelpers.getIndexDirection(me.getShip(index_ship).getDirection())) {
                 System.out.println("Direction combobox changed because ship has different direction.");
-                combo_direction.setSelectedIndex(getIndexDirection(me.getShip(index_ship).getDirection()));
+                combo_direction.setSelectedIndex(UIHelpers.getIndexDirection(me.getShip(index_ship).getDirection()));
             }
         }
     }

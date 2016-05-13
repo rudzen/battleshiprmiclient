@@ -24,8 +24,10 @@
 package ui;
 
 import dataobjects.Player;
+import dataobjects.Ship;
 import interfaces.IBattleShip;
 import java.awt.BorderLayout;
+import java.awt.Point;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -41,15 +43,77 @@ public final class UIHelpers {
 
     public static String MSG_GAME_OVER = "Game is over!";
 
-    
+    enum SHIP_PLACE {
+        REMOVE, ADD, SUNK
+    }
+
     public static final byte OFFLINE = 0;
     public static final byte ONLINE = 1;
     public static final byte PLACEMENT = 2;
     public static final byte PLACED = 3;
     public static final byte PLAYING = 4;
     public static final byte WAITING = 5;
-    
-    
+
+    /**
+     * Convert selected combobox direction to internat data structure.
+     *
+     * @param index_direction
+     * @return The direction selected by the user as defined by the IShip
+     * interface.
+     */
+    public static Ship.DIRECTION getSelectedDirection(final int index_direction) {
+        return index_direction == 0 ? Ship.DIRECTION.HORIZONTAL : Ship.DIRECTION.VERTICAL;
+    }
+
+    public static int getIndexDirection(final Ship.DIRECTION dir) {
+        return dir == Ship.DIRECTION.HORIZONTAL ? 0 : 1;
+    }
+
+    /**
+     * Helper function to determine if the location is valid..
+     *
+     * @param x the X location clicked
+     * @param y the Y location clicked
+     * @param s the Ship
+     * @param player The current player
+     * @return true if possible, otherwise false
+     */
+    public static boolean isValidPos(final int x, final int y, final Ship s, final Player player) {
+        Point high = new Point(s.getLocStart().x, s.getLocStart().y);
+        /* determine the max value of coordinates based on the direction */
+        if (s.getDirection() == Ship.DIRECTION.HORIZONTAL) {
+            high.x += s.getLength();
+        } else if (s.getDirection() == Ship.DIRECTION.VERTICAL) {
+            high.y += s.getLength();
+        }
+
+        /* if out of bounds */
+        if (high.x > 9 || high.y > 9 || high.x < 0 || high.y < 0) {
+            return false;
+        }
+
+        /* check if there is a ship in the new ships path */
+        for (Ship ship : player.getShips()) {
+            if (ship.isPlaced() && s.getType() != ship.getType()) {
+                for (int j = 0; j < ship.getLocation().length; j++) {
+                    if (x == ship.getLocation(j).x || y == ship.getLocation(j).y) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        // get the correct ship
+        for (int i = 0; i < player.getShips().length; i++) {
+            if (player.getShip(i).getType() == s.getType()) {
+                s.setIsPlaced(true);
+                player.setShip(i, s);
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static String getPlayerName() {
         String daName = inputDialog("Please enter your name.", "Enter name.");
         int dummy = 0;
