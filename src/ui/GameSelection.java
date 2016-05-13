@@ -50,7 +50,6 @@ import javax.swing.DefaultListModel;
 public class GameSelection extends JFrame {
 
     // TODO : Scrollpanel in case of many loobys
-    
     /**
      * Main content panel
      */
@@ -199,10 +198,18 @@ public class GameSelection extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            System.out.println(list.getSelectedValue());
-            final int lobbyID = 0;
-            UI.joinLobby(lobbyID);
-            // TODO : Fetch the ID for the lobby selected.
+            int lobbyID;
+            try {
+                lobbyID = Integer.valueOf(list.getSelectedValue().trim().split(":")[0].trim());
+            } catch (final NumberFormatException nfe) {
+                lobbyID = 0;
+            }
+            System.out.println("Lobby ID selected : " + lobbyID);
+            if (lobbyID > 0) {
+                UI.joinLobby(lobbyID);
+            } else {
+                UIHelpers.messageDialog("Error while parsing lobby ID", "Error in GameSelection", ERROR);
+            }
             closeit();
         }
     }
