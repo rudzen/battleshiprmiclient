@@ -30,7 +30,6 @@ import interfaces.IClientListener;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
-import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Point;
@@ -74,9 +73,8 @@ import utility.Statics;
  *
  * @author Rudy Alex Kohn <s133235@student.dtu.dk>
  */
+@SuppressWarnings("serial")
 public class UI extends UnicastRemoteObject implements IClientListener {
-
-    private static final long serialVersionUID = -7140601918400361891L;
 
     /**
      * The remote object
@@ -105,7 +103,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
      * The game state of the client, this controls what the client can and can't
      * do
      */
-    private static UIHelpers.GAMESTATE gamestate;
+    private static byte gamestate;
 
     /**
      * Current game lobby ID
@@ -271,6 +269,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         pvp.addActionListener(new GameListener());
         m.add(pvp);
 
+        
         /* debug sub-menu */
         JMenu debug = new JMenu("Debug");
         m = new JMenuItem("Show all player IDs");
@@ -285,7 +284,6 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         m.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
                 throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             }
         });
@@ -307,7 +305,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         menu.add(m);
 
         m = new JMenuItem("Exit");
-        m.addActionListener(new ExitListener(mainFrame));
+        m.addActionListener(new ExitListener());
         menu.add(m);
         return menuBar;
     }
@@ -400,17 +398,17 @@ public class UI extends UnicastRemoteObject implements IClientListener {
      * configures the UI depending on the current state
      */
     private static void handleState() {
-        if (gamestate == UIHelpers.GAMESTATE.OFFLINE) {
+        if (gamestate == UIHelpers.OFFLINE) {
             // disable everything except relevant menus
-        } else if (gamestate == UIHelpers.GAMESTATE.PLACEMENT) {
+        } else if (gamestate == UIHelpers.PLACEMENT) {
             // disable everything except menu and placement field
-        } else if (gamestate == UIHelpers.GAMESTATE.ONLINE) {
+        } else if (gamestate == UIHelpers.ONLINE) {
             // enable all menus, disable everything else
-        } else if (gamestate == UIHelpers.GAMESTATE.PLACED) {
+        } else if (gamestate == UIHelpers.PLACED) {
             // enable the deployment button
-        } else if (gamestate == UIHelpers.GAMESTATE.PLAYING) {
+        } else if (gamestate == UIHelpers.PLAYING) {
             // enable both player fields and set UI
-        } else if (gamestate == UIHelpers.GAMESTATE.WAITING) {
+        } else if (gamestate == UIHelpers.WAITING) {
             // user is waiting for opponent
         }
 
@@ -509,8 +507,6 @@ public class UI extends UnicastRemoteObject implements IClientListener {
      */
     private static boolean isValidPos(final int x, final int y, final Ship s) {
         Point high = new Point(s.getLocStart().x, s.getLocStart().y);
-        Rectangle boundry = new Rectangle(x, y, 1, 1);
-        System.out.println("isValidPos() boundry " + boundry);
         /* determine the max value of coordinates based on the direction */
         if (s.getDirection() == Ship.DIRECTION.HORIZONTAL) {
 
@@ -664,9 +660,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     /**
      * The listener for the buttons on the board. Purpose : Ship placement
      */
-    private class BoardListener implements ActionListener, Serializable {
-
-        private static final long serialVersionUID = -4491466874423437839L;
+    private class BoardListener implements ActionListener {
 
         private final int x;
         private final int y;
@@ -721,9 +715,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
      * Direction combobox listener. Purpose : Alters which ship that should be
      * placed.
      */
-    private class DirectListener implements ActionListener, Serializable {
-
-        private static final long serialVersionUID = -7008156667372188463L;
+    private class DirectListener implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent v) {
@@ -757,15 +749,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
      * Exit menu item listener. Purpose : Handles the users request to exit the
      * program.
      */
-    private class ExitListener implements ActionListener, Serializable {
-
-        private static final long serialVersionUID = 3268256726483475544L;
-
-        private final JFrame ui;
-
-        public ExitListener(final JFrame ui) {
-            this.ui = ui;
-        }
+    private class ExitListener implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -780,7 +764,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
                     if (loginDialog != null) {
                         loginDialog.dispose();
                     }
-                    ui.dispose();
+                    UI.getInstance().mainFrame.dispose();
                     System.exit(0);
                 }
             }
@@ -791,9 +775,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
      * Combobox for layout of ships listener. Purpose : Alters the direction of
      * the current selected ship.
      */
-    private class ShipsListener implements ActionListener, Serializable {
-
-        private static final long serialVersionUID = 1L;
+    private class ShipsListener implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent v) {
@@ -855,7 +837,6 @@ public class UI extends UnicastRemoteObject implements IClientListener {
                 if (Statics.isLoggedIn) {
                     Statics.isLoggedIn = false;
                     try {
-                        // TODO : Add RMI interface to actually let the server know about it.
                         game.logout(me.getName());
                     } catch (RemoteException ex) {
                         Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
@@ -879,8 +860,10 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         public void actionPerformed(ActionEvent v) {
             if (UIHelpers.confirmDialog("Are you sure you would like to deploy your ships?", "Deploy Ships?") == 0) {
                 try {
-                    System.out.println("The player to deploy : " + me);
-                    game.deployShips(UI.getInstance(), UI.lobbyID, UI.me);
+                    System.out.println("The player to deploy : " + me.getName());
+                    gamestate = UIHelpers.WAITING;
+                    handleState();
+                    game.deployShips(UI.getInstance(), lobbyID, me);
                 } catch (RemoteException ex) {
                     Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -982,7 +965,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
     @Override
     public void loginstatus(boolean wasOkay) throws RemoteException {
-        UI.gamestate = (wasOkay) ? UIHelpers.GAMESTATE.ONLINE : UIHelpers.GAMESTATE.OFFLINE;
+        UI.gamestate = (wasOkay) ? UIHelpers.ONLINE : UIHelpers.OFFLINE;
         System.out.println("Login ok..");
     }
 
@@ -995,6 +978,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     @Override
     public void setOtherPlayer(Player player) throws RemoteException {
         other = player;
+        // TODO : Update player information on the UI
         System.out.println("Other player updated from server : (name) " + player.getName() + " (id) " + player.getId());
     }
 
