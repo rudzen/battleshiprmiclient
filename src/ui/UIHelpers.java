@@ -76,45 +76,61 @@ public final class UIHelpers {
      * @param y the Y location clicked
      * @param s the Ship
      * @param player The current player
+     * @param dir The direction of placement
      * @return true if possible, otherwise false
      */
-    public static boolean isValidPos(final int x, final int y, final Ship s, final Player player) {
-        if (x > 9 || y > 9 || x < 0 || y < 0) {
+    public static boolean isValidPos(final int x, final int y, final Ship s, final Player player, final Ship.DIRECTION dir) {
+        if (dir == Ship.DIRECTION.HORIZONTAL && x + s.getLength() > 10) {
+            return false;
+        } else if (y + s.getLength() > 10) {
             return false;
         }
-        if (s.isPlaced()) {
-            if (s.getDirection() == Ship.DIRECTION.HORIZONTAL) {
-                if (x + s.getLength() > 10) {
-                    return false;
-                }
-            } else {
-                if (y + s.getLength() > 10) {
-                    return false;
+        for (int i = 0; i < player.getShips().length; i++) {
+            Ship ps = player.getShip(i);
+            if (ps.isPlaced() && ps.getType() != s.getType()) {
+                Point[] p = ps.getLocation();
+                for (Point p1 : p) {
+                    if (p1.x == x && p1.y == y) {
+                        return false;
+                    }
                 }
             }
         }
         return true;
+//        if (s.isPlaced()) {
+//            if (s.getDirection() == Ship.DIRECTION.HORIZONTAL) {
+//                if (x + s.getLength() > 10) {
+//                    return false;
+//                }
+//            } else {
+//                if (y + s.getLength() > 10) {
+//                    return false;
+//                }
+//            }
+//        }
+//        return true;
     }
 
     private static boolean validate(final int x, final int y, final Ship s) {
         int hit = 0;
         if (s.getDirection() == Ship.DIRECTION.HORIZONTAL) {
-            if (s.getLocStart().y != y) {
-                return false;
-            }
+//            if (s.getLocStart().y != y) {
+//                return true;
+//            }
             if (s.getLocStart().x > x || s.getLocStart().x + s.getLength() - 1 < x) {
-                return false;
+                return true;
             }
             hit = hit | (1 << (x - s.getLocStart().x));
         } else {
-            if (s.getLocStart().x != x) {
-                return false;
-            }
+//            if (s.getLocStart().x != x) {
+//                return true;
+//            }
             if (s.getLocStart().y > y || s.getLocStart().y + s.getLength() - 1 < y) {
-                return false;
+                return true;
             }
             hit = hit | (1 << (y - s.getLocStart().y));
         }
+        System.out.println(hit);
         return hit > 0;
     }
 

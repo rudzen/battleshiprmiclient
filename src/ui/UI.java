@@ -646,7 +646,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
                 Ship s = me.getShips()[index_ship];
 
-                if (UIHelpers.isValidPos(x, y, s, me)) {
+                if (UIHelpers.isValidPos(x, y, s, me, UIHelpers.getSelectedDirection(index_direction))) {
                     //System.out.println("Ship placement for -> " + s);
                     if (s.isPlaced()) {
                         /* since the ship appears to be placed, just remove it if user clicked another button */
@@ -692,7 +692,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             Ship s = me.getShip(index_ship);
 
             if (s.isPlaced()) {
-                if (UIHelpers.isValidPos(s.getLocStart().x, s.getLocStart().y, s, me)) {
+                if (UIHelpers.isValidPos(s.getLocStart().x, s.getLocStart().y, s, me, UIHelpers.getSelectedDirection(index_direction))) {
                     s = me.getShip(index_ship);
                     if (s.isPlaced()) {
                         handleShip(s.getLocStart().x, s.getLocStart().y, 0, s, UIHelpers.SHIP_PLACE.REMOVE);
