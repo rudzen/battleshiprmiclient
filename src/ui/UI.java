@@ -283,7 +283,11 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         m.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                try {
+                    game.requestAllPlayerIDs(UI.getInstance());
+                } catch (RemoteException ex) {
+                    Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         });
         debug.add(m);
@@ -1039,7 +1043,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         public void actionPerformed(ActionEvent e) {
             System.out.println("Pinging server..");
             try {
-                game.pong(UI.getInstance(), System.currentTimeMillis());
+                game.ping(UI.getInstance(), System.currentTimeMillis());
             } catch (RemoteException ex) {
                 Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
             }

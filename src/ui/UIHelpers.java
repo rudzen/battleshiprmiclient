@@ -79,39 +79,71 @@ public final class UIHelpers {
      * @return true if possible, otherwise false
      */
     public static boolean isValidPos(final int x, final int y, final Ship s, final Player player) {
-        Point high = new Point(s.getLocStart().x, s.getLocStart().y);
-        /* determine the max value of coordinates based on the direction */
-        if (s.getDirection() == Ship.DIRECTION.HORIZONTAL) {
-            high.x += s.getLength();
-        } else if (s.getDirection() == Ship.DIRECTION.VERTICAL) {
-            high.y += s.getLength();
-        }
-
-        /* if out of bounds */
-        if (high.x > 9 || high.y > 9 || high.x < 0 || high.y < 0) {
-            return false;
-        }
-
-        /* check if there is a ship in the new ships path */
-        for (Ship ship : player.getShips()) {
-            if (ship.isPlaced() && s.getType() != ship.getType()) {
-                for (int j = 0; j < ship.getLocation().length; j++) {
-                    if (x == ship.getLocation(j).x || y == ship.getLocation(j).y) {
+        for (final Ship ships : player.getShips()) {
+            for (int i = ships.getLocStart().x; i < ships.getLocStart().x + ships.getLength(); i++) {
+                for (int j = ships.getLocStart().y; i < ships.getLocStart().y + ships.getLength(); j++) {
+                    if (validate(i, j, s)) {
                         return false;
                     }
                 }
             }
         }
+        return true;
+//        Point high = new Point(s.getLocStart().x, s.getLocStart().y);
+//        /* determine the max value of coordinates based on the direction */
+//        if (s.getDirection() == Ship.DIRECTION.HORIZONTAL) {
+//            high.x += s.getLength();
+//        } else if (s.getDirection() == Ship.DIRECTION.VERTICAL) {
+//            high.y += s.getLength();
+//        }
+//
+//        /* if out of bounds */
+//        if (high.x > 9 || high.y > 9 || high.x < 0 || high.y < 0) {
+//            return false;
+//        }
+//
+//        /* check if there is a ship in the new ships path */
+//        for (Ship ship : player.getShips()) {
+//            if (ship.isPlaced() && s.getType() != ship.getType()) {
+//                for (int j = 0; j < ship.getLocation().length; j++) {
+//                    if (x == ship.getLocation(j).x || y == ship.getLocation(j).y) {
+//                        return false;
+//                    }
+//                }
+//            }
+//        }
+//
+//        // get the correct ship
+//        for (int i = 0; i < player.getShips().length; i++) {
+//            if (player.getShip(i).getType() == s.getType()) {
+//                s.setIsPlaced(true);
+//                player.setShip(i, s);
+//                return true;
+//            }
+//        }
+//        return false;
+    }
 
-        // get the correct ship
-        for (int i = 0; i < player.getShips().length; i++) {
-            if (player.getShip(i).getType() == s.getType()) {
-                s.setIsPlaced(true);
-                player.setShip(i, s);
-                return true;
+    private static boolean validate(final int x, final int y, final Ship s) {
+        int hit = 0;
+        if (s.getDirection() == Ship.DIRECTION.HORIZONTAL) {
+            if (s.getLocStart().y != y) {
+                return false;
             }
+            if (s.getLocStart().x > x || s.getLocStart().x + s.getLength() - 1 < x) {
+                return false;
+            }
+            hit = hit | (1 << (x - s.getLocStart().x));
+        } else {
+            if (s.getLocStart().x != x) {
+                return false;
+            }
+            if (s.getLocStart().y > y || s.getLocStart().y + s.getLength() - 1 < y) {
+                return false;
+            }
+            hit = hit | (1 << (y - s.getLocStart().y));
         }
-        return false;
+        return hit > 0;
     }
 
     public static String getPlayerName() {

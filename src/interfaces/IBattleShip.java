@@ -97,16 +97,6 @@ public interface IBattleShip extends Remote {
      * @param time The time the actual pong was initiated
      * @throws RemoteException
      */
-    void pong(IClientListener client, long time) throws RemoteException;
-
-    /**
-     * Response to client callback method ping(). This is used to determine the
-     * latency
-     *
-     * @param client The client
-     * @param time The time the actual pong was initiated
-     * @throws RemoteException
-     */
     void ping(IClientListener client, long time) throws RemoteException;
 
     /**
