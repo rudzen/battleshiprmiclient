@@ -55,7 +55,7 @@ public class GameSelection extends JFrame {
         setResizable(false);
         setModalExclusionType(ModalExclusionType.APPLICATION_EXCLUDE);
         setIconImage(Toolkit.getDefaultToolkit().getImage(GameSelection.class.getResource("/com/sun/java/swing/plaf/windows/icons/Question.gif")));
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         setBounds(100, 100, 380, 290);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
