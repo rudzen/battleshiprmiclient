@@ -40,7 +40,7 @@ public interface IBattleShip extends Remote {
      * @param clientInterface The client's interface.
      * @param playerName The player
      * @return true if okay, else false.
-     * @throws RemoteException
+     * @throws RemoteException If server is unreachable
      */
     boolean registerClient(final IClientListener clientInterface, final String playerName) throws RemoteException;
 
@@ -51,7 +51,7 @@ public interface IBattleShip extends Remote {
      * @param playerName The player
      * @param sessionID
      * @return true if removed, otherwise false.
-     * @throws RemoteException
+     * @throws RemoteException If server is unreachable
      */
     boolean removeClient(IClientListener clientInterface, String playerName, String sessionID) throws RemoteException;
 
@@ -65,7 +65,7 @@ public interface IBattleShip extends Remote {
      * @param playerID The player shooting
      * @param x the X
      * @param y the Y
-     * @throws RemoteException
+     * @throws RemoteException If server is unreachable
      */
     void fireShot(final IClientListener client, final int lobbyID, final int playerID, final int x, final int y) throws RemoteException;
 
@@ -76,7 +76,7 @@ public interface IBattleShip extends Remote {
      * @param pw password The password
      * @param client The client interface that attempts to login, needed for
      * callback
-     * @throws RemoteException
+     * @throws RemoteException If server is unreachable
      */
     void login(String user, String pw, IClientListener client) throws RemoteException;
 
@@ -85,7 +85,7 @@ public interface IBattleShip extends Remote {
      *
      * @param player The Player
      * @return true if logged out, false if failed (should NEVER happend!)
-     * @throws RemoteException Meh..
+     * @throws RemoteException If server is unreachable
      */
     boolean logout(String player) throws RemoteException;
 
@@ -95,7 +95,7 @@ public interface IBattleShip extends Remote {
      *
      * @param client The client
      * @param time The time the actual pong was initiated
-     * @throws RemoteException
+     * @throws RemoteException If server is unreachable
      */
     void ping(IClientListener client, long time) throws RemoteException;
 
@@ -105,7 +105,7 @@ public interface IBattleShip extends Remote {
      * @param client
      * @param player The player
      * @param lobbyID The lobby ID
-     * @throws RemoteException
+     * @throws RemoteException If server is unreachable
      */
     void deployShips(final IClientListener client, final int lobbyID, final Player player) throws RemoteException;
 
@@ -113,7 +113,7 @@ public interface IBattleShip extends Remote {
      * Requests a list of players currently available to play against.
      *
      * @param player This is my player name, do not send myself.
-     * @throws RemoteException
+     * @throws RemoteException If server is unreachable
      */
     void requestPlayers(String player) throws RemoteException;
 
@@ -121,7 +121,7 @@ public interface IBattleShip extends Remote {
      * Updates the player that belongs to the client listener interface.
      *
      * @param newPlayer The new player object
-     * @throws RemoteException
+     * @throws RemoteException If server is unreachable
      */
     void updatePlayer(String newPlayer) throws RemoteException;
 
@@ -132,7 +132,7 @@ public interface IBattleShip extends Remote {
      * @param message The message
      * @param title The title of the message
      * @param modal The dialog modal
-     * @throws RemoteException
+     * @throws RemoteException If server is unreachable
      */
     void publicMessage(String origin, String message, String title, int modal) throws RemoteException;
 
@@ -144,7 +144,7 @@ public interface IBattleShip extends Remote {
      * @param playerObject The playerObject to update (will be determined by the
      * Player name!)
      * @return true if the object was updated, otherwise false
-     * @throws RemoteException
+     * @throws RemoteException If server is unreachable
      */
     boolean updatePlayerObject(String seesionID, Player playerObject) throws RemoteException;
 
@@ -164,8 +164,7 @@ public interface IBattleShip extends Remote {
      * new ID as well.
      * @return The new session ID (MD5 hash of the session) if successful,
      * otherwise NULL.
-     * @throws RemoteException If this happends , the server is offline. The
-     * client will handle this.
+     * @throws RemoteException If server is unreachable
      */
     String requestSessionID(String currentSessionID, Player playerObject) throws RemoteException;
 
@@ -178,7 +177,7 @@ public interface IBattleShip extends Remote {
      * @param message The message body
      * @return true if the opponent's interface support the feature, otherwise
      * false.
-     * @throws RemoteException
+     * @throws RemoteException If server is unreachable
      */
     boolean messageOpponent(String title, String message) throws RemoteException;
 
@@ -186,7 +185,7 @@ public interface IBattleShip extends Remote {
      * Request the opponent information object.
      *
      * @param client
-     * @throws RemoteException
+     * @throws RemoteException If server is unreachable
      */
     void requestOtherPlayer(IClientListener client) throws RemoteException;
 
@@ -194,7 +193,7 @@ public interface IBattleShip extends Remote {
      * Request free lobbies (lobbies with just one player) from the server.
      *
      * @param client ME!
-     * @throws RemoteException
+     * @throws RemoteException If server is unreachable
      */
     void requestFreeLobbies(IClientListener client) throws RemoteException;
 
@@ -203,18 +202,42 @@ public interface IBattleShip extends Remote {
      *
      * @param client The client requesting lobbyID
      * @param playerID The player ID requesting the lobby ID
-     * @throws RemoteException
+     * @throws RemoteException If server is unreachable
      */
     void requestLobbyID(IClientListener client, int playerID) throws RemoteException;
 
-    
+    /**
+     * Requests all player id's from server.
+     *
+     * @param client The client
+     * @throws RemoteException If server is unreachable
+     */
     void requestAllPlayerIDs(IClientListener client) throws RemoteException;
 
-    
+    /**
+     * Wait for opponent to do his/hers turn. This is auto-invoked when shot is
+     * fired.
+     *
+     * @param client The client
+     * @throws RemoteException If server is unreachable
+     */
     void wait(IClientListener client) throws RemoteException;
 
+    /**
+     * Attempts to join a specific lobby
+     *
+     * @param cliet The client
+     * @param lobbyID The lobby ID to join
+     * @param playerID The clients player ID
+     * @throws RemoteException If server is unreachable
+     */
     void joinLobby(IClientListener cliet, int lobbyID, final int playerID) throws RemoteException;
-    
+
+    /**
+     * Request all lobbies from the server
+     * @param client The client
+     * @throws RemoteException If server is unreachable
+     */
     void requestAllLobbies(IClientListener client) throws RemoteException;
-    
+
 }
