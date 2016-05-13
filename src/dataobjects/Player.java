@@ -25,6 +25,7 @@ package dataobjects;
 
 import java.awt.Point;
 import java.io.Serializable;
+import java.util.ArrayList;
 
 /**
  * The Player class for BattleShip.<br>
@@ -33,10 +34,7 @@ import java.io.Serializable;
  */
 public class Player implements Serializable {
 
-    private static final long serialVersionUID = -5265539878582419332L;
-
-    private static final int MAX_SHIPS = 5;
-    private static final int BOARD_SIZE = 10;
+    private static final long serialVersionUID = 1L;
 
     private int id;
     private String name;
@@ -56,7 +54,7 @@ public class Player implements Serializable {
     /**
      * The ships which are available to the player.
      */
-    private Ship[] ships = new Ship[5];
+    private ArrayList<Ship> ships = new ArrayList<>(5);
 
     /**
      * Empty constructor
@@ -72,43 +70,39 @@ public class Player implements Serializable {
         this(player.getName());
         id = player.getId();
         token = player.getToken();
-        for (int i = 0; i < BOARD_SIZE; i++) {
-            for (int j = 0; j < BOARD_SIZE; i++) {
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; i++) {
                 board[i][j] = player.getBoard()[i][j];
             }
         }
-        if (MAX_SHIPS < 25) { // threshold for manual array copy advantage.
-            for (int i = 0; i < MAX_SHIPS; i++) {
-                ships[i] = player.getShips()[i];
-            }
-        } else {
-            System.arraycopy(player.getShips(), 0, ships, 0, MAX_SHIPS);
-        }
+        ships.addAll(player.getShips());
     }
 
     public void initShips() {
-        ships[0] = new Ship(-1, -1, Ship.TYPE.CARRIER, Ship.DIRECTION.VERTICAL);
-        ships[1] = new Ship(-1, -1, Ship.TYPE.CRUISER, Ship.DIRECTION.VERTICAL);
-        ships[2] = new Ship(-1, -1, Ship.TYPE.DESTROYER, Ship.DIRECTION.VERTICAL);
-        ships[3] = new Ship(-1, -1, Ship.TYPE.SUBMARINE, Ship.DIRECTION.VERTICAL);
-        ships[4] = new Ship(-1, -1, Ship.TYPE.PATROL, Ship.DIRECTION.VERTICAL);
-        for (Ship s : ships) {
+        ships.clear();
+        ships.add(new Ship(-1, -1, Ship.TYPE.CARRIER, false));
+        ships.add(new Ship(-1, -1, Ship.TYPE.CRUISER, false));
+        ships.add(new Ship(-1, -1, Ship.TYPE.DESTROYER, false));
+        ships.add(new Ship(-1, -1, Ship.TYPE.SUBMARINE, false));
+        ships.add(new Ship(-1, -1, Ship.TYPE.PATROL, false));
+        ships.stream().map((s) -> {
             s.setIsPlaced(false);
+            return s;
+        }).forEach((s) -> {
             Point[] p = new Point[s.getLength()];
             for (int i = 0; i < p.length; i++) {
                 p[i] = new Point(-1, -1);
             }
             s.setLocation(p);
-        }
-        
+        });
     }
 
     public void setShip(final int index, final Ship ship) {
-        ships[index] = ship;
+        ships.set(index, new Ship(ship));
     }
 
     public Ship getShip(final int index) {
-        return ships[index];
+        return ships.get(index);
     }
 
     @Override
@@ -117,15 +111,15 @@ public class Player implements Serializable {
         sb.append("Name : ").append(name).append("\n");
         sb.append("ID   : ").append(id).append("\n");
         sb.append("------------\n-");
-        for (int i = 0; i < BOARD_SIZE; i++) {
-            for (int j = 0; j < BOARD_SIZE; j++) {
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
                 sb.append(Integer.toString(board[i][j]));
             }
             sb.append("-\n");
         }
-        for (int i = 0; i < MAX_SHIPS; i++) {
-            sb.append(ships[i]);
-        }
+        ships.stream().forEach((s) -> {
+            sb.append(s);
+        });
         return sb.toString();
     }
     
@@ -162,11 +156,11 @@ public class Player implements Serializable {
         this.board = board;
     }
 
-    public Ship[] getShips() {
+    public ArrayList<Ship> getShips() {
         return ships;
     }
 
-    public void setShips(Ship[] ships) {
+    public void setShips(ArrayList<Ship> ships) {
         this.ships = ships;
     }
 

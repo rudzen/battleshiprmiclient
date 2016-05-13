@@ -58,6 +58,7 @@ public class SocketAdapter {
         }
     }
 
+    @SuppressWarnings("CallToThreadStartDuringObjectConstruction")
     public SocketAdapter(Socket socket1, Socket socket2) throws IOException {
         new StreamThread(socket1.getInputStream(), socket2.getOutputStream()).start();
         new StreamThread(socket2.getInputStream(), socket1.getOutputStream()).start();

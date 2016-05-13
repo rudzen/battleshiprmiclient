@@ -305,7 +305,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         debug.add(m);
 
         m = new JMenuItem("Ping RMI server");
-        m.addActionListener(new PingListener(game));
+        m.addActionListener(new PingListener());
         debug.add(m);
 
         menu.add(debug);
@@ -316,7 +316,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         menu.add(m);
 
         m = new JMenuItem("Options");
-        m.addActionListener(new OptionsListener(this));
+        m.addActionListener(new OptionsListener());
         menu.add(m);
 
         m = new JMenuItem("Exit");
@@ -507,8 +507,8 @@ public class UI extends UnicastRemoteObject implements IClientListener {
                 ownButtons[x][y].setBackground(Color.GRAY);
             }
         }
-        for (int i = 0; i < me.getShips().length; i++) {
-            handleShip(me.getShip(i).getLocStart().x, me.getShip(i).getLocStart().y, 0, me.getShip(i), UIHelpers.SHIP_PLACE.ADD);
+        for (int i = 0; i < me.getShips().size(); i++) {
+            handleShip(me.getShip(i).getStartX(), me.getShip(i).getStartY(), 0, me.getShip(i), UIHelpers.SHIP_PLACE.ADD);
         }
     }
 
@@ -528,16 +528,6 @@ public class UI extends UnicastRemoteObject implements IClientListener {
                 ownButtons[p1.y][p1.x].setBackground(col);
             }
         }
-        
-//        if (s.getDirection() == Ship.DIRECTION.HORIZONTAL) {
-//            for (int i = x; i < s.getLocEnd().x; i++) {
-//                ownButtons[i][s.getLocStart().y].setBackground(col);
-//            }
-//        } else if (s.getDirection() == Ship.DIRECTION.VERTICAL) {
-//            for (int i = y; i < s.getLocEnd().y; i++) {
-//                ownButtons[s.getLocStart().x][i].setBackground(col);
-//            }
-//        }
     }
 
     /**
@@ -554,22 +544,29 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
         System.out.println("Ship placement at : [" + x + ", " + y + "] lenght = " + s.getLength());
 
+        /* if the ship is to be added */
         if (place == UIHelpers.SHIP_PLACE.ADD) {
-            /* if the ship is to be added */
 
-             /* update the ship with the new coordinates */
-            s.setLocStart(new Point(x, y));
-            s.setDirection(UIHelpers.getSelectedDirection(index_direction));
-            s.setLocEnd(Ship.setEnd(s.getLocStart(), s.getLength(), s.getDirection()));
+            /* update the ship with the new coordinates */
+            s.setHorizontal(UIHelpers.getSelectedDirection(index_direction));
+            s.setStartX(x);
+            s.setStartY(y);
+            if (s.isHorizontal()) {
+                s.setEndX(x + s.getLength());
+                s.setEndY(y);
+            } else {
+                s.setEndX(x);
+                s.setEndY(y + s.getLength());
+            }
 
             Point[] newLoc = new Point[s.getLength()];
-            if (s.getDirection() == Ship.DIRECTION.HORIZONTAL) {
+            if (s.isHorizontal()) {
                 for (int i = 0; i < newLoc.length; i++) {
                     newLoc[i] = new Point(x + i, y);
                 }
             } else {
                 for (int i = 0; i < newLoc.length; i++) {
-                    newLoc[i] = new Point(x, y + 1);
+                    newLoc[i] = new Point(x, y + i);
                 }
             }
             s.setLocation(newLoc);
@@ -584,7 +581,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
         } else if (place == UIHelpers.SHIP_PLACE.REMOVE) {
             /* if the ship is to be removed */
-            s.setIsPlaced(false);
+            //s.setIsPlaced(false);
         }
 
     }
@@ -598,7 +595,6 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     public void updateUser(final String name, final String pw) {
         if (name != null && !"".equals(name)) {
             try {
-                //game.removeClient(this, user, sessionID);
                 if (me != null) {
                     user = name;
                     me.setName(user);
@@ -607,9 +603,6 @@ public class UI extends UnicastRemoteObject implements IClientListener {
                     me = new Player(name);
                 }
                 LoginDialog.closeThis(loginDialog);
-//                if (loginDialog != null) {
-//                    loginDialog.dispose();
-//                }
                 game.registerClient(this, name);
                 game.login(name, pw, this);
                 //game.requestFreeLobbies(this);
@@ -644,18 +637,18 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             if (ready == 0) {
                 // we are in construction faze
 
-                Ship s = me.getShips()[index_ship];
+                Ship s = me.getShip(index_ship);
 
                 if (UIHelpers.isValidPos(x, y, s, me, UIHelpers.getSelectedDirection(index_direction))) {
                     //System.out.println("Ship placement for -> " + s);
                     if (s.isPlaced()) {
                         /* since the ship appears to be placed, just remove it if user clicked another button */
-                        handleShip(s.getLocStart().x, s.getLocStart().y, 0, s, UIHelpers.SHIP_PLACE.REMOVE);
+                        handleShip(s.getStartX(), s.getStartY(), 0, s, UIHelpers.SHIP_PLACE.REMOVE);
                     }
                     handleShip(x, y, 0, s, UIHelpers.SHIP_PLACE.ADD);
 
                     boolean ok = true;
-                    for (int i = 0; i < me.getShips().length; i++) {
+                    for (int i = 0; i < me.getShips().size(); i++) {
                         if (!me.getShip(i).isPlaced()) {
                             ok = false;
                             break;
@@ -678,37 +671,32 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     }
 
     /**
-     * Direction combobox listener. Purpose : Alters which ship that should be
-     * placed.
+     * Direction combobox listener. Purpose : Alters what direction the ship
+     * should be placed in.
      */
     private class DirectListener implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent v) {
+            int old_index = index_direction;
             index_direction = combo_direction.getSelectedIndex();
 
-            System.out.println("Direction combobox used");
-
             Ship s = me.getShip(index_ship);
+            System.out.println(s.getShipType());
 
             if (s.isPlaced()) {
-                if (UIHelpers.isValidPos(s.getLocStart().x, s.getLocStart().y, s, me, UIHelpers.getSelectedDirection(index_direction))) {
-                    s = me.getShip(index_ship);
-                    if (s.isPlaced()) {
-                        handleShip(s.getLocStart().x, s.getLocStart().y, 0, s, UIHelpers.SHIP_PLACE.REMOVE);
-                    }
+                if (UIHelpers.isValidPos(s.getStartX(), s.getStartY(), s, me, UIHelpers.getSelectedDirection(index_direction))) {
+                    //handleShip(s.getLocStart().x, s.getLocStart().y, 0, s, UIHelpers.SHIP_PLACE.REMOVE);
+                    
+                    //s.setDirection(UIHelpers.getSelectedDirection(index_direction));
+                    
+                    handleShip(s.getStartX(), s.getStartY(), 0, s, UIHelpers.SHIP_PLACE.ADD);
 
-                    s.setDirection(UIHelpers.getSelectedDirection(index_direction));
-                    s.setLocEnd(Ship.setEnd(s.getLocStart(), s.getLength(), s.getDirection()));
-
-                    handleShip(s.getLocStart().x, s.getLocStart().y, 0, s, UIHelpers.SHIP_PLACE.ADD);
-
-                    me.setShip(index_ship, s);
                 } else {
                     UIHelpers.messageDialog("You can not turn the ship direction based on it's location.\nMove the ship first", "Error");
+                    combo_direction.setSelectedIndex(old_index);
                 }
             }
-
         }
     }
 
@@ -749,9 +737,11 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             index_ship = combo_ship.getSelectedIndex();
             System.out.println("Ship used");
 
-            if (me.getShip(index_ship).isPlaced() && combo_direction.getSelectedIndex() != UIHelpers.getIndexDirection(me.getShip(index_ship).getDirection())) {
+            Ship s = me.getShip(index_ship);
+
+            if (s.isPlaced() && combo_direction.getSelectedIndex() != UIHelpers.getIndexDirection(s.isHorizontal())) {
                 System.out.println("Direction combobox changed because ship has different direction.");
-                combo_direction.setSelectedIndex(UIHelpers.getIndexDirection(me.getShip(index_ship).getDirection()));
+                combo_direction.setSelectedIndex(UIHelpers.getIndexDirection(s.isHorizontal()));
             }
         }
     }
@@ -817,7 +807,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
                     }
                 } else {
                     // TODO : Move this entire bullcrap to the login dialog and implement observer.
-                    loginDialog = LoginDialog.getInstance(UI.getInstance());
+                    loginDialog = LoginDialog.getInstance();
                     loginDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
                     loginDialog.setVisible(true);
                 }
@@ -837,6 +827,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
                     System.out.println("The player to deploy : " + me.getName());
                     gamestate = UIHelpers.WAITING;
                     handleState();
+                    System.out.println("Deploying : " + me.getShips().toString());
                     game.deployShips(UI.getInstance(), lobbyID, me);
                 } catch (RemoteException ex) {
                     Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
@@ -848,24 +839,15 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     /* Listener for Options menu */
     public class OptionsListener implements ActionListener {
 
-        private final WeakReference<UI> weakReference;
-
-        public OptionsListener(final UI ui) {
-            weakReference = new WeakReference<>(ui);
-        }
-
         @Override
         public void actionPerformed(ActionEvent e) {
             UIHelpers.messageDialog("This feature has been disabled until further notice.", "Options");
 
-//            final UI ui = weakReference.get();
-//            if (ui != null) {
 //                if (Options.opts == null) {
 //                    options.setup(ui);
 //                } else {
 //                    options.setVisible(true);
 //                }
-//            }
         }
     }
 
@@ -919,13 +901,15 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
     @Override
     public void playerList(ArrayList<String> players) throws RemoteException {
-        if (!gameSelection.isVisible()) {
-            gameSelection.setVisible(true);
-        }
         if (players != null && !players.isEmpty()) {
+            if (!gameSelection.isVisible()) {
+                gameSelection.setVisible(true);
+            }
             players.stream().forEach((s) -> {
                 gameSelection.addToList(s);
             });
+        } else {
+            UIHelpers.messageDialog("No players from server.", "playerList()", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -990,7 +974,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         if (shipType == 0) {
             if (yourShip) {
                 UIHelpers.messageDialog("Your " + me.getShip(shipType).getShipType() + " has been sunk by " + other.getName(), "Ship sunk!!!!");
-                colorShip(me.getShip(shipType).getLocStart().x, me.getShip(shipType).getLocStart().y, me.getShip(shipType), Color.BLACK);
+                colorShip(me.getShip(shipType).getStartX(), me.getShip(shipType).getStartY(), me.getShip(shipType), Color.BLACK);
             } else {
                 // TODO : Implement
             }
@@ -1041,19 +1025,13 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     /**
      * Listener for the Ping menu option
      */
-    private class PingListener implements ActionListener {
-
-        private final IBattleShip game;
-
-        public PingListener(final IBattleShip game) {
-            this.game = game;
-        }
+    private static class PingListener implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
             System.out.println("Pinging server..");
             try {
-                game.ping(UI.getInstance(), System.currentTimeMillis());
+                UI.getInstance().game.ping(UI.getInstance(), System.currentTimeMillis());
             } catch (RemoteException ex) {
                 Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
             }

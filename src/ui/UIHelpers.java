@@ -61,12 +61,12 @@ public final class UIHelpers {
      * @return The direction selected by the user as defined by the IShip
      * interface.
      */
-    public static Ship.DIRECTION getSelectedDirection(final int index_direction) {
-        return index_direction == 0 ? Ship.DIRECTION.HORIZONTAL : Ship.DIRECTION.VERTICAL;
+    public static boolean getSelectedDirection(final int index_direction) {
+        return index_direction == 0;
     }
 
-    public static int getIndexDirection(final Ship.DIRECTION dir) {
-        return dir == Ship.DIRECTION.HORIZONTAL ? 0 : 1;
+    public static int getIndexDirection(final boolean dir) {
+        return dir ? 0 : 1;
     }
 
     /**
@@ -76,16 +76,16 @@ public final class UIHelpers {
      * @param y the Y location clicked
      * @param s the Ship
      * @param player The current player
-     * @param dir The direction of placement
+     * @param horizontal The direction of placement
      * @return true if possible, otherwise false
      */
-    public static boolean isValidPos(final int x, final int y, final Ship s, final Player player, final Ship.DIRECTION dir) {
-        if (dir == Ship.DIRECTION.HORIZONTAL && x + s.getLength() > 10) {
+    public static boolean isValidPos(final int x, final int y, final Ship s, final Player player, final boolean horizontal) {
+        if (horizontal && x + s.getLength() > 10) {
             return false;
         } else if (y + s.getLength() > 10) {
             return false;
         }
-        for (int i = 0; i < player.getShips().length; i++) {
+        for (int i = 0; i < player.getShips().size(); i++) {
             Ship ps = player.getShip(i);
             if (ps.isPlaced() && ps.getType() != s.getType()) {
                 Point[] p = ps.getLocation();
@@ -111,28 +111,28 @@ public final class UIHelpers {
 //        return true;
     }
 
-    private static boolean validate(final int x, final int y, final Ship s) {
-        int hit = 0;
-        if (s.getDirection() == Ship.DIRECTION.HORIZONTAL) {
-//            if (s.getLocStart().y != y) {
+//    private static boolean validate(final int x, final int y, final Ship s) {
+//        int hit = 0;
+//        if (s.getDirection() == Ship.DIRECTION.HORIZONTAL) {
+////            if (s.getLocStart().y != y) {
+////                return true;
+////            }
+//            if (s.getLocStart().x > x || s.getLocStart().x + s.getLength() - 1 < x) {
 //                return true;
 //            }
-            if (s.getLocStart().x > x || s.getLocStart().x + s.getLength() - 1 < x) {
-                return true;
-            }
-            hit = hit | (1 << (x - s.getLocStart().x));
-        } else {
-//            if (s.getLocStart().x != x) {
+//            hit = hit | (1 << (x - s.getLocStart().x));
+//        } else {
+////            if (s.getLocStart().x != x) {
+////                return true;
+////            }
+//            if (s.getLocStart().y > y || s.getLocStart().y + s.getLength() - 1 < y) {
 //                return true;
 //            }
-            if (s.getLocStart().y > y || s.getLocStart().y + s.getLength() - 1 < y) {
-                return true;
-            }
-            hit = hit | (1 << (y - s.getLocStart().y));
-        }
-        System.out.println(hit);
-        return hit > 0;
-    }
+//            hit = hit | (1 << (y - s.getLocStart().y));
+//        }
+//        System.out.println(hit);
+//        return hit > 0;
+//    }
 
     public static String getPlayerName() {
         String daName = inputDialog("Please enter your name.", "Enter name.");

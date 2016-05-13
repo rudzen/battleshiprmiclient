@@ -16,6 +16,7 @@
 package ui;
 
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -38,11 +39,12 @@ import javax.swing.DefaultListModel;
  * @author Rudy Alex Kohn <s133235@student.dtu.dk>
  */
 @SuppressWarnings("serial")
-public class Output extends java.awt.Frame {
+public class Output extends Frame {
 
     /**
      * Creates new form Output
      */
+    @SuppressWarnings("OverridableMethodCallInConstructor")
     public Output() {
         initComponents();
         listModel = new DefaultListModel();

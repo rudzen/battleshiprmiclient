@@ -56,10 +56,7 @@ public final class LoginDialog extends JDialog {
     private static JButton okButton;
     private static final JProgressBar progressBar = new JProgressBar();
 
-    private static UI ui;
-
-    public static LoginDialog getInstance(UI ui) {
-        LoginDialog.ui = ui;
+    public static LoginDialog getInstance() {
         return LoginDialogHolder.INSTANCE;
     }
 
@@ -123,7 +120,7 @@ public final class LoginDialog extends JDialog {
         okButton = new JButton("OK");
         okButton.setActionCommand("OK");
         okButton.setEnabled(false);
-        okButton.addActionListener(new OkActionImpl(ui));
+        okButton.addActionListener(new OkActionImpl());
         buttonPane.add(okButton);
         getRootPane().setDefaultButton(okButton);
         JButton cancelButton = new JButton("Cancel");
@@ -162,13 +159,7 @@ public final class LoginDialog extends JDialog {
     }
 
     private static class OkActionImpl implements ActionListener {
-
-        private final UI ui;
-
-        public OkActionImpl(final UI ui) {
-            this.ui = ui;
-        }
-
+        
         @Override
         public void actionPerformed(final ActionEvent e) {
             /* this is where the dialog will send the information to the server. */
@@ -177,22 +168,11 @@ public final class LoginDialog extends JDialog {
 
             progressBar.setVisible(true);
 
-            //Statics.isLoggedIn = game.login(user, pw);
-            
-            ui.updateUser(textField.getText(), new String(passwordField.getPassword()));
+            UI.getInstance().updateUser(textField.getText(), new String(passwordField.getPassword()));
 
-            progressBar.setVisible(true);
+            progressBar.setVisible(false);
 
             okButton.setEnabled(lastState);
         }
     }
-
-    public static UI getUi() {
-        return ui;
-    }
-
-    public static void setUi(UI ui) {
-        LoginDialog.ui = ui;
-    }
-
 }
