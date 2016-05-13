@@ -212,9 +212,10 @@ public interface IBattleShip extends Remote {
      * Request that the server sends a new lobbyID
      *
      * @param client The client requesting lobbyID
+     * @param playerID The player ID requesting the lobby ID
      * @throws RemoteException
      */
-    void requestLobbyID(IClientListener client) throws RemoteException;
+    void requestLobbyID(IClientListener client, int playerID) throws RemoteException;
 
     
     void requestAllPlayerIDs(IClientListener client) throws RemoteException;

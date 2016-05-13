@@ -999,6 +999,11 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     }
 
     public static void createLobby() {
+        try {
+            UI.getInstance().game.requestLobbyID(UI.getInstance(), me.getId());
+        } catch (RemoteException ex) {
+            Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     public static void joinLobby(final int lobbyID) {

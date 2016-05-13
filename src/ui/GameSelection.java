@@ -18,7 +18,7 @@ package ui;
 /**
  * UI for selecting lobby to join
  *
- * @author Rudy Alex Kohn <s133235@student.dtu.dk>
+ * @author Rudy Alex Kohn s133235@student.dtu.dk
  */
 import javax.swing.JFrame;
 import javax.swing.JPanel;
