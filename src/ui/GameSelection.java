@@ -68,34 +68,15 @@ public class GameSelection extends JFrame {
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         btnCreateLobby = new JButton("Create Lobby");
-        btnCreateLobby.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent arg0) {
-
-            }
-        });
+        btnCreateLobby.addActionListener(new CreateLobby());
         btnCreateLobby.setToolTipText("Create a new lobby");
 
         btnCancel = new JButton("Cancel");
-        btnCancel.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (e.getSource() == btnCancel) {
-                    list.clearSelection();
-                    listModel.clear();
-                    setVisible(false);
-                }
-            }
-        });
+        btnCancel.addActionListener(new Cancel());
         btnCancel.setToolTipText("Cancel process of selecting");
 
         btnJoinLobby = new JButton("Join");
-        btnJoinLobby.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.out.println(e.getSource().toString());
-            }
-        });
+        btnJoinLobby.addActionListener(new JoinLobby());
         btnJoinLobby.setToolTipText("Join selected lobby");
         GroupLayout gl_contentPane = new GroupLayout(contentPane);
         gl_contentPane.setHorizontalGroup(
@@ -142,6 +123,37 @@ public class GameSelection extends JFrame {
             } catch (final OutOfMemoryError e) {
                 listModel.clear();
             }
+        }
+    }
+
+    private static class CreateLobby implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent arg0) {
+            UI.createLobby();
+        }
+    }
+
+    private class Cancel implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (e.getSource() == btnCancel) {
+                list.clearSelection();
+                listModel.clear();
+                setVisible(false);
+            }
+        }
+    }
+
+    private static class JoinLobby implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            // TODO : Fetch the ID for the lobby selected.
+            int lobbyID = 0;
+            UI.joinLobby(lobbyID);
+            System.out.println(e.getSource().toString());
         }
     }
 
