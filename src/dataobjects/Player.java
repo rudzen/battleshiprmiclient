@@ -23,6 +23,7 @@
  */
 package dataobjects;
 
+import java.awt.Point;
 import java.io.Serializable;
 
 /**
@@ -86,14 +87,20 @@ public class Player implements Serializable {
     }
 
     public void initShips() {
-        ships[0] = new Ship(0, 0, Ship.TYPE.CARRIER, Ship.DIRECTION.VERTICAL);
-        ships[1] = new Ship(0, 1, Ship.TYPE.CRUISER, Ship.DIRECTION.VERTICAL);
-        ships[2] = new Ship(0, 2, Ship.TYPE.DESTROYER, Ship.DIRECTION.VERTICAL);
-        ships[3] = new Ship(0, 3, Ship.TYPE.SUBMARINE, Ship.DIRECTION.VERTICAL);
-        ships[4] = new Ship(0, 4, Ship.TYPE.PATROL, Ship.DIRECTION.VERTICAL);
+        ships[0] = new Ship(-1, -1, Ship.TYPE.CARRIER, Ship.DIRECTION.VERTICAL);
+        ships[1] = new Ship(-1, -1, Ship.TYPE.CRUISER, Ship.DIRECTION.VERTICAL);
+        ships[2] = new Ship(-1, -1, Ship.TYPE.DESTROYER, Ship.DIRECTION.VERTICAL);
+        ships[3] = new Ship(-1, -1, Ship.TYPE.SUBMARINE, Ship.DIRECTION.VERTICAL);
+        ships[4] = new Ship(-1, -1, Ship.TYPE.PATROL, Ship.DIRECTION.VERTICAL);
         for (Ship s : ships) {
             s.setIsPlaced(false);
+            Point[] p = new Point[s.getLength()];
+            for (int i = 0; i < p.length; i++) {
+                p[i] = new Point(-1, -1);
+            }
+            s.setLocation(p);
         }
+        
     }
 
     public void setShip(final int index, final Ship ship) {

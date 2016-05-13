@@ -108,7 +108,7 @@ public class Ship implements Serializable {
     /**
      * Is the ship placed on the board?
      */
-    private boolean isPlaced = false;
+    private boolean isPlaced;
 
     /**
      * Default constructor.

@@ -202,16 +202,16 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         } catch (Exception ex) {
             Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
         gameSelection.setAlwaysOnTop(true);
-        
-        
+
         this.game = game;
 
         handleState();
 
         me = new Player("User" + Double.toString(Math.random() * 10)); // temporary Player object as player hasnt logged in yet
         me.initShips();
+
         game.registerClient(this, me.getName());
         setupUI();
 
@@ -234,7 +234,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             for (int j = 0; j < ownButtons.length; j++) {
                 ownButtons[j][k] = new JButton();
                 ownButtons[j][k].setBackground(Color.GRAY);
-                ownButtons[j][k].addActionListener(new BoardListener(game, this, j, k));
+                ownButtons[j][k].addActionListener(new BoardListener(game, this, k, j));
 
                 oppButtons[j][k] = new JButton();
                 oppButtons[j][k].setBackground(Color.GRAY);
@@ -521,15 +521,23 @@ public class UI extends UnicastRemoteObject implements IClientListener {
      * @param col The colour to draw it with (null will remove)
      */
     private static void colorShip(final int x, final int y, final Ship s, final Color col) {
-        if (s.getDirection() == Ship.DIRECTION.HORIZONTAL) {
-            for (int i = x; i < s.getLocEnd().getX(); i++) {
-                ownButtons[i][s.getLocStart().y].setBackground(col);
-            }
-        } else if (s.getDirection() == Ship.DIRECTION.VERTICAL) {
-            for (int i = y; i < s.getLocEnd().getY(); i++) {
-                ownButtons[s.getLocStart().x][i].setBackground(col);
+        System.out.println("Ship colouring @ : " + new Point(x, y));
+        Point[] p = s.getLocation();
+        if (p[0].x > -1) {
+            for (Point p1 : p) {
+                ownButtons[p1.y][p1.x].setBackground(col);
             }
         }
+        
+//        if (s.getDirection() == Ship.DIRECTION.HORIZONTAL) {
+//            for (int i = x; i < s.getLocEnd().x; i++) {
+//                ownButtons[i][s.getLocStart().y].setBackground(col);
+//            }
+//        } else if (s.getDirection() == Ship.DIRECTION.VERTICAL) {
+//            for (int i = y; i < s.getLocEnd().y; i++) {
+//                ownButtons[s.getLocStart().x][i].setBackground(col);
+//            }
+//        }
     }
 
     /**
@@ -549,22 +557,22 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         if (place == UIHelpers.SHIP_PLACE.ADD) {
             /* if the ship is to be added */
 
- /* update the ship with the new coordinated */
+             /* update the ship with the new coordinates */
             s.setLocStart(new Point(x, y));
+            s.setDirection(UIHelpers.getSelectedDirection(index_direction));
             s.setLocEnd(Ship.setEnd(s.getLocStart(), s.getLength(), s.getDirection()));
 
             Point[] newLoc = new Point[s.getLength()];
             if (s.getDirection() == Ship.DIRECTION.HORIZONTAL) {
                 for (int i = 0; i < newLoc.length; i++) {
-                    newLoc[i] = new Point(x, y + i);
+                    newLoc[i] = new Point(x + i, y);
                 }
             } else {
                 for (int i = 0; i < newLoc.length; i++) {
-                    newLoc[i] = new Point(x + i, y);
+                    newLoc[i] = new Point(x, y + 1);
                 }
             }
             s.setLocation(newLoc);
-
 
             /* re-draw the ship with the new coordinated */
             colorShip(x, y, s, Color.YELLOW);
@@ -631,18 +639,21 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
         @Override
         public void actionPerformed(ActionEvent v) {
+
+            //System.out.println("Clicked on : x=" + x + " y=" + y);
             if (ready == 0) {
                 // we are in construction faze
 
-                Ship s = me.getShip(index_ship);
+                Ship s = me.getShips()[index_ship];
 
                 if (UIHelpers.isValidPos(x, y, s, me)) {
-                    System.out.println("Ship placement for -> " + s);
+                    //System.out.println("Ship placement for -> " + s);
                     if (s.isPlaced()) {
                         /* since the ship appears to be placed, just remove it if user clicked another button */
                         handleShip(s.getLocStart().x, s.getLocStart().y, 0, s, UIHelpers.SHIP_PLACE.REMOVE);
                     }
                     handleShip(x, y, 0, s, UIHelpers.SHIP_PLACE.ADD);
+
                     boolean ok = true;
                     for (int i = 0; i < me.getShips().length; i++) {
                         if (!me.getShip(i).isPlaced()) {
@@ -681,10 +692,10 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             Ship s = me.getShip(index_ship);
 
             if (s.isPlaced()) {
-                if (UIHelpers.isValidPos(s.getLocStart().y, s.getLocStart().y, s, me)) {
+                if (UIHelpers.isValidPos(s.getLocStart().x, s.getLocStart().y, s, me)) {
                     s = me.getShip(index_ship);
                     if (s.isPlaced()) {
-                        handleShip(s.getLocStart().x, s.getLocStart().x, 0, s, UIHelpers.SHIP_PLACE.REMOVE);
+                        handleShip(s.getLocStart().x, s.getLocStart().y, 0, s, UIHelpers.SHIP_PLACE.REMOVE);
                     }
 
                     s.setDirection(UIHelpers.getSelectedDirection(index_direction));
@@ -1009,7 +1020,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public static void joinLobby(final int lobbyID) {
         try {
             UI.getInstance().game.joinLobby(UI.getInstance(), lobbyID, me.getId());
@@ -1018,8 +1029,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    
+
     public static String getCletters(int i) {
         return cletters[i];
     }
