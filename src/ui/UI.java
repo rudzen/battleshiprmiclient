@@ -35,7 +35,6 @@ import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.lang.ref.WeakReference;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
@@ -55,6 +54,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
+import ui.Listeners.OptionsListener;
+import ui.Listeners.PingListener;
 import utility.Statics;
 
 /**
@@ -78,7 +79,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     /**
      * The remote object
      */
-    private IBattleShip game;
+    public IBattleShip game;
 
     public static UI getInstance() {
         return SingletonHolder.INSTANCE;
@@ -234,7 +235,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             for (int j = 0; j < ownButtons.length; j++) {
                 ownButtons[j][k] = new JButton();
                 ownButtons[j][k].setBackground(Color.GRAY);
-                ownButtons[j][k].addActionListener(new BoardListener(game, this, k, j));
+                ownButtons[j][k].addActionListener(new BoardListener(k, j));
 
                 oppButtons[j][k] = new JButton();
                 oppButtons[j][k].setBackground(Color.GRAY);
@@ -492,26 +493,6 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         }
     }
 
-    private static boolean contains(int what, int... array) {
-        for (int i : array) {
-            if (what == i) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static void clearBoard() {
-        for (int x = 0; x < 10; x++) {
-            for (int y = 0; y < 10; y++) {
-                ownButtons[x][y].setBackground(Color.GRAY);
-            }
-        }
-        for (int i = 0; i < me.getShips().size(); i++) {
-            handleShip(me.getShip(i).getStartX(), me.getShip(i).getStartY(), 0, me.getShip(i), UIHelpers.SHIP_PLACE.ADD);
-        }
-    }
-
     /**
      * Helper function to draw the ship on the buttons
      *
@@ -610,244 +591,6 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             } catch (RemoteException ex) {
                 Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
             }
-        }
-    }
-
-    /**
-     * The listener for the buttons on the board. Purpose : Ship placement
-     */
-    private class BoardListener implements ActionListener {
-
-        private final int x;
-        private final int y;
-        private final UI ui;
-        private final IBattleShip game;
-
-        public BoardListener(final IBattleShip game, final UI ui, final int x, final int y) {
-            this.x = x;
-            this.y = y;
-            this.ui = ui;
-            this.game = game;
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent v) {
-
-            //System.out.println("Clicked on : x=" + x + " y=" + y);
-            if (ready == 0) {
-                // we are in construction faze
-
-                Ship s = me.getShip(index_ship);
-
-                if (UIHelpers.isValidPos(x, y, s, me, UIHelpers.getSelectedDirection(index_direction))) {
-                    //System.out.println("Ship placement for -> " + s);
-                    if (s.isPlaced()) {
-                        /* since the ship appears to be placed, just remove it if user clicked another button */
-                        handleShip(s.getStartX(), s.getStartY(), 0, s, UIHelpers.SHIP_PLACE.REMOVE);
-                    }
-                    handleShip(x, y, 0, s, UIHelpers.SHIP_PLACE.ADD);
-
-                    boolean ok = true;
-                    for (int i = 0; i < me.getShips().size(); i++) {
-                        if (!me.getShip(i).isPlaced()) {
-                            ok = false;
-                            break;
-                        }
-                    }
-                    deploy.setEnabled(ok);
-                } else {
-                    UIHelpers.messageDialog("Unable to place the selected ship at this location.", "Error");
-                }
-
-            } else {
-                try {
-                    /* user is fireing at the opponent!!! */
-                    game.fireShot((IClientListener) ui, UI.lobbyID, UI.me.getId(), x, y);
-                } catch (RemoteException ex) {
-                    Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        }
-    }
-
-    /**
-     * Direction combobox listener. Purpose : Alters what direction the ship
-     * should be placed in.
-     */
-    private class DirectListener implements ActionListener {
-
-        @Override
-        public void actionPerformed(ActionEvent v) {
-            int old_index = index_direction;
-            index_direction = combo_direction.getSelectedIndex();
-
-            Ship s = me.getShip(index_ship);
-            System.out.println(s.getShipType());
-
-            if (s.isPlaced()) {
-                if (UIHelpers.isValidPos(s.getStartX(), s.getStartY(), s, me, UIHelpers.getSelectedDirection(index_direction))) {
-                    //handleShip(s.getLocStart().x, s.getLocStart().y, 0, s, UIHelpers.SHIP_PLACE.REMOVE);
-                    
-                    //s.setDirection(UIHelpers.getSelectedDirection(index_direction));
-                    
-                    handleShip(s.getStartX(), s.getStartY(), 0, s, UIHelpers.SHIP_PLACE.ADD);
-
-                } else {
-                    UIHelpers.messageDialog("You can not turn the ship direction based on it's location.\nMove the ship first", "Error");
-                    combo_direction.setSelectedIndex(old_index);
-                }
-            }
-        }
-    }
-
-    /**
-     * Exit menu item listener. Purpose : Handles the users request to exit the
-     * program.
-     */
-    private class ExitListener implements ActionListener {
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            if (UIHelpers.confirmDialog("Are you sure you would like to exit Battleship?\nYou will loose points", "Exit?") == 0) {
-                try {
-                    // TODO : Add forefeit command in game object
-
-                    UIHelpers.messageDialog(game.logout(me.getName()) ? "You have been logged out." : "Failed to log out, server could be unresponsive.", "Logged out");
-                } catch (RemoteException ex) {
-                    Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
-                } finally {
-                    if (loginDialog != null) {
-                        loginDialog.dispose();
-                    }
-                    UI.getInstance().mainFrame.dispose();
-                    System.exit(0);
-                }
-            }
-        }
-    }
-
-    /**
-     * Combobox for layout of ships listener. Purpose : Alters the direction of
-     * the current selected ship.
-     */
-    private class ShipsListener implements ActionListener {
-
-        @Override
-        public void actionPerformed(ActionEvent v) {
-            index_ship = combo_ship.getSelectedIndex();
-            System.out.println("Ship used");
-
-            Ship s = me.getShip(index_ship);
-
-            if (s.isPlaced() && combo_direction.getSelectedIndex() != UIHelpers.getIndexDirection(s.isHorizontal())) {
-                System.out.println("Direction combobox changed because ship has different direction.");
-                combo_direction.setSelectedIndex(UIHelpers.getIndexDirection(s.isHorizontal()));
-            }
-        }
-    }
-
-    /**
-     * Listener for New Game submenu Purpose : 1. If player is not logged in,
-     * ask player to log in. 2. If player is logged in, request availble players
-     * from the server. 3. If the player list is empty, auto create a new
-     * session. 4. If the player list exists, display it and let the user choose
-     * opponent or create new game session 5. If the player selects an opponent,
-     * let the player know and get the session ID. 6. Let the server create the
-     * game session and retrieve the new session ID.
-     */
-    private class GameListener implements ActionListener {
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            if (UIHelpers.isConnected(game)) {
-                if (!Statics.isLoggedIn) {
-                    UIHelpers.messageDialog("You are not logged in.", "Log in required to play.");
-                } else if (Statics.isLoggedIn && Statics.gameInProgress) {
-                    int q = UIHelpers.confirmDialog("Are you sure you would like to start a new game?\nYou will loose this game!", "New Game?");
-                    if (q == 0) {
-
-                        //resets variables
-                        b.removeAll();
-                        c.removeAll();
-                        d.removeAll();
-
-                        Statics.yourTurn = false;
-                        Statics.gameInProgress = false;
-
-                        ready = 0;
-
-                        if (!gameSelection.isVisible()) {
-                            gameSelection.setVisible(true);
-                        }
-                        try {
-                            game.requestFreeLobbies(UI.getInstance());
-                        } catch (RemoteException ex) {
-                            Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Listener for Login
-     */
-    private class LoginListener implements ActionListener {
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            if (UIHelpers.isConnected(game)) {
-                if (Statics.isLoggedIn) {
-                    Statics.isLoggedIn = false;
-                    try {
-                        game.logout(me.getName());
-                    } catch (RemoteException ex) {
-                        Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                } else {
-                    // TODO : Move this entire bullcrap to the login dialog and implement observer.
-                    loginDialog = LoginDialog.getInstance();
-                    loginDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-                    loginDialog.setVisible(true);
-                }
-            }
-        }
-    }
-
-    /**
-     * Listener for Deploy Button
-     */
-    private class DeployListener implements ActionListener {
-
-        @Override
-        public void actionPerformed(ActionEvent v) {
-            if (UIHelpers.confirmDialog("Are you sure you would like to deploy your ships?", "Deploy Ships?") == 0) {
-                try {
-                    System.out.println("The player to deploy : " + me.getName());
-                    gamestate = UIHelpers.WAITING;
-                    handleState();
-                    System.out.println("Deploying : " + me.getShips().toString());
-                    game.deployShips(UI.getInstance(), lobbyID, me);
-                } catch (RemoteException ex) {
-                    Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        }
-    }
-
-    /* Listener for Options menu */
-    public class OptionsListener implements ActionListener {
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            UIHelpers.messageDialog("This feature has been disabled until further notice.", "Options");
-
-//                if (Options.opts == null) {
-//                    options.setup(ui);
-//                } else {
-//                    options.setVisible(true);
-//                }
         }
     }
 
@@ -1022,18 +765,224 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         return cnumbers[i];
     }
 
+    public static Player getMe() {
+        return me;
+    }
+
     /**
-     * Listener for the Ping menu option
+     * The listener for the buttons on the board. Purpose : Ship placement
      */
-    private static class PingListener implements ActionListener {
+    private class BoardListener implements ActionListener {
+
+        private final int x;
+        private final int y;
+
+        public BoardListener(final int x, final int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent v) {
+
+            //System.out.println("Clicked on : x=" + x + " y=" + y);
+            if (ready == 0) {
+                // we are in construction faze
+
+                Ship s = me.getShip(index_ship);
+
+                if (UIHelpers.isValidPos(x, y, s, me, UIHelpers.getSelectedDirection(index_direction))) {
+                    //System.out.println("Ship placement for -> " + s);
+                    if (s.isPlaced()) {
+                        /* since the ship appears to be placed, just remove it if user clicked another button */
+                        handleShip(s.getStartX(), s.getStartY(), 0, s, UIHelpers.SHIP_PLACE.REMOVE);
+                    }
+                    handleShip(x, y, 0, s, UIHelpers.SHIP_PLACE.ADD);
+
+                    boolean ok = true;
+                    for (int i = 0; i < me.getShips().size(); i++) {
+                        if (!me.getShip(i).isPlaced()) {
+                            ok = false;
+                            break;
+                        }
+                    }
+                    deploy.setEnabled(ok);
+                } else {
+                    UIHelpers.messageDialog("Unable to place the selected ship at this location.", "Error");
+                }
+
+            } else {
+                try {
+                    /* user is fireing at the opponent!!! */
+                    game.fireShot(UI.getInstance(), UI.lobbyID, UI.me.getId(), x, y);
+                } catch (RemoteException ex) {
+                    Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+    }
+
+    /**
+     * Listener for New Game submenu Purpose : 1. If player is not logged in,
+     * ask player to log in. 2. If player is logged in, request availble players
+     * from the server. 3. If the player list is empty, auto create a new
+     * session. 4. If the player list exists, display it and let the user choose
+     * opponent or create new game session 5. If the player selects an opponent,
+     * let the player know and get the session ID. 6. Let the server create the
+     * game session and retrieve the new session ID.
+     */
+    private class GameListener implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            System.out.println("Pinging server..");
-            try {
-                UI.getInstance().game.ping(UI.getInstance(), System.currentTimeMillis());
-            } catch (RemoteException ex) {
-                Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
+            if (UIHelpers.isConnected(game)) {
+                if (!Statics.isLoggedIn) {
+                    UIHelpers.messageDialog("You are not logged in.", "Log in required to play.");
+                } else if (Statics.isLoggedIn && Statics.gameInProgress) {
+                    int q = UIHelpers.confirmDialog("Are you sure you would like to start a new game?\nYou will loose this game!", "New Game?");
+                    if (q == 0) {
+
+                        //resets variables
+                        b.removeAll();
+                        c.removeAll();
+                        d.removeAll();
+
+                        Statics.yourTurn = false;
+                        Statics.gameInProgress = false;
+
+                        ready = 0;
+
+                        if (!gameSelection.isVisible()) {
+                            gameSelection.setVisible(true);
+                        }
+                        try {
+                            game.requestFreeLobbies(UI.getInstance());
+                        } catch (RemoteException ex) {
+                            Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Combobox for layout of ships listener. Purpose : Alters the direction of
+     * the current selected ship.
+     */
+    private class ShipsListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent v) {
+            index_ship = combo_ship.getSelectedIndex();
+            System.out.println("Ship used");
+
+            Ship s = me.getShip(index_ship);
+
+            if (s.isPlaced() && combo_direction.getSelectedIndex() != UIHelpers.getIndexDirection(s.isHorizontal())) {
+                System.out.println("Direction combobox changed because ship has different direction.");
+                combo_direction.setSelectedIndex(UIHelpers.getIndexDirection(s.isHorizontal()));
+            }
+        }
+    }
+
+    /**
+     * Direction combobox listener. Purpose : Alters what direction the ship
+     * should be placed in.
+     */
+    private class DirectListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent v) {
+            int old_index = index_direction;
+            index_direction = combo_direction.getSelectedIndex();
+
+            Ship s = me.getShip(index_ship);
+            System.out.println(s.getShipType());
+
+            if (s.isPlaced()) {
+                if (UIHelpers.isValidPos(s.getStartX(), s.getStartY(), s, me, UIHelpers.getSelectedDirection(index_direction))) {
+                    //handleShip(s.getLocStart().x, s.getLocStart().y, 0, s, UIHelpers.SHIP_PLACE.REMOVE);
+
+                    //s.setDirection(UIHelpers.getSelectedDirection(index_direction));
+                    handleShip(s.getStartX(), s.getStartY(), 0, s, UIHelpers.SHIP_PLACE.ADD);
+
+                } else {
+                    UIHelpers.messageDialog("You can not turn the ship direction based on it's location.\nMove the ship first", "Error");
+                    combo_direction.setSelectedIndex(old_index);
+                }
+            }
+        }
+    }
+
+    /**
+     * Listener for Deploy Button
+     */
+    private class DeployListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent v) {
+            if (UIHelpers.confirmDialog("Are you sure you would like to deploy your ships?", "Deploy Ships?") == 0) {
+                try {
+                    System.out.println("The player to deploy : " + me.getName());
+                    gamestate = UIHelpers.WAITING;
+                    handleState();
+                    System.out.println("Deploying : " + me.getShips().toString());
+                    game.deployShips(UI.getInstance(), lobbyID, me);
+                } catch (RemoteException ex) {
+                    Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+    }
+
+    /**
+     * Listener for Login
+     */
+    private class LoginListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (UIHelpers.isConnected(UI.getInstance().game)) {
+                if (Statics.isLoggedIn) {
+                    Statics.isLoggedIn = false;
+                    try {
+                        UI.getInstance().game.logout(me.getName());
+                    } catch (RemoteException ex) {
+                        Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                } else {
+                    // TODO : Move this entire bullcrap to the login dialog and implement observer.
+                    loginDialog = LoginDialog.getInstance();
+                    loginDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+                    loginDialog.setVisible(true);
+                }
+            }
+        }
+    }
+
+    /**
+     * Exit menu item listener. Purpose : Handles the users request to exit the
+     * program.
+     */
+    private class ExitListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (UIHelpers.confirmDialog("Are you sure you would like to exit Battleship?\nYou will loose points", "Exit?") == 0) {
+                try {
+                    // TODO : Add forefeit command in game object
+
+                    UIHelpers.messageDialog(game.logout(me.getName()) ? "You have been logged out." : "Failed to log out, server could be unresponsive.", "Logged out");
+                } catch (RemoteException ex) {
+                    Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
+                } finally {
+                    if (loginDialog != null) {
+                        loginDialog.dispose();
+                    }
+                    UI.getInstance().mainFrame.dispose();
+                    System.exit(0);
+                }
             }
         }
     }
