@@ -35,6 +35,7 @@ import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.rmi.RemoteException;
+import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
@@ -193,7 +194,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     private static String user;
 
     public UI(final IBattleShip game) throws RemoteException {
-        super();
+        super(Registry.REGISTRY_PORT);
         java.awt.EventQueue.invokeLater(() -> {
             output = new Output();
             Output.redirectSystemStreams(true, output);
