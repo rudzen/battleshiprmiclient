@@ -78,7 +78,7 @@ public interface IBattleShip extends Remote {
      * callback
      * @throws RemoteException If server is unreachable
      */
-    void login(String user, String pw, IClientListener client) throws RemoteException;
+    void login(IClientListener client, String user, String pw) throws RemoteException;
 
     /**
      * Logs the user out from the system

@@ -134,7 +134,7 @@ public final class LoginDialog extends JDialog {
 
         @Override
         public void keyTyped(KeyEvent e) {
-            okButton.setEnabled(!textField.getText().trim().isEmpty() && !(new String(passwordField.getPassword())).isEmpty());
+            okButton.setEnabled(!textField.getText().trim().isEmpty());
         }
 
         @Override

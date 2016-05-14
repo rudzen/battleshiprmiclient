@@ -30,7 +30,6 @@ import interfaces.IClientListener;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
-import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -48,6 +47,7 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import static javax.swing.JFrame.EXIT_ON_CLOSE;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -116,6 +116,12 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     private JFrame mainFrame;
     private Output output;
     public GameSelection gameSelection;
+
+    /* the text labels shown above the boards while playing. */
+    private JLabel[] myInfo = new JLabel[3];
+
+    /* the panel holding the text labels while playing */
+    private JPanel whoseBoard = new JPanel();
 
     /* the two playing field button arrays, shown on the UI when playing.. */
     private static JButton[][] ownButtons = new JButton[10][10];
@@ -332,17 +338,15 @@ public class UI extends UnicastRemoteObject implements IClientListener {
      */
     public JPanel shipinput() {
         input = new JPanel();
-        mbar.setText("Select a ship, its front position and direction.");
-        mbar.setFont(new Font("Ariel", Font.BOLD, 14));
-        mbar.setEditable(false);
-        //input.add(mbar);
         combo_ship.setSelectedIndex(0);
         combo_ship.addActionListener(new ShipsListener());
         TitledBorder titleBorder;//used for titles around combo boxes
         titleBorder = BorderFactory.createTitledBorder("Ships");
         combo_ship.setBorder(titleBorder);
+        combo_ship.setToolTipText("Select ship to place.");
         input.add(combo_ship);
         combo_direction.setSelectedIndex(0);
+        combo_direction.setToolTipText("Select the direction of the ship.");
         combo_direction.addActionListener(directionListener);
         input.add(combo_direction);
         titleBorder = BorderFactory.createTitledBorder("Direction");
@@ -351,6 +355,11 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         deploy.addActionListener(new DeployListener());
         deploy.setAlignmentX(JFrame.CENTER_ALIGNMENT);
         input.add(deploy);
+
+//        mbar.setText("Select a ship, its front position and direction.");
+//        mbar.setFont(new Font("Ariel", Font.BOLD, 14));
+//        mbar.setEditable(false);
+//        input.add(mbar, JFrame.TOP_ALIGNMENT);
         return input;
     }
 
@@ -581,10 +590,11 @@ public class UI extends UnicastRemoteObject implements IClientListener {
                 } else {
                     user = name;
                     me = new Player(name);
+                    me.initShips();
                 }
                 LoginDialog.closeThis(loginDialog);
                 game.registerClient(this, name);
-                game.login(name, pw, this);
+                game.login(UI.getInstance(), name, pw);
                 //game.requestFreeLobbies(this);
 
             } catch (RemoteException ex) {
@@ -752,6 +762,34 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         }
     }
 
+    /**
+     * Configure the UI for game start...
+     */
+    public void initGame() {
+
+        gamestate.set(UIHelpers.PLAYING);
+
+        b.removeAll();
+        c.removeAll();
+        d.removeAll();
+
+        if (other == null) {
+            other = new Player("mufmuf");
+            other.initShips();
+        }
+
+        b = mainFrame.getContentPane();
+        b.add(setBoard(0), BorderLayout.WEST);
+        c = mainFrame.getContentPane();
+        c.add(setBoard(1), BorderLayout.EAST);
+        d = mainFrame.getContentPane();
+        d.add(UIHelpers.whoseBoard(lobbyID.get(), me, other), BorderLayout.NORTH);
+
+        mainFrame.pack();
+
+        /* draw your ships on the RIGHT side */
+    }
+
     public static String getCletters(int i) {
         return cletters[i];
     }
@@ -831,6 +869,10 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             if (UIHelpers.isConnected(game)) {
+
+                /* for testing ONLY */
+                initGame();
+
                 if (!Statics.isLoggedIn) {
                     UIHelpers.messageDialog("You are not logged in.", "Log in required to play.");
                 } else if (Statics.isLoggedIn && Statics.gameInProgress) {
@@ -841,6 +883,8 @@ public class UI extends UnicastRemoteObject implements IClientListener {
                         b.removeAll();
                         c.removeAll();
                         d.removeAll();
+
+                        gamestate.set(UIHelpers.ONLINE);
 
                         Statics.yourTurn = false;
                         Statics.gameInProgress = false;

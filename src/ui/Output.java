@@ -71,6 +71,7 @@ public class Output {
         frame.setResizable(true);
         frame.setLocationByPlatform(true);
         frame.setTitle("System.out.err.output :: by Rudy Alex Kohn (s133235)");
+        frame.setSize(500, 300);
         frame.pack();
         frame.setVisible(true);
     }

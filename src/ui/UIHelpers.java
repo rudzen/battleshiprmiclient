@@ -102,7 +102,7 @@ public final class UIHelpers {
     public static String getPlayerName() {
         String daName = inputDialog("Please enter your name.", "Enter name.");
         int dummy = 0;
-        while (((daName == null) || (daName.equals(""))) && (dummy < 3)) {
+        while (((daName == null) || ("".equals(daName))) && (dummy < 3)) {
             daName = inputDialog("You have to input something.", "Enter name.");
             if ((daName != null) && (!daName.equals(""))) {
                 break;
@@ -115,9 +115,10 @@ public final class UIHelpers {
     }
 
     //creates a panel that tells whose board is which
-    public static JPanel whoseBoard(final Player[] players) {
+    public static JPanel whoseBoard(final int lobbyID, final Player ... players) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(new JLabel(players[0].getName() + "'s Board", SwingConstants.LEFT), BorderLayout.WEST);
+        panel.add(new JLabel("Lobby : " + Integer.toString(lobbyID), SwingConstants.CENTER), BorderLayout.CENTER);
         panel.add(new JLabel(players[1].getName() + "'s Board", SwingConstants.RIGHT), BorderLayout.EAST);
         return panel;
     }
