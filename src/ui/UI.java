@@ -39,6 +39,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
@@ -103,12 +104,12 @@ public class UI extends UnicastRemoteObject implements IClientListener {
      * The game state of the client, this controls what the client can and can't
      * do
      */
-    private static byte gamestate = UIHelpers.OFFLINE;
+    private static AtomicInteger gamestate = new AtomicInteger(UIHelpers.OFFLINE);
 
     /**
      * Current game lobby ID
      */
-    private static int lobbyID;
+    private static AtomicInteger lobbyID = new AtomicInteger(-1);
 
     /* UI Stuff */
     private JDialog loginDialog;
@@ -203,8 +204,6 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         } catch (Exception ex) {
             Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
         }
-
-        gameSelection.setAlwaysOnTop(true);
 
         this.game = game;
 
@@ -414,17 +413,17 @@ public class UI extends UnicastRemoteObject implements IClientListener {
      * configures the UI depending on the current state
      */
     private static void handleState() {
-        if (gamestate == UIHelpers.OFFLINE) {
+        if (gamestate.get() == UIHelpers.OFFLINE) {
             // disable everything except relevant menus
-        } else if (gamestate == UIHelpers.ONLINE) {
+        } else if (gamestate.get() == UIHelpers.ONLINE) {
             // enable all menus, disable everything else
-        } else if (gamestate == UIHelpers.PLACEMENT) {
+        } else if (gamestate.get() == UIHelpers.PLACEMENT) {
             // disable everything except menu and placement field
-        } else if (gamestate == UIHelpers.PLACED) {
+        } else if (gamestate.get() == UIHelpers.PLACED) {
             // enable the deployment button
-        } else if (gamestate == UIHelpers.PLAYING) {
+        } else if (gamestate.get() == UIHelpers.PLAYING) {
             // enable both player fields and set UI
-        } else if (gamestate == UIHelpers.WAITING) {
+        } else if (gamestate.get() == UIHelpers.WAITING) {
             // user is waiting for opponent
         }
 
@@ -645,9 +644,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     @Override
     public void playerList(ArrayList<String> players) throws RemoteException {
         if (players != null && !players.isEmpty()) {
-            if (!gameSelection.isVisible()) {
-                gameSelection.setVisible(true);
-            }
+            gameSelection.setVisible(true);
             players.stream().forEach((s) -> {
                 gameSelection.addToList(s);
             });
@@ -672,10 +669,10 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     public void loginstatus(boolean wasOkay) throws RemoteException {
         Statics.isLoggedIn = wasOkay;
         if (wasOkay) {
-            UI.gamestate = UIHelpers.ONLINE;
+            UI.gamestate.set(UIHelpers.ONLINE);
             System.out.println("Logged in ok.");
         } else {
-            UI.gamestate = UIHelpers.OFFLINE;
+            UI.gamestate.set(UIHelpers.OFFLINE);
             System.out.println("Login failed.");
         }
     }
@@ -698,9 +695,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         lobbies = new ArrayList<>();
         lobbies.add("1:osten");
         lobbies.add("2:karl");
-        if (!gameSelection.isVisible()) {
-            gameSelection.setVisible(true);
-        }
+        gameSelection.setVisible(true);
         if (lobbies != null) {
             if (lobbies.isEmpty()) {
                 UIHelpers.messageDialog("No free lobbies found", user);
@@ -731,7 +726,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
     @Override
     public void setLobbyID(int lobbyID) throws RemoteException {
-        UI.lobbyID = lobbyID;
+        UI.lobbyID.set(lobbyID);
         System.out.println("Lobby id updated from server : " + lobbyID);
     }
 
@@ -814,7 +809,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             } else {
                 try {
                     /* user is fireing at the opponent!!! */
-                    game.fireShot(UI.getInstance(), UI.lobbyID, UI.me.getId(), x, y);
+                    game.fireShot(UI.getInstance(), UI.lobbyID.get(), UI.me.getId(), x, y);
                 } catch (RemoteException ex) {
                     Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -852,9 +847,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
                         ready = 0;
 
-                        if (!gameSelection.isVisible()) {
-                            gameSelection.setVisible(true);
-                        }
+                        gameSelection.setVisible(true);
                         try {
                             game.requestFreeLobbies(UI.getInstance());
                         } catch (RemoteException ex) {
@@ -925,10 +918,10 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             if (UIHelpers.confirmDialog("Are you sure you would like to deploy your ships?", "Deploy Ships?") == 0) {
                 try {
                     System.out.println("The player to deploy : " + me.getName());
-                    gamestate = UIHelpers.WAITING;
+                    gamestate.set(UIHelpers.WAITING);
                     handleState();
                     System.out.println("Deploying : " + me.getShips().toString());
-                    game.deployShips(UI.getInstance(), lobbyID, me);
+                    game.deployShips(UI.getInstance(), lobbyID.get(), me);
                 } catch (RemoteException ex) {
                     Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
                 }

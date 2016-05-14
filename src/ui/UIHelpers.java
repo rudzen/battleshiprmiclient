@@ -47,12 +47,12 @@ public final class UIHelpers {
         REMOVE, ADD, SUNK
     }
 
-    public static final byte OFFLINE = 0;
-    public static final byte ONLINE = 1;
-    public static final byte PLACEMENT = 2;
-    public static final byte PLACED = 3;
-    public static final byte PLAYING = 4;
-    public static final byte WAITING = 5;
+    public static final int OFFLINE = 0;
+    public static final int ONLINE = 1;
+    public static final int PLACEMENT = 2;
+    public static final int PLACED = 3;
+    public static final int PLAYING = 4;
+    public static final int WAITING = 5;
 
     /**
      * Convert selected combobox direction to internat data structure.

@@ -61,6 +61,9 @@ public class GameSelection extends JFrame {
      */
     private final JList<String> list = new JList<>();
 
+    private final JPanel listPanel = new JPanel();
+    
+    
     /**
      * The model to hold the strings
      */
@@ -87,18 +90,19 @@ public class GameSelection extends JFrame {
      */
     @SuppressWarnings("OverridableMethodCallInConstructor")
     public GameSelection() {
+        
         setTitle("Current lobbys to join");
         setResizable(false);
         setModalExclusionType(ModalExclusionType.APPLICATION_EXCLUDE);
         setIconImage(Toolkit.getDefaultToolkit().getImage(GameSelection.class.getResource("/com/sun/java/swing/plaf/windows/icons/Question.gif")));
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         setBounds(100, 100, 380, 290);
+        
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
 
         list.setModel(listModel);
-
         list.setToolTipText("Current lobbys available");
         list.setBorder(new SoftBevelBorder(BevelBorder.RAISED, null, null, null, null));
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
