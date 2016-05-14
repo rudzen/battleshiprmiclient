@@ -64,17 +64,6 @@ public final class LoginDialog extends JDialog {
         private static final LoginDialog INSTANCE = new LoginDialog();
     }
 
-//    public static JDialog login(final UI ui) {
-//        try {
-//            LoginDialog dialog = new LoginDialog(ui);
-//            dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-//            dialog.setVisible(true);
-//            return dialog;
-//        } catch (Exception e) {
-//        }
-//        return null;
-//    }
-
     @SuppressWarnings("OverridableMethodCallInConstructor")
     public LoginDialog() {
         super();
@@ -145,7 +134,7 @@ public final class LoginDialog extends JDialog {
 
         @Override
         public void keyTyped(KeyEvent e) {
-            okButton.setEnabled(!textField.getText().trim().isEmpty());
+            okButton.setEnabled(!textField.getText().trim().isEmpty() && !(new String(passwordField.getPassword())).isEmpty());
         }
 
         @Override

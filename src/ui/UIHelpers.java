@@ -97,42 +97,7 @@ public final class UIHelpers {
             }
         }
         return true;
-//        if (s.isPlaced()) {
-//            if (s.getDirection() == Ship.DIRECTION.HORIZONTAL) {
-//                if (x + s.getLength() > 10) {
-//                    return false;
-//                }
-//            } else {
-//                if (y + s.getLength() > 10) {
-//                    return false;
-//                }
-//            }
-//        }
-//        return true;
     }
-
-//    private static boolean validate(final int x, final int y, final Ship s) {
-//        int hit = 0;
-//        if (s.getDirection() == Ship.DIRECTION.HORIZONTAL) {
-////            if (s.getLocStart().y != y) {
-////                return true;
-////            }
-//            if (s.getLocStart().x > x || s.getLocStart().x + s.getLength() - 1 < x) {
-//                return true;
-//            }
-//            hit = hit | (1 << (x - s.getLocStart().x));
-//        } else {
-////            if (s.getLocStart().x != x) {
-////                return true;
-////            }
-//            if (s.getLocStart().y > y || s.getLocStart().y + s.getLength() - 1 < y) {
-//                return true;
-//            }
-//            hit = hit | (1 << (y - s.getLocStart().y));
-//        }
-//        System.out.println(hit);
-//        return hit > 0;
-//    }
 
     public static String getPlayerName() {
         String daName = inputDialog("Please enter your name.", "Enter name.");
