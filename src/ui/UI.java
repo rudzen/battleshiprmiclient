@@ -189,8 +189,8 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         super();
         java.awt.EventQueue.invokeLater(() -> {
             output = new Output();
-            output.setVisible(true);
             Output.redirectSystemStreams(true, output);
+            output.setVisible(true);
         });
 
         try {

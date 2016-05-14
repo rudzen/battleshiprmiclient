@@ -29,8 +29,16 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 /**
+ * Console replacement class for System.out and System.err<br>
+ * <p>
+ * Example usage :<br>
+ * <code>java.awt.EventQueue.invokeLater(() -> {<br>
+ * output = new Output();<br>
+ * Output.redirectSystemStreams(true, output);<br>
+ * output.setVisible(true);<br>
+ * });</code>
  *
- * @author Rudy Alex Kohn <s133235@student.dtu.dk>
+ * @author Rudy Alex Kohn (s133235@student.dtu.dk)
  */
 public class Output {
 
@@ -45,9 +53,9 @@ public class Output {
     public Output() {
         /* configure the listmodel */
         listModel = new DefaultListModel();
-        listModel.addElement(String.format("%sStart.", getTimeString()));
+        //listModel.addElement(String.format("%sStart.", getTimeString()));
         rowList.setModel(listModel);
-        
+
         /* configure listrow */
         rowList.setVisibleRowCount(10); // default set to 10!
         listScrollPane.setViewportView(rowList);
@@ -55,7 +63,7 @@ public class Output {
         /* configure panel */
         panel.setLayout(new BorderLayout());
         panel.add(listScrollPane);
-        
+
         /* configure frame (window) */
         frame.add(panel);
         frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
@@ -67,10 +75,19 @@ public class Output {
         frame.setVisible(true);
     }
 
+    /**
+     * Change the visibility of the classes frame
+     * @param value If true, frame will be set to visible, otherwise it will be hidden
+     */
     public void setVisible(final boolean value) {
         frame.setVisible(value);
     }
-    
+
+    /**
+     * Adds a string to the output display, if needed, just cast the output to String
+     *
+     * @param text The string to add to output
+     */
     public void addToList(final String text) {
         if (!"".equals(text.trim())) {
             try {
@@ -91,6 +108,14 @@ public class Output {
         return SDF.format(cal.getTime());
     }
 
+    /**
+     * Will effectively take over the System.out and System.err streams.
+     *
+     * @param enableRedirect If true, takeover thy will be done, false sets
+     * default
+     * @param output The output object that contains the functionality to
+     * display the text
+     */
     public static void redirectSystemStreams(final boolean enableRedirect, final Output output) {
         if (enableRedirect) {
             final OutputStream out = new OutputStream() {
@@ -116,5 +141,4 @@ public class Output {
             System.setErr(System.err);
         }
     }
-
 }
