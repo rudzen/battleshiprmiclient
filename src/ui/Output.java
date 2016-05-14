@@ -57,6 +57,7 @@ public class Output {
         rowList.setModel(listModel);
 
         /* configure listrow */
+        rowList.setFont(new java.awt.Font("Courier New", 0, 10));
         rowList.setVisibleRowCount(10); // default set to 10!
         listScrollPane.setViewportView(rowList);
 
@@ -69,8 +70,7 @@ public class Output {
         frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         frame.setResizable(true);
         frame.setLocationByPlatform(true);
-        frame.setTitle("System.out.takeover :: by Rudy Alex Kohn (s133235)");
-        frame.setFont(new java.awt.Font("Dialog", 0, 10));
+        frame.setTitle("System.out.err.output :: by Rudy Alex Kohn (s133235)");
         frame.pack();
         frame.setVisible(true);
     }
