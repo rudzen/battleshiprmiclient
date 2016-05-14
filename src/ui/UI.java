@@ -302,7 +302,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    game.requestAllLobbies(UI.getInstance());
+                    game.requestAllLobbies(UI.getInstance(), me.getId());
                 } catch (RemoteException ex) {
                     Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -593,7 +593,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
                     me.initShips();
                 }
                 LoginDialog.closeThis(loginDialog);
-                game.registerClient(this, name);
+                game.registerClient(UI.getInstance(), name);
                 game.login(UI.getInstance(), name, pw);
                 //game.requestFreeLobbies(this);
 
@@ -673,6 +673,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     public void setPlayer(Player player) throws RemoteException {
         me = player;
         System.out.println("Player update from server -> " + me.getId() + " : " + me.getName());
+        mainFrame.setTitle("Battleship : " + me.getId() + " : " + me.getName());
     }
 
     @Override
@@ -893,7 +894,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
                         gameSelection.setVisible(true);
                         try {
-                            game.requestFreeLobbies(UI.getInstance());
+                            game.requestFreeLobbies(UI.getInstance(), me.getId());
                         } catch (RemoteException ex) {
                             Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
                         }

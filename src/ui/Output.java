@@ -16,6 +16,7 @@
 package ui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -58,11 +59,12 @@ public class Output {
 
         /* configure listrow */
         rowList.setFont(new java.awt.Font("Courier New", 0, 10));
-        rowList.setVisibleRowCount(10); // default set to 10!
+        rowList.setVisibleRowCount(20); // default set to 20!
         listScrollPane.setViewportView(rowList);
 
         /* configure panel */
         panel.setLayout(new BorderLayout());
+        panel.setSize(800, 400);
         panel.add(listScrollPane);
 
         /* configure frame (window) */
@@ -71,7 +73,6 @@ public class Output {
         frame.setResizable(true);
         frame.setLocationByPlatform(true);
         frame.setTitle("System.out.err.output :: by Rudy Alex Kohn (s133235)");
-        frame.setSize(500, 300);
         frame.pack();
         frame.setVisible(true);
     }

@@ -26,6 +26,7 @@ package dataobjects;
 import dataobjects.Upgrades.UPGRADES;
 import java.awt.Point;
 import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * Basic ship class, it defines what ship type it is, and what else there is to
@@ -364,6 +365,6 @@ public class Ship implements Serializable {
 
     @Override
     public String toString() {
-        return "Ship{" + "type=" + type + ", horizontal=" + horizontal + ", upgrades=" + upgrades + ", startX=" + startX + ", startY=" + startY + ", endX=" + endX + ", endY=" + endY + ", length=" + length + ", life=" + life + ", hasUpgrade=" + hasUpgrade + ", hits=" + hits + ", location=" + location + ", isPlaced=" + isPlaced + '}';
+        return "Ship{" + "type=" + type + ", horizontal=" + horizontal + ", upgrades=" + upgrades + ", startX=" + startX + ", startY=" + startY + ", endX=" + endX + ", endY=" + endY + ", length=" + length + ", life=" + life + ", hasUpgrade=" + hasUpgrade + ", hits=" + Arrays.toString(hits) + ", location=" + Arrays.toString(location) + ", isPlaced=" + isPlaced + '}';
     }
 }

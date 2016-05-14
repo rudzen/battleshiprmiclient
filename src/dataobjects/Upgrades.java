@@ -74,6 +74,7 @@ public class Upgrades implements Serializable {
      * @param armor The armor
      * @param sonar The sonar
      * @param power The power
+     * @param decoy The decoy
      */
     public Upgrades(final int armor, final int sonar, final int power, final int decoy) {
         this.armor = armor;

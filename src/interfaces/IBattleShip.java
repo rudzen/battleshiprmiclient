@@ -182,20 +182,22 @@ public interface IBattleShip extends Remote {
     boolean messageOpponent(String title, String message) throws RemoteException;
 
     /**
-     * Request the opponent information object.
+     * Request the other player currently on the server
      *
-     * @param client
+     * @param client The client
+     * @param playerID The playerID (for filtering)
      * @throws RemoteException If server is unreachable
      */
-    void requestOtherPlayer(IClientListener client) throws RemoteException;
+    void requestOtherPlayers(final IClientListener client, final int playerID) throws RemoteException;
 
     /**
      * Request free lobbies (lobbies with just one player) from the server.
      *
-     * @param client ME!
+     * @param client The client requesting the free lobbies
+     * @param playerID The playerID requesting the free lobbies (for filtering)
      * @throws RemoteException If server is unreachable
      */
-    void requestFreeLobbies(IClientListener client) throws RemoteException;
+    void requestFreeLobbies(final IClientListener client, final int playerID) throws RemoteException;
 
     /**
      * Request that the server sends a new lobbyID
@@ -236,8 +238,9 @@ public interface IBattleShip extends Remote {
     /**
      * Request all lobbies from the server
      * @param client The client
+     * @param playerID The playerID
      * @throws RemoteException If server is unreachable
      */
-    void requestAllLobbies(IClientListener client) throws RemoteException;
+    void requestAllLobbies(IClientListener client, int playerID) throws RemoteException;
 
 }
