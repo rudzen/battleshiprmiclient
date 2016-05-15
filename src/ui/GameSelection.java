@@ -20,6 +20,7 @@ package ui;
  *
  * @author Rudy Alex Kohn s133235@student.dtu.dk
  */
+import java.awt.BorderLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -37,6 +38,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
 
 /**
  * GameSelection class, does nothing more than showing the lobbies and offers
@@ -61,8 +63,6 @@ public class GameSelection extends JFrame {
      */
     private final JList<String> list = new JList<>();
 
-    private final JPanel listPanel = new JPanel();
-    
     
     /**
      * The model to hold the strings
@@ -102,6 +102,7 @@ public class GameSelection extends JFrame {
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
 
+        
         list.setModel(listModel);
         list.setToolTipText("Current lobbys available");
         list.setBorder(new SoftBevelBorder(BevelBorder.RAISED, null, null, null, null));

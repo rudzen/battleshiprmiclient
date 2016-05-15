@@ -80,11 +80,11 @@ public class Player implements Serializable {
 
     public void initShips() {
         ships.clear();
-        ships.add(new Ship(-1, -1, Ship.TYPE.CARRIER, false));
-        ships.add(new Ship(-1, -1, Ship.TYPE.CRUISER, false));
-        ships.add(new Ship(-1, -1, Ship.TYPE.DESTROYER, false));
+        ships.add(new Ship(-1, -1, Ship.TYPE.AIRCRAFT_CARRIER, false));
+        ships.add(new Ship(-1, -1, Ship.TYPE.BATTLESHIP, false));
         ships.add(new Ship(-1, -1, Ship.TYPE.SUBMARINE, false));
-        ships.add(new Ship(-1, -1, Ship.TYPE.PATROL, false));
+        ships.add(new Ship(-1, -1, Ship.TYPE.DESTROYER, false));
+        ships.add(new Ship(-1, -1, Ship.TYPE.PATROL_BOAT, false));
         ships.stream().map((s) -> {
             s.setIsPlaced(false);
             return s;

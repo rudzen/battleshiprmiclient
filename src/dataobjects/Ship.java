@@ -52,7 +52,7 @@ public class Ship implements Serializable {
      * Carrier = 5 length
      */
     public enum TYPE {
-        PATROL, DESTROYER, SUBMARINE, CRUISER, CARRIER
+        AIRCRAFT_CARRIER, BATTLESHIP, SUBMARINE, DESTROYER, PATROL_BOAT
     }
 
     /**
@@ -224,9 +224,9 @@ public class Ship implements Serializable {
         final int returnValue;
         if (type == TYPE.DESTROYER || type == TYPE.SUBMARINE) {
             returnValue = 3;
-        } else if (type == TYPE.CARRIER) {
+        } else if (type == TYPE.AIRCRAFT_CARRIER) {
             returnValue = 5;
-        } else if (type == TYPE.CRUISER) {
+        } else if (type == TYPE.BATTLESHIP) {
             returnValue = 4;
         } else { // patrol boat
             returnValue = 2;
@@ -240,13 +240,13 @@ public class Ship implements Serializable {
      * @return The string name of the ship
      */
     public String getShipType() {
-        if (type == TYPE.CARRIER) {
+        if (type == TYPE.AIRCRAFT_CARRIER) {
             return shipnames[0];
-        } else if (type == TYPE.DESTROYER) {
+        } else if (type == TYPE.BATTLESHIP) {
             return shipnames[1];
         } else if (type == TYPE.SUBMARINE) {
             return shipnames[2];
-        } else if (type == TYPE.CRUISER) {
+        } else if (type == TYPE.DESTROYER) {
             return shipnames[3];
         } else { // patrol boat
             return shipnames[4];

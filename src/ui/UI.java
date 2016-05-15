@@ -44,7 +44,6 @@ import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import static javax.swing.JFrame.EXIT_ON_CLOSE;
 import javax.swing.JLabel;
@@ -112,7 +111,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     private static AtomicInteger lobbyID = new AtomicInteger(-1);
 
     /* UI Stuff */
-    private JDialog loginDialog;
+    private LoginDialog2 loginDialog;
     private JFrame mainFrame;
     private Output output;
     public GameSelection gameSelection;
@@ -220,6 +219,8 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             Output.redirectSystemStreams(true, output);
             output.setVisible(true);
         });
+
+        loginDialog = LoginDialog2.getInstance();
 
         try {
             gameSelection = new Callable<GameSelection>() {
@@ -646,7 +647,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
                     me = new Player(name);
                     me.initShips();
                 }
-                LoginDialog.closeThis(loginDialog);
+                LoginDialog2.closeThis(loginDialog);
                 game.registerClient(UI.getInstance(), name);
                 game.login(UI.getInstance(), name, pw);
                 //game.requestFreeLobbies(this);
@@ -675,8 +676,12 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
     @Override
     public void canPlay(boolean canPlay) throws RemoteException {
+        /* stands apart because its atomic */
         gamestate.set(canPlay ? UIHelpers.PLAYING : UIHelpers.WAITING);
         handleState();
+        if (!canPlay) {
+            game.wait(UI.getInstance(), lobbyID.get(), me.getId());
+        }
     }
 
     @Override
@@ -794,6 +799,22 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         System.out.println("Server said hello.");
     }
 
+    @Override
+    public void deployed(boolean succes, boolean ready, String opponent) throws RemoteException {
+        if (succes && ready) {
+            gamestate.set(UIHelpers.PLAYING);
+            other.setName(opponent);
+            initGame();
+            UIHelpers.messageDialog("Ships deployed correctly, all players have deployed for lobby " + Integer.toString(lobbyID.get()), "Board deployment");
+        } else if (!succes && !ready) {
+            gamestate.set(UIHelpers.PLACEMENT);
+            UIHelpers.messageDialog("Board deployment failed, but other player hasnt deployed yet", "Board deployment", JOptionPane.ERROR_MESSAGE);
+        } else if (succes && !ready) {
+            UIHelpers.messageDialog("Board deployed correctly, but other player hasn't deployed yet!", "Board deployment");
+        }
+        handleState();
+    }
+
     public static void createLobby() {
         try {
             UI.getInstance().game.requestLobbyID(UI.getInstance(), me.getId());
@@ -843,6 +864,19 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         mainFrame.setTitle("Battleship: " + me.getName() + " (" + Integer.toString(me.getId()) + ") : " + Integer.toString(lobbyID.get()));
     }
 
+    private void fire(final int x, final int y) {
+        colorBlock(x, y, Color.BLACK, true);
+        try {
+            canPlay(false);
+            /* fire shot, the server will set the playable state of the client once opponent has fired as well */
+            game.fireShot(UI.getInstance(), lobbyID.get(), me.getId(), x, y);
+        } catch (RemoteException ex) {
+            Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
+            UIHelpers.messageDialog("Fatal error", "Exiting");
+            System.exit(0);
+        }
+    }
+
     public static String getCletters(int i) {
         return cletters[i];
     }
@@ -871,10 +905,11 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         @Override
         public void actionPerformed(ActionEvent v) {
 
-            //System.out.println("Clicked on : x=" + x + " y=" + y);
-            if (ready == 0) {
-                // we are in construction faze
+            if (gamestate.get() == UIHelpers.PLAYING) {
+                fire(x, y);
+            } else if (gamestate.get() != UIHelpers.PLACED && gamestate.get() != UIHelpers.PLAYING && gamestate.get() != UIHelpers.WAITING) {
 
+                // we are in construction faze
                 Ship s = me.getShip(index_ship);
 
                 if (UIHelpers.isValidPos(x, y, s, me, UIHelpers.getSelectedDirection(index_direction))) {
@@ -895,14 +930,6 @@ public class UI extends UnicastRemoteObject implements IClientListener {
                     deploy.setEnabled(ok);
                 } else {
                     UIHelpers.messageDialog("Unable to place the selected ship at this location.", "Error");
-                }
-
-            } else {
-                try {
-                    /* user is fireing at the opponent!!! */
-                    game.fireShot(UI.getInstance(), UI.lobbyID.get(), UI.me.getId(), x, y);
-                } catch (RemoteException ex) {
-                    Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         }
@@ -1044,9 +1071,9 @@ public class UI extends UnicastRemoteObject implements IClientListener {
                 } else {
                     // TODO : Move this entire bullcrap to the login dialog and implement observer.
                     java.awt.EventQueue.invokeLater(() -> {
-                        loginDialog = LoginDialog.getInstance();
-                        loginDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-                        loginDialog.setVisible(true);
+                        if (!loginDialog.isVisible()) {
+                            loginDialog.setVisible(true);
+                        }
                     });
                 }
             }
