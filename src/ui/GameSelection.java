@@ -170,6 +170,11 @@ public class GameSelection extends JFrame {
         }
     }
 
+    
+    public void clearAll() {
+        listModel.clear();
+    }
+    
     /**
      * Clears the list of lobbys and hides the window
      */

@@ -51,7 +51,8 @@ public class Battleship {
         if (args.length >= 1) {
             registry = args[0];
         } else {
-            //registry = "212.60.120.4";
+            //registry = "212.60.120.4"; // own ip // port - 2158
+            //registry = "130.226.195.22"; // studentermaskine //registry = "ubuntu4.javabog.dk";
             registry = "localhost";
         }
 
@@ -73,6 +74,8 @@ public class Battleship {
         ClientTwoWaySocketFactory fac = null;
         try {
 
+            int port = 6769;
+            
             if (System.getSecurityManager() == null) {
                 System.setSecurityManager(new SecurityManager());
             }
@@ -80,24 +83,25 @@ public class Battleship {
             /* configure custom socket interface for RMI */
             fac = new ClientTwoWaySocketFactory();
             RMISocketFactory.setSocketFactory(fac);
-            fac.establishSignallingChannel(registry, 6769);
+            fac.establishSignallingChannel(registry, port);
 
             /* Lookup the service in the registry, and obtain a remote service */
-            Remote server = Naming.lookup("rmi://" + registry + ":6769/Battleship");
+            Remote server = Naming.lookup("rmi://" + registry + ":" + Integer.toString(port) + "/Battleship");
             game = (IBattleShip) server;
 
-            UI.setInstance(new UI(game));
+            UI.setInstance(new UI(game, port));
 
         } catch (final RemoteException re) {
-            UIHelpers.messageDialog("RMI Error - RemoteException()\n" + re.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            System.err.println("RMI Error - RemoteException()\n" + re.getMessage());
             Logger.getLogger(Battleship.class.getName()).log(Level.SEVERE, null, re);
         } catch (final NotBoundException ex) {
-            UIHelpers.messageDialog("No game server available - NotBountException()", "Error", JOptionPane.ERROR_MESSAGE);
+            System.err.println("No game server available - NotBountException()");
             Logger.getLogger(Battleship.class.getName()).log(Level.SEVERE, null, ex);
         } catch (final MalformedURLException ex) {
-            UIHelpers.messageDialog("No game server available - MalformedURLException()", "Error", JOptionPane.ERROR_MESSAGE);
+            System.err.println("No game server available - MalformedURLException()");
             Logger.getLogger(Battleship.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
+            System.err.println("I/O error - IOException()");
             Logger.getLogger(Battleship.class.getName()).log(Level.SEVERE, null, ex);
         }
 

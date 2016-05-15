@@ -35,7 +35,6 @@ import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.rmi.RemoteException;
-import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
@@ -169,6 +168,27 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     /* the game type */
     private static JMenuItem pvp;
 
+    private static class DebugMenus {
+
+        public JMenu debug;
+        public JMenuItem ping;
+        public JMenuItem showAllLobbies;
+        public JMenuItem add1Klobbies;
+    }
+
+    private static class Menus {
+
+        public JMenu menu;
+        public JMenuBar menuBar;
+        public JMenuItem showFreeLobbies;
+        public JMenuItem login;
+        public JMenuItem options;
+        public JMenuItem exit;
+    }
+
+    private DebugMenus debugMenus = new DebugMenus();
+    private Menus menus = new Menus();
+
     /* is game ready to receive next action from human player?
      0 = in deployment mode
      1 = game in progress, this players turn
@@ -193,8 +213,8 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     /* this is just to save time! */
     private static String user;
 
-    public UI(final IBattleShip game) throws RemoteException {
-        super(Registry.REGISTRY_PORT);
+    public UI(final IBattleShip game, final int registryPort) throws RemoteException {
+        super();
         java.awt.EventQueue.invokeLater(() -> {
             output = new Output();
             Output.redirectSystemStreams(true, output);
@@ -214,19 +234,14 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
         this.game = game;
 
-        handleState();
-
         me = new Player("User" + Double.toString(Math.random() * 10)); // temporary Player object as player hasnt logged in yet
         me.initShips();
 
         game.registerClient(this, me.getName());
         setupUI();
 
-    }
+        handleState();
 
-    public UI(final IBattleShip game, final Player me) throws RemoteException {
-        this(game);
-        UI.me = me;
     }
 
     /**
@@ -234,7 +249,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
      */
     private void setupUI() {
 
-        mainFrame = new JFrame("Battleship");
+        mainFrame = new JFrame("Battleship - Not logged in.");
 
         /* set up the buttons */
         for (int k = 0; k < ownButtons.length; k++) {
@@ -250,7 +265,8 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
         //setTitle("Battleship");
         mainFrame.setDefaultCloseOperation(EXIT_ON_CLOSE);
-        mainFrame.setJMenuBar(createMenuBar());
+        menus.menuBar = createMenuBar();
+        mainFrame.setJMenuBar(menus.menuBar);
         mainFrame.setResizable(false);
 
         b = mainFrame.getContentPane();
@@ -260,8 +276,6 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         inputpanel = shipinput();
         d.add(inputpanel, BorderLayout.NORTH);
 
-        //statusBar = new JPanel();
-        //d.add(statusBar);
         mainFrame.pack();
         mainFrame.setVisible(true);
     }
@@ -272,63 +286,70 @@ public class UI extends UnicastRemoteObject implements IClientListener {
      * @return The menu bar which was created.
      */
     private JMenuBar createMenuBar() {
-        JMenu menu = new JMenu("Game");
+
+        menus.menu = new JMenu("Game");
         JMenuBar menuBar = new JMenuBar();
-        menuBar.add(menu);
+        menuBar.add(menus.menu);
 
-        JMenuItem m = new JMenu("New Game");
-        menu.add(m);
-
-        /* submenu of new game */
-        pvp = new JMenuItem("Player vs. Player");
-        pvp.addActionListener(new GameListener());
-        m.add(pvp);
-
-        /* debug sub-menu */
-        JMenu debug = new JMenu("Debug");
-        m = new JMenuItem("Show all player IDs");
-        m.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    game.requestAllPlayerIDs(UI.getInstance());
-                } catch (RemoteException ex) {
-                    Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
-                }
+        /* ********** BEGIN DEBUG MENUS *********************/
+        debugMenus.debug = new JMenu("Debug");
+        debugMenus.showAllLobbies = new JMenuItem("Show all lobbies");
+        debugMenus.showAllLobbies.addActionListener((ActionEvent e) -> {
+            try {
+                game.requestAllPlayerIDs(UI.getInstance());
+            } catch (RemoteException ex) {
+                Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
-        debug.add(m);
-        m = new JMenuItem("GetLobbys");
-        m.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    game.requestAllLobbies(UI.getInstance(), me.getId());
-                } catch (RemoteException ex) {
-                    Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
+
+        debugMenus.ping = new JMenuItem("Get RMI Server Latency");
+        debugMenus.ping.addActionListener(new PingListener());
+
+        debugMenus.add1Klobbies = new JMenuItem("Create 1000 random lobbies");
+        debugMenus.add1Klobbies.addActionListener((ActionEvent e) -> {
+            try {
+                if (UIHelpers.confirmDialog("Sure to add 1k lobbies? This might cause issues :)", "DEBUG: Add 1k lobbies") == 0) {
+                    game.debug_CreateLobbies(UI.getInstance(), 1000);
                 }
+            } catch (RemoteException ex) {
+                Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
-        debug.add(m);
 
-        m = new JMenuItem("Ping RMI server");
-        m.addActionListener(new PingListener());
-        debug.add(m);
+        debugMenus.debug.add(debugMenus.ping);
+        debugMenus.debug.add(debugMenus.showAllLobbies);
+        debugMenus.debug.add(debugMenus.add1Klobbies);
+        menus.menu.add(debugMenus.debug);
+        /* ********** END OF DEBUG MENUS  *******************/
 
-        menu.add(debug);
+ /* ********** BEGIN REGULAR MENUS *******************/
+        menus.showFreeLobbies = new JMenuItem("Get Free Lobbies");
+        menus.showFreeLobbies.addActionListener((ActionEvent e) -> {
+            try {
+                game.requestFreeLobbies(UI.getInstance(), me.getId());
+            } catch (RemoteException ex) {
+                Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
 
-        /* regular menu */
-        m = new JMenuItem(Statics.isLoggedIn ? "Logout" : "Login");
-        m.addActionListener(new LoginListener());
-        menu.add(m);
+        menus.login = new JMenuItem("Login");
+        menus.login.addActionListener(new LoginListener());
 
-        m = new JMenuItem("Options");
-        m.addActionListener(new OptionsListener());
-        menu.add(m);
+        menus.options = new JMenuItem("Options");
+        menus.options.addActionListener(new OptionsListener());
 
-        m = new JMenuItem("Exit");
-        m.addActionListener(new ExitListener());
-        menu.add(m);
+        menus.exit = new JMenuItem("Exit");
+        menus.exit.addActionListener(new ExitListener());
+
+        if (debugMenus.debug != null) {
+            menus.menu.addSeparator();
+        }
+        menus.menu.add(menus.login);
+        menus.menu.add(menus.showFreeLobbies);
+        menus.menu.add(menus.options);
+        menus.menu.addSeparator();
+        menus.menu.add(menus.exit);
+
         return menuBar;
     }
 
@@ -413,30 +434,42 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         c.removeAll();
         d.removeAll();
         me = new Player(user);
-
         b.add(setBoard(0), BorderLayout.CENTER);
         inputpanel = shipinput();
         d.add(UI.inputpanel, BorderLayout.NORTH);
+        gamestate.set(UIHelpers.ONLINE);
     }
 
     /**
      * configures the UI depending on the current state
      */
-    private static void handleState() {
+    private void handleState() {
         if (gamestate.get() == UIHelpers.OFFLINE) {
-            // disable everything except relevant menus
+            menus.showFreeLobbies.setEnabled(false);
+            menus.login.setText("Login");
+            deploy.setEnabled(false);
         } else if (gamestate.get() == UIHelpers.ONLINE) {
-            // enable all menus, disable everything else
+            menus.showFreeLobbies.setEnabled(true);
+            menus.login.setText("Logout");
+            deploy.setEnabled(false);
         } else if (gamestate.get() == UIHelpers.PLACEMENT) {
-            // disable everything except menu and placement field
+            deploy.setEnabled(false);
+            menus.login.setText("Logout");
         } else if (gamestate.get() == UIHelpers.PLACED) {
-            // enable the deployment button
+            deploy.setEnabled(true);
         } else if (gamestate.get() == UIHelpers.PLAYING) {
-            // enable both player fields and set UI
+            setButtonsEnabled(ownButtons, true);
         } else if (gamestate.get() == UIHelpers.WAITING) {
-            // user is waiting for opponent
+            setButtonsEnabled(ownButtons, false);
         }
+    }
 
+    private static void setButtonsEnabled(final JButton[][] buttons, final boolean value) {
+        for (int i = 0; i < 10; i++) {
+            for (final JButton j : buttons[i]) {
+                j.setEnabled(value);
+            }
+        }
     }
 
     private void drawBoard(int[][] board, int fieldIndex) throws RemoteException {
@@ -510,13 +543,35 @@ public class UI extends UnicastRemoteObject implements IClientListener {
      * @param s The ship to draw
      * @param col The colour to draw it with (null will remove)
      */
-    private static void colorShip(final int x, final int y, final Ship s, final Color col) {
-        System.out.println("Ship colouring @ : " + new Point(x, y));
+    private static void colorShip(final int x, final int y, final Ship s, final Color col, final int fieldIndex) {
+        System.out.println("Ship colouring @ : " + x + ", " + y + " @ " + fieldIndex);
         Point[] p = s.getLocation();
         if (p[0].x > -1) {
-            for (Point p1 : p) {
-                ownButtons[p1.y][p1.x].setBackground(col);
+            if (fieldIndex == 0) {
+                for (Point p1 : p) {
+                    ownButtons[p1.y][p1.x].setBackground(col);
+                }
+            } else {
+                for (Point p1 : p) {
+                    oppButtons[p1.y][p1.x].setBackground(col);
+                }
             }
+        }
+    }
+
+    /**
+     * Colours a single block (button) on the playing field
+     *
+     * @param x The X
+     * @param y The Y
+     * @param col The colour
+     * @param left true = left are, false = right area.
+     */
+    private static void colorBlock(final int x, final int y, final Color col, final boolean left) {
+        if (left) {
+            ownButtons[y][x].setBackground(col);
+        } else {
+            oppButtons[y][x].setBackground(col);
         }
     }
 
@@ -530,7 +585,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     private static void handleShip(final int x, final int y, final int fieldIndex, final Ship s, final UIHelpers.SHIP_PLACE place) {
 
         // clear the ship
-        colorShip(x, y, s, Color.GRAY);
+        colorShip(x, y, s, Color.GRAY, fieldIndex);
 
         System.out.println("Ship placement at : [" + x + ", " + y + "] lenght = " + s.getLength());
 
@@ -562,7 +617,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             s.setLocation(newLoc);
 
             /* re-draw the ship with the new coordinated */
-            colorShip(x, y, s, Color.YELLOW);
+            colorShip(x, y, s, Color.YELLOW, 0);
 
             s.setIsPlaced(true);
 
@@ -656,6 +711,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     public void playerList(ArrayList<String> players) throws RemoteException {
         if (players != null && !players.isEmpty()) {
             gameSelection.setVisible(true);
+            gameSelection.clearAll();
             players.stream().forEach((s) -> {
                 gameSelection.addToList(s);
             });
@@ -704,18 +760,13 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
     @Override
     public void setFreeLobbies(ArrayList<String> lobbies) throws RemoteException {
-        lobbies = new ArrayList<>();
-        lobbies.add("1:osten");
-        lobbies.add("2:karl");
         gameSelection.setVisible(true);
-        if (lobbies != null) {
-            if (lobbies.isEmpty()) {
-                UIHelpers.messageDialog("No free lobbies found", user);
-            } else {
-                lobbies.stream().forEach((s) -> {
-                    gameSelection.addToList(s);
-                });
-            }
+        if (lobbies.isEmpty()) {
+            UIHelpers.messageDialog("No free lobbies found", user);
+        } else {
+            lobbies.stream().forEach((s) -> {
+                gameSelection.addToList(s);
+            });
         }
     }
 
@@ -724,9 +775,9 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         if (shipType == 0) {
             if (yourShip) {
                 UIHelpers.messageDialog("Your " + me.getShip(shipType).getShipType() + " has been sunk by " + other.getName(), "Ship sunk!!!!");
-                colorShip(me.getShip(shipType).getStartX(), me.getShip(shipType).getStartY(), me.getShip(shipType), Color.BLACK);
+                colorShip(me.getShip(shipType).getStartX(), me.getShip(shipType).getStartY(), me.getShip(shipType), Color.BLACK, 0);
             } else {
-                // TODO : Implement
+                UIHelpers.messageDialog("You sunk " + me.getShip(shipType).getShipType() + " belonging to " + other.getName() + " - good job!", "Ship sunk!!!!");
             }
         }
     }

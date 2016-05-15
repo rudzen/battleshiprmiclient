@@ -221,9 +221,11 @@ public interface IBattleShip extends Remote {
      * fired.
      *
      * @param client The client
+     * @param lobbyID The lobby to wait for opponent to finish his/hers move.
+     * @param playerID My player ID
      * @throws RemoteException If server is unreachable
      */
-    void wait(IClientListener client) throws RemoteException;
+    void wait(IClientListener client, int lobbyID, int playerID) throws RemoteException;
 
     /**
      * Attempts to join a specific lobby
@@ -243,4 +245,13 @@ public interface IBattleShip extends Remote {
      */
     void requestAllLobbies(IClientListener client, int playerID) throws RemoteException;
 
+    
+    /**
+     * Debug functionality to add X lobbies.
+     * @param client The client
+     * @param amount The amount of lobbies to create
+     * @throws RemoteException If server is unreachable
+     */
+    void debug_CreateLobbies(IClientListener client, int amount) throws RemoteException;
+    
 }
