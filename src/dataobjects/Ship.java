@@ -40,7 +40,10 @@ public class Ship implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-
+    public final static String[] shipnames = {
+        "Aircraft carrier", "Battleship", "Submarine", "Destroyer", "Patrol boat"
+    };
+    
     /**
      * The type of possible ship types.<br>
      * Patrol = 2 length<br>
@@ -238,15 +241,15 @@ public class Ship implements Serializable {
      */
     public String getShipType() {
         if (type == TYPE.CARRIER) {
-            return "Carrier";
+            return shipnames[0];
         } else if (type == TYPE.DESTROYER) {
-            return "Destroyer";
+            return shipnames[1];
         } else if (type == TYPE.SUBMARINE) {
-            return "Submarine";
+            return shipnames[2];
         } else if (type == TYPE.CRUISER) {
-            return "Cruiser";
+            return shipnames[3];
         } else { // patrol boat
-            return "Patrol boat";
+            return shipnames[4];
         }
     }
 

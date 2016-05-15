@@ -148,7 +148,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     /* arrays for combo boxes */
     private static final String[] cletters = {" ", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J"};
     private static final String[] cnumbers = {" ", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"};
-    private static final String[] ships = {"Carrier", "Cruiser", "Destroyer", "Submarine", "Patrol Boat"};
+    private static final String[] ships = {"Aircraft carrier", "Battleship", "Submarine", "Destroyer", "Patrol boat"};
     private static final String[] direction = {"Horizontal", "Vertical"};
 
     /* ships */
@@ -231,6 +231,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         } catch (Exception ex) {
             Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
         }
+        gameSelection.setVisible(true);
 
         this.game = game;
 
@@ -263,7 +264,6 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             }
         }
 
-        //setTitle("Battleship");
         mainFrame.setDefaultCloseOperation(EXIT_ON_CLOSE);
         menus.menuBar = createMenuBar();
         mainFrame.setJMenuBar(menus.menuBar);
@@ -444,17 +444,15 @@ public class UI extends UnicastRemoteObject implements IClientListener {
      * configures the UI depending on the current state
      */
     private void handleState() {
+        menus.showFreeLobbies.setEnabled(gamestate.get() != UIHelpers.OFFLINE);
+        menus.login.setText(gamestate.get() != UIHelpers.OFFLINE ? "Logout" : "Login");
+
         if (gamestate.get() == UIHelpers.OFFLINE) {
-            menus.showFreeLobbies.setEnabled(false);
-            menus.login.setText("Login");
             deploy.setEnabled(false);
         } else if (gamestate.get() == UIHelpers.ONLINE) {
-            menus.showFreeLobbies.setEnabled(true);
-            menus.login.setText("Logout");
             deploy.setEnabled(false);
         } else if (gamestate.get() == UIHelpers.PLACEMENT) {
             deploy.setEnabled(false);
-            menus.login.setText("Logout");
         } else if (gamestate.get() == UIHelpers.PLACED) {
             deploy.setEnabled(true);
         } else if (gamestate.get() == UIHelpers.PLAYING) {
@@ -731,7 +729,9 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         } else {
             me = player;
             System.out.println("Player updated from server -> " + me.getId() + " : " + me.getName());
-            mainFrame.setTitle("Battleship : " + me.getId() + " : " + me.getName());
+            gamestate.set(UIHelpers.PLACEMENT);
+            handleState();
+            setTitle();
         }
     }
 
@@ -785,6 +785,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     @Override
     public void setLobbyID(int lobbyID) throws RemoteException {
         UI.lobbyID.set(lobbyID);
+        setTitle();
         System.out.println("Lobby id updated from server : " + lobbyID);
     }
 
@@ -836,6 +837,10 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         mainFrame.pack();
 
         /* draw your ships on the RIGHT side */
+    }
+
+    private void setTitle() {
+        mainFrame.setTitle("Battleship: " + me.getName() + " (" + Integer.toString(me.getId()) + ") : " + Integer.toString(lobbyID.get()));
     }
 
     public static String getCletters(int i) {
@@ -1038,9 +1043,11 @@ public class UI extends UnicastRemoteObject implements IClientListener {
                     }
                 } else {
                     // TODO : Move this entire bullcrap to the login dialog and implement observer.
-                    loginDialog = LoginDialog.getInstance();
-                    loginDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-                    loginDialog.setVisible(true);
+                    java.awt.EventQueue.invokeLater(() -> {
+                        loginDialog = LoginDialog.getInstance();
+                        loginDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+                        loginDialog.setVisible(true);
+                    });
                 }
             }
         }
