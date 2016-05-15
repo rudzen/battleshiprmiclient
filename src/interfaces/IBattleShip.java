@@ -110,20 +110,13 @@ public interface IBattleShip extends Remote {
     void deployShips(final IClientListener client, final int lobbyID, final Player player) throws RemoteException;
 
     /**
-     * Requests a list of players currently available to play against.
-     *
-     * @param player This is my player name, do not send myself.
-     * @throws RemoteException If server is unreachable
-     */
-    void requestPlayers(String player) throws RemoteException;
-
-    /**
      * Updates the player that belongs to the client listener interface.
      *
-     * @param newPlayer The new player object
+     * @param client
+     * @param player The new player object
      * @throws RemoteException If server is unreachable
      */
-    void updatePlayer(String newPlayer) throws RemoteException;
+    void updatePlayer(IClientListener client, Player player) throws RemoteException;
 
     /**
      * Sends a message to all the other RMI clients.

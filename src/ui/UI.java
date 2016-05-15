@@ -662,7 +662,10 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     /* RMI callback methods */
     @Override
     public void shotFired(int x, int y, boolean hit) throws RemoteException {
-        ownButtons[x][y].setBackground(hit ? Color.YELLOW : Color.CYAN);
+        /* when this is called, it means that the player has received the shot from the opponent */
+        gamestate.set(UIHelpers.PLAYING);
+        handleState();
+        oppButtons[x][y].setBackground(hit ? Color.RED : Color.CYAN);
     }
 
     @Override
@@ -674,9 +677,8 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
     @Override
     public void canPlay(boolean canPlay) throws RemoteException {
-//        UI.boards[0].setEnabled(canPlay);
-//        UI.boards[1].setEnabled(canPlay);
-//        deploy.setEnabled(canPlay);
+        gamestate.set(canPlay ? UIHelpers.PLAYING : UIHelpers.WAITING);
+        handleState();
     }
 
     @Override
@@ -688,11 +690,6 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     public void opponentQuit() throws RemoteException {
         UIHelpers.messageDialog(other.getName() + " has left the game.", "Game is terminated", JOptionPane.ERROR_MESSAGE);
         UIHelpers.messageDialog("You have gained 0 points, but don't worry as " + other.getName() + " has lost points.", "Game is terminated", JOptionPane.ERROR_MESSAGE);
-    }
-
-    @Override
-    public void updateOpponent(String player) throws RemoteException {
-        other.setName(player);
     }
 
     @Override
@@ -727,10 +724,15 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     }
 
     @Override
-    public void setPlayer(Player player) throws RemoteException {
-        me = player;
-        System.out.println("Player update from server -> " + me.getId() + " : " + me.getName());
-        mainFrame.setTitle("Battleship : " + me.getId() + " : " + me.getName());
+    public void setPlayer(final Player player, final boolean opponent) throws RemoteException {
+        if (opponent) {
+            other = player;
+            System.out.println("Opponent updated from server -> " + other.getId() + " : " + other.getName());
+        } else {
+            me = player;
+            System.out.println("Player updated from server -> " + me.getId() + " : " + me.getName());
+            mainFrame.setTitle("Battleship : " + me.getId() + " : " + me.getName());
+        }
     }
 
     @Override
@@ -749,13 +751,6 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     public void updateSessionID(String newID) throws RemoteException {
         sessionID = newID;
         System.out.println("New session ID from server : " + sessionID);
-    }
-
-    @Override
-    public void setOtherPlayer(Player player) throws RemoteException {
-        other = player;
-        // TODO : Update player information on the UI
-        System.out.println("Other player updated from server : (name) " + player.getName() + " (id) " + player.getId());
     }
 
     @Override

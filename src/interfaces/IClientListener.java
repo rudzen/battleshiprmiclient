@@ -91,14 +91,6 @@ public interface IClientListener extends Remote {
     void opponentQuit() throws RemoteException;
 
     /**
-     * The client should update the information about the opponent
-     *
-     * @param player The opponent data object which contains the new information
-     * @throws RemoteException If client is unavailable
-     */
-    void updateOpponent(final String player) throws RemoteException;
-
-    /**
      * The client should update the playing field. This method is usually called
      * when the opponent has deployed.
      *
@@ -150,12 +142,13 @@ public interface IClientListener extends Remote {
     Player getPlayer() throws RemoteException;
 
     /**
-     * Sets the Player object on the client
+     * Sets the Player, either the client itself or the opponent, object on the client
      *
      * @param player The player object.
+     * @param opponent If true, the object belongs to the opponent.
      * @throws RemoteException If client is unavailable
      */
-    void setPlayer(Player player) throws RemoteException;
+    void setPlayer(Player player, boolean opponent) throws RemoteException;
 
     /**
      * Returns the status to the client about it's current login status.
@@ -172,14 +165,6 @@ public interface IClientListener extends Remote {
      * @throws RemoteException If client is unavailable
      */
     void updateSessionID(String newID) throws RemoteException;
-
-    /**
-     * Set the opponent player object (for name)
-     *
-     * @param player
-     * @throws RemoteException If client is unavailable
-     */
-    void setOtherPlayer(Player player) throws RemoteException;
 
     /**
      * If list contains at least one element, open a list box to let player
