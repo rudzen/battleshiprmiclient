@@ -57,9 +57,7 @@ import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import ui.Listeners.OptionsListener;
 import ui.Listeners.PingListener;
-import ui.lobbylistener.Constants;
 import ui.lobbylistener.LobbyLister;
-import static ui.lobbylistener.LobbyLister.setLookAndFeel;
 import utility.Statics;
 
 /**
@@ -116,7 +114,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
     /* UI Stuff */
     private LoginDialog2 loginDialog;
-    private JFrame mainFrame;
+    public JFrame mainFrame;
     private Output output;
     public LobbyLister gameSelection;
 
@@ -221,7 +219,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
         //setLookAndFeel(Constants.NIMBUS_LF);
         UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-        
+
         java.awt.EventQueue.invokeLater(() -> {
             output = new Output();
             Output.redirectSystemStreams(true, output);
@@ -687,7 +685,9 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         /* stands apart because its atomic */
         gamestate.set(canPlay ? UIHelpers.PLAYING : UIHelpers.WAITING);
         handleState();
-        if (!canPlay) {
+        if (canPlay) {
+            UIHelpers.messageDialog("Wake up!.. it's your turn!", "Make your move");
+        } else {
             game.wait(UI.getInstance(), lobbyID.get(), me.getId());
         }
     }
@@ -810,18 +810,11 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
     @Override
     public void deployed(boolean succes, boolean ready, String opponent) throws RemoteException {
-        if (succes && ready) {
-            gamestate.set(UIHelpers.PLAYING);
-            other.setName(opponent);
-            initGame();
-            UIHelpers.messageDialog("Ships deployed correctly, all players have deployed for lobby " + Integer.toString(lobbyID.get()), "Board deployment");
-        } else if (!succes && !ready) {
-            gamestate.set(UIHelpers.PLACEMENT);
-            UIHelpers.messageDialog("Board deployment failed, but other player hasnt deployed yet", "Board deployment", JOptionPane.ERROR_MESSAGE);
-        } else if (succes && !ready) {
-            UIHelpers.messageDialog("Board deployed correctly, but other player hasn't deployed yet!", "Board deployment");
+        if (succes) {
+            UIHelpers.messageDialog("Board deployment ok!", "Board deployment");
+        } else {
+            UIHelpers.messageDialog("Board deployment failed!", "Board deployment", JOptionPane.ERROR_MESSAGE);
         }
-        handleState();
     }
 
     public static void createLobby() {
@@ -1097,10 +1090,9 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (UIHelpers.confirmDialog("Are you sure you would like to exit Battleship?\nYou will loose points", "Exit?") == 0) {
+            if (UIHelpers.confirmDialog("Are you sure you would like to exit Battleship?", "Exit?") == 0) {
                 try {
                     // TODO : Add forefeit command in game object
-
                     UIHelpers.messageDialog(game.logout(me.getName()) ? "You have been logged out." : "Failed to log out, server could be unresponsive.", "Logged out");
                 } catch (RemoteException ex) {
                     Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);

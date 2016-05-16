@@ -114,7 +114,7 @@ public class LobbyLister {
 
         frame.add(splitPane);
         frame.pack();
-        frame.setLocationRelativeTo(null);
+        frame.setLocationRelativeTo(UI.getInstance().mainFrame);
         //frame.setVisible(true);
 
     }
