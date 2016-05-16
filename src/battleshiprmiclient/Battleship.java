@@ -34,9 +34,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.RMISocketFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JOptionPane;
 import ui.UI;
-import ui.UIHelpers;
 
 /**
  * The main launcher class for the Battleship RMI client
@@ -75,7 +73,7 @@ public class Battleship {
         try {
 
             int port = 6769;
-            
+
             if (System.getSecurityManager() == null) {
                 System.setSecurityManager(new SecurityManager());
             }
@@ -102,6 +100,9 @@ public class Battleship {
             Logger.getLogger(Battleship.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             System.err.println("I/O error - IOException()");
+            Logger.getLogger(Battleship.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            System.err.println("General error - Exception()");
             Logger.getLogger(Battleship.class.getName()).log(Level.SEVERE, null, ex);
         }
 

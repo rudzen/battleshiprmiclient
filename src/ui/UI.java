@@ -53,9 +53,13 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import ui.Listeners.OptionsListener;
 import ui.Listeners.PingListener;
+import ui.lobbylistener.Constants;
+import ui.lobbylistener.LobbyLister;
+import static ui.lobbylistener.LobbyLister.setLookAndFeel;
 import utility.Statics;
 
 /**
@@ -114,7 +118,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     private LoginDialog2 loginDialog;
     private JFrame mainFrame;
     private Output output;
-    public GameSelection gameSelection;
+    public LobbyLister gameSelection;
 
     /* the text labels shown above the boards while playing. */
     private JLabel[] myInfo = new JLabel[3];
@@ -212,8 +216,12 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     /* this is just to save time! */
     private static String user;
 
-    public UI(final IBattleShip game, final int registryPort) throws RemoteException {
+    public UI(final IBattleShip game, final int registryPort) throws RemoteException, Exception {
         super();
+
+        //setLookAndFeel(Constants.NIMBUS_LF);
+        UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+        
         java.awt.EventQueue.invokeLater(() -> {
             output = new Output();
             Output.redirectSystemStreams(true, output);
@@ -223,16 +231,16 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         loginDialog = LoginDialog2.getInstance();
 
         try {
-            gameSelection = new Callable<GameSelection>() {
+            gameSelection = new Callable<LobbyLister>() {
                 @Override
-                public GameSelection call() throws Exception {
-                    return new GameSelection();
+                public LobbyLister call() throws Exception {
+                    return LobbyLister.getInstance();
                 }
             }.call();
         } catch (Exception ex) {
             Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
         }
-        gameSelection.setVisible(true);
+        //gameSelection.setVisibility(true);
 
         this.game = game;
 
@@ -710,7 +718,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     @Override
     public void playerList(ArrayList<String> players) throws RemoteException {
         if (players != null && !players.isEmpty()) {
-            gameSelection.setVisible(true);
+            gameSelection.setVisibility(true);
             gameSelection.clearAll();
             players.stream().forEach((s) -> {
                 gameSelection.addToList(s);
@@ -760,7 +768,8 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
     @Override
     public void setFreeLobbies(ArrayList<String> lobbies) throws RemoteException {
-        gameSelection.setVisible(true);
+        gameSelection.setVisibility(true);
+        gameSelection.clearAll();
         if (lobbies.isEmpty()) {
             UIHelpers.messageDialog("No free lobbies found", user);
         } else {
@@ -971,7 +980,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
 
                         ready = 0;
 
-                        gameSelection.setVisible(true);
+                        gameSelection.setVisibility(true);
                         try {
                             game.requestFreeLobbies(UI.getInstance(), me.getId());
                         } catch (RemoteException ex) {
