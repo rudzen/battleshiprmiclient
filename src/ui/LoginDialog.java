@@ -27,7 +27,6 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 
 import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JTextField;
@@ -40,6 +39,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
+import javax.swing.JFrame;
 
 /**
  * Simple login dialog.<br>
@@ -48,7 +48,7 @@ import java.awt.event.WindowEvent;
  * @author Rudy Alex Kohn s133235@student.dtu.dk
  */
 @SuppressWarnings("serial")
-public final class LoginDialog extends JDialog {
+public final class LoginDialog extends JFrame {
 
     private static JPanel contentPanel;
     private static JPasswordField passwordField;
@@ -67,11 +67,9 @@ public final class LoginDialog extends JDialog {
     @SuppressWarnings("OverridableMethodCallInConstructor")
     public LoginDialog() {
         super();
-        setAlwaysOnTop(true);
-        setType(Type.POPUP);
         setFocusableWindowState(true);
         setTitle("Battleship login");
-        setModal(true);
+        setAlwaysOnTop(true);
         setIconImage(Toolkit.getDefaultToolkit().getImage(LoginDialog.class.getResource("/com/sun/java/swing/plaf/windows/icons/Warn.gif")));
         setBounds(100, 100, 241, 167);
         getContentPane().setLayout(new BorderLayout());
@@ -121,7 +119,7 @@ public final class LoginDialog extends JDialog {
         setLocationRelativeTo(null);
     }
 
-    public static void closeThis(JDialog dialog) {
+    public static void closeThis(JFrame dialog) {
         dialog.setVisible(false);
         dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
     }

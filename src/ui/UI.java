@@ -113,7 +113,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     private static AtomicInteger lobbyID = new AtomicInteger(-1);
 
     /* UI Stuff */
-    private LoginDialog2 loginDialog;
+    private LoginDialog loginDialog;
     public JFrame mainFrame;
     private Output output;
     public LobbyLister gameSelection;
@@ -226,7 +226,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             output.setVisible(true);
         });
 
-        loginDialog = LoginDialog2.getInstance();
+        loginDialog = LoginDialog.getInstance();
 
         try {
             gameSelection = new Callable<LobbyLister>() {
@@ -653,7 +653,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
                     me = new Player(name);
                     me.initShips();
                 }
-                LoginDialog2.closeThis(loginDialog);
+                LoginDialog.closeThis(loginDialog);
                 game.registerClient(UI.getInstance(), name);
                 game.login(UI.getInstance(), name, pw);
                 //game.requestFreeLobbies(this);
