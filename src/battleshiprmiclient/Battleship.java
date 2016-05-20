@@ -24,7 +24,7 @@
 package battleshiprmiclient;
 
 import com.css.rmi.ClientTwoWaySocketFactory;
-import interfaces.IBattleShip;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
@@ -34,6 +34,8 @@ import java.rmi.RemoteException;
 import java.rmi.server.RMISocketFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import interfaces.IBattleShip;
 import ui.UI;
 
 /**
@@ -43,7 +45,7 @@ import ui.UI;
  */
 public class Battleship {
 
-    public static void main(String args[]) {
+    public static void main(String[] args) {
 
         String registry;
         if (args.length >= 1) {
@@ -84,7 +86,7 @@ public class Battleship {
             fac.establishSignallingChannel(registry, port);
 
             /* Lookup the service in the registry, and obtain a remote service */
-            Remote server = Naming.lookup("rmi://" + registry + ":" + Integer.toString(port) + "/Battleship");
+            Remote server = Naming.lookup("rmi://" + registry + ':' + Integer.toString(port) + "/Battleship");
             game = (IBattleShip) server;
 
             UI.setInstance(new UI(game, port));

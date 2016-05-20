@@ -111,10 +111,6 @@ public class SignallingChannel extends Thread {
                 remoteOut.writeInt(port);
                 remoteOut.flush();
             }
-        } catch (EOFException e) {
-            // Assume the server disconnected.  We could add shutdown
-            // signalling to the protocol, but we would still find
-            // ourselves here if the server abends.
         } catch (IOException e) {
             
         }

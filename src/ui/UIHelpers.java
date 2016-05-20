@@ -23,16 +23,18 @@
  */
 package ui;
 
-import dataobjects.Player;
-import dataobjects.Ship;
-import interfaces.IBattleShip;
 import java.awt.BorderLayout;
 import java.awt.Point;
+
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+
+import dataobjects.Player;
+import dataobjects.Ship;
+import interfaces.IBattleShip;
 
 /**
  * Simple UI helper functions
@@ -41,7 +43,7 @@ import javax.swing.SwingUtilities;
  */
 public final class UIHelpers {
 
-    public static String MSG_GAME_OVER = "Game is over!";
+    public static final String MSG_GAME_OVER = "Game is over!";
 
     enum SHIP_PLACE {
         REMOVE, ADD, SUNK
@@ -102,9 +104,9 @@ public final class UIHelpers {
     public static String getPlayerName() {
         String daName = inputDialog("Please enter your name.", "Enter name.");
         int dummy = 0;
-        while (((daName == null) || ("".equals(daName))) && (dummy < 3)) {
+        while ((daName == null || "".equals(daName)) && dummy < 3) {
             daName = inputDialog("You have to input something.", "Enter name.");
-            if ((daName != null) && (!daName.equals(""))) {
+            if (daName != null && !"".equals(daName)) {
                 break;
             } else if (++dummy == 3) {
                 messageDialog("Since you're having trouble inputting your name, I'll just call you stupid.", "");

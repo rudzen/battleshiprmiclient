@@ -78,8 +78,8 @@ public class ClientTwoWaySocketFactory extends RMISocketFactory {
 
     /**
      * Register a gateway. Client connections requested via
-     * <code>createSocket</code> for <code>host:port</code> will instead be made
-     * to <code>gateHost:gatePort</code>
+     * <code>createSocket</code> for {@code host:port} will instead be made
+     * to {@code gateHost:gatePort}
      *
      * @param host The destination host.
      * @param port The destination port.
@@ -112,11 +112,11 @@ public class ClientTwoWaySocketFactory extends RMISocketFactory {
     }
 
     /**
-     * Returns the endpoint associated with the <code>host</code> and
-     * <code>port</code>. The endpoint returned is the endpoint to be directly
-     * contacted. If the <code>host</code> and <code>port</code> have an
+     * Returns the endpoint associated with the {@code host} and
+     * {@code port}. The endpoint returned is the endpoint to be directly
+     * contacted. If the <code>host</code> and {@code port} have an
      * associated gateway endpoint, that endpoint is returned. Otherwise an
-     * endpoint for the provided <code>host</code> and <code>port</code> is
+     * endpoint for the provided <code>host</code> and {@code port} is
      * returned.
      *
      * @param host
@@ -124,7 +124,7 @@ public class ClientTwoWaySocketFactory extends RMISocketFactory {
      * @return The endpoint to be connected to.
      */
     public EndpointInfo getDirectEndpoint(String host, int port) {
-        EndpointInfo endpointInfo = (EndpointInfo) gatewayMap.get(EndpointInfo.getEndpointString(host, port));
+        EndpointInfo endpointInfo = gatewayMap.get(EndpointInfo.getEndpointString(host, port));
 
         if (endpointInfo != null) {
             return endpointInfo;
@@ -134,11 +134,11 @@ public class ClientTwoWaySocketFactory extends RMISocketFactory {
     }
 
     /**
-     * Creates a socket to the specified <code>host</code> and <code>
-     * port</code>. If a gateway has been registered using
-     * <code>registerGateway</code> then the socket will be connected to that
+     * Creates a socket to the specified {@code host} and {@code
+     * port}. If a gateway has been registered using
+     * {@code registerGateway} then the socket will be connected to that
      * gateway. Otherwise, the socket is connected directly to the specified
-     * <code>host</code> and <code>port</code>.
+     * <code>host</code> and {@code port}.
      *
      * @return 
      * @throws java.io.IOException
@@ -184,6 +184,6 @@ public class ClientTwoWaySocketFactory extends RMISocketFactory {
      */
     @Override
     public boolean equals(Object that) {
-        return (that != null) && (that.getClass().equals(this.getClass()));
+        return that != null && that.getClass().equals(getClass());
     }
 }

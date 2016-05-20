@@ -20,8 +20,6 @@ import java.awt.event.ActionListener;
 import java.rmi.RemoteException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JDialog;
-import utility.Statics;
 
 /**
  * Old / Temporary / Static listener classes for UI

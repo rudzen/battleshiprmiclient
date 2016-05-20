@@ -139,8 +139,8 @@ public class LobbyLister {
      *
      * @param text The text of the lobby entry, format is ID:PlayerName
      */
-    public void addToList(final String text) {
-        if (!"".equals(text.trim())) {
+    public static void addToList(final String text) {
+        if (text.trim() != null && !text.trim().isEmpty()) {
             try {
                 swingJList.addElement(text);
             } catch (final OutOfMemoryError e) {
@@ -189,15 +189,15 @@ public class LobbyLister {
         }
     }
 
-    public void clearAll() {
+    public static void clearAll() {
         swingJList.removeAll();
     }
 
-    public void setVisibility(boolean value) {
+    public static void setVisibility(boolean value) {
         frame.setVisible(value);
     }
 
-    public void setTitle(final String text) {
+    public static void setTitle(final String text) {
         frame.setTitle(text);
     }
 

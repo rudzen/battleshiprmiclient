@@ -29,9 +29,9 @@ package utility;
  */
 public final class Statics {
 
-    public static volatile boolean yourTurn = false;
+    public static volatile boolean yourTurn;
     
-    public static volatile boolean isLoggedIn = false;
-    public static volatile boolean gameInProgress = false;
+    public static volatile boolean isLoggedIn;
+    public static volatile boolean gameInProgress;
     
 }

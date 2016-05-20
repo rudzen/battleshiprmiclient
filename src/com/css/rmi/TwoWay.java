@@ -77,8 +77,8 @@ public class TwoWay {
      */
     public static String getAddressString(byte[] address) {
         return ((int) address[0] & 0xff) + "."
-                + ((int) address[1] & 0xff) + "."
-                + ((int) address[2] & 0xff) + "."
+                + ((int) address[1] & 0xff) + '.'
+                + ((int) address[2] & 0xff) + '.'
                 + ((int) address[3] & 0xff);
     }
 

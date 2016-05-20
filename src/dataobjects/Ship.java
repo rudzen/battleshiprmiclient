@@ -165,19 +165,19 @@ public class Ship implements Serializable {
     }
 
     public Ship(final Ship ship) {
-        this.endX = ship.endX;
-        this.endY = ship.endY;
-        this.hasUpgrade = ship.hasUpgrade;
-        this.hits = ship.hits;
-        this.horizontal = ship.horizontal;
-        this.isPlaced = ship.isPlaced;
-        this.length = ship.length;
-        this.life = ship.life;
-        this.location = ship.location;
-        this.startX = ship.startX;
-        this.startY = ship.startY;
-        this.upgrades = ship.upgrades;
-        this.type = ship.type;
+        endX = ship.endX;
+        endY = ship.endY;
+        hasUpgrade = ship.hasUpgrade;
+        hits = ship.hits;
+        horizontal = ship.horizontal;
+        isPlaced = ship.isPlaced;
+        length = ship.length;
+        life = ship.life;
+        location = ship.location;
+        startX = ship.startX;
+        startY = ship.startY;
+        upgrades = ship.upgrades;
+        type = ship.type;
     }
     
     

@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="BattleshipRMIClient">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/dist/BattleshipRMIClient.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

@@ -42,7 +42,7 @@ public class EndpointInfo {
      * @return The endpoint string.
      */
     public static String getEndpointString(String address, int port) {
-        return address + ":" + port;
+        return address + ':' + port;
     }
 
     /**
@@ -64,8 +64,8 @@ public class EndpointInfo {
      */
     public static String getAddressString(byte[] address) {
         return ((int) address[0] & 0xff) + "."
-                + ((int) address[1] & 0xff) + "."
-                + ((int) address[2] & 0xff) + "."
+                + ((int) address[1] & 0xff) + '.'
+                + ((int) address[2] & 0xff) + '.'
                 + ((int) address[3] & 0xff);
     }
 

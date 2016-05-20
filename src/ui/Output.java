@@ -42,17 +42,16 @@ import javax.swing.JScrollPane;
  */
 public class Output {
 
-    private final DefaultListModel listModel;
+    private final DefaultListModel<String> listModel = new DefaultListModel<>();
     private final SimpleDateFormat SDF = new SimpleDateFormat("HH:mm:ss", Locale.ENGLISH);
 
     private final JFrame frame = new JFrame();
     private final JPanel panel = new JPanel();
     private final JScrollPane listScrollPane = new JScrollPane();
-    private final JList rowList = new JList();
+    private final JList<String> rowList = new JList<>();
 
     public Output() {
         /* configure the listmodel */
-        listModel = new DefaultListModel();
         //listModel.addElement(String.format("%sStart.", getTimeString()));
         rowList.setModel(listModel);
 
@@ -90,7 +89,7 @@ public class Output {
      * @param text The string to add to output
      */
     public void addToList(final String text) {
-        if (!"".equals(text.trim())) {
+        if (text.trim() != null && !text.trim().isEmpty()) {
             try {
                 listModel.addElement(String.format("%s %s", getTimeString(), text));
                 int lastIndex = listModel.getSize() - 1;

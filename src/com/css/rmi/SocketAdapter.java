@@ -32,8 +32,8 @@ public class SocketAdapter {
 
     private class StreamThread extends Thread {
 
-        InputStream in;
-        OutputStream out;
+        final InputStream in;
+        final OutputStream out;
 
         StreamThread(InputStream in, OutputStream out) {
             this.in = in;
