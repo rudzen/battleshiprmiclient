@@ -73,9 +73,7 @@ public class Player implements Serializable {
         id = player.id;
         token = player.token;
         for (int i = 0; i < 10; i++) {
-            for (int j = 0; j < 10; j++) {
-                board[i][j] = player.board[i][j];
-            }
+            System.arraycopy(player.board[i], 0, board[i], 0, 10);
         }
         ships.addAll(player.ships);
     }

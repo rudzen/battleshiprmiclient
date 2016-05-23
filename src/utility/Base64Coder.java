@@ -18,8 +18,6 @@
 // Project home page: www.source-code.biz/base64coder/java
 package utility;
 
-import java.io.Serializable;
-
 /**
  * A Base64 encoder/decoder.
  *
@@ -30,9 +28,7 @@ import java.io.Serializable;
  * @author Christian d'Heureuse, Inventec Informatik AG, Zurich, Switzerland,
  * www.source-code.biz
  */
-public class Base64Coder implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class Base64Coder {
 
     // The line separator string of the operating system.
     private static final String systemLineSeparator = "\r\n"; //System.getProperty("line.separator");
@@ -52,7 +48,7 @@ public class Base64Coder implements Serializable {
             map1[i++] = c;
         }
         map1[i++] = '+';
-        map1[i++] = '/';
+        map1[i] = '/';
     }
 
     // Mapping table from Base64 characters to 6-bit nibbles.
@@ -74,7 +70,7 @@ public class Base64Coder implements Serializable {
      * @param s A String to be encoded.
      * @return A String containing the Base64 encoded data.
      */
-    public static String encodeString(String s) {
+    public static String encodeString(final String s) {
         return new String(encode(s.getBytes()));
     }
 
@@ -86,7 +82,7 @@ public class Base64Coder implements Serializable {
      * @param in An array containing the data bytes to be encoded.
      * @return A String containing the Base64 encoded data, broken into lines.
      */
-    public static String encodeLines(byte[] in) {
+    public static String encodeLines(final byte[] in) {
         return encodeLines(in, 0, in.length, 76, systemLineSeparator);
     }
 
@@ -104,17 +100,17 @@ public class Base64Coder implements Serializable {
      * lines.
      * @return A String containing the Base64 encoded data, broken into lines.
      */
-    public static String encodeLines(byte[] in, int iOff, int iLen, int lineLen, String lineSeparator) {
-        int blockLen = (lineLen * 3) >> 2;
+    public static String encodeLines(final byte[] in, final int iOff, final int iLen, final int lineLen, final String lineSeparator) {
+        final int blockLen = (lineLen * 3) >> 2;
         if (blockLen <= 0) {
             throw new IllegalArgumentException();
         }
-        int lines = (iLen + blockLen - 1) / blockLen;
-        int bufLen = (((iLen + 2) / 3) << 2) + lines * lineSeparator.length();
-        StringBuilder buf = new StringBuilder(bufLen);
+        final int lines = (iLen + blockLen - 1) / blockLen;
+        final int bufLen = (((iLen + 2) / 3) << 2) + lines * lineSeparator.length();
+        final StringBuilder buf = new StringBuilder(bufLen);
         int ip = 0;
         while (ip < iLen) {
-            int l = Math.min(iLen - ip, blockLen);
+            final int l = Math.min(iLen - ip, blockLen);
             buf.append(encode(in, iOff + ip, l));
             buf.append(lineSeparator);
             ip += l;
@@ -129,7 +125,7 @@ public class Base64Coder implements Serializable {
      * @param in An array containing the data bytes to be encoded.
      * @return A character array containing the Base64 encoded data.
      */
-    public static char[] encode(byte[] in) {
+    public static char[] encode(final byte[] in) {
         return encode(in, 0, in.length);
     }
 
@@ -141,7 +137,7 @@ public class Base64Coder implements Serializable {
      * @param iLen Number of bytes to process in <code>in</code>.
      * @return A character array containing the Base64 encoded data.
      */
-    public static char[] encode(byte[] in, int iLen) {
+    public static char[] encode(final byte[] in, final int iLen) {
         return encode(in, 0, iLen);
     }
 
@@ -155,12 +151,12 @@ public class Base64Coder implements Serializable {
      * <code>iOff</code>.
      * @return A character array containing the Base64 encoded data.
      */
-    public static char[] encode(byte[] in, int iOff, int iLen) {
-        int oDataLen = (iLen * 4 + 2) / 3; // output length without padding
-        int oLen = ((iLen + 2) / 3) << 2; // output length including padding
-        char[] out = new char[oLen];
+    public static char[] encode(final byte[] in, final int iOff, final int iLen) {
+        final int oDataLen = (iLen * 4 + 2) / 3; // output length without padding
+        final int oLen = ((iLen + 2) / 3) << 2; // output length including padding
+        final char[] out = new char[oLen];
         int ip = iOff;
-        int iEnd = iOff + iLen;
+        final int iEnd = iOff + iLen;
         int i0, i1, i2, op = 0;
         while (ip < iEnd) {
             i0 = in[ip++] & 0xff;
@@ -183,7 +179,7 @@ public class Base64Coder implements Serializable {
      * @throws IllegalArgumentException If the input is not valid Base64 encoded
      * data.
      */
-    public static String decodeString(String s) {
+    public static String decodeString(final String s) {
         return new String(decode(s));
     }
 
@@ -198,11 +194,11 @@ public class Base64Coder implements Serializable {
      * @throws IllegalArgumentException If the input is not valid Base64 encoded
      * data.
      */
-    public static byte[] decodeLines(String s) {
-        char[] buf = new char[s.length()];
+    public static byte[] decodeLines(final String s) {
+        final char[] buf = new char[s.length()];
         int p = 0;
         for (int ip = 0; ip < s.length(); ip++) {
-            char c = s.charAt(ip);
+            final char c = s.charAt(ip);
             if (c != ' ' && c != '\r' && c != '\n' && c != '\t') {
                 buf[p++] = c;
             }
@@ -219,7 +215,7 @@ public class Base64Coder implements Serializable {
      * @throws IllegalArgumentException If the input is not valid Base64 encoded
      * data.
      */
-    public static byte[] decode(String s) {
+    public static byte[] decode(final String s) {
         return decode(s.toCharArray());
     }
 
@@ -232,7 +228,7 @@ public class Base64Coder implements Serializable {
      * @throws IllegalArgumentException If the input is not valid Base64 encoded
      * data.
      */
-    public static byte[] decode(char[] in) {
+    public static byte[] decode(final char[] in) {
         return decode(in, 0, in.length);
     }
 
@@ -249,36 +245,36 @@ public class Base64Coder implements Serializable {
      * @throws IllegalArgumentException If the input is not valid Base64 encoded
      * data.
      */
-    public static byte[] decode(char[] in, int iOff, int iLen) {
+    public static byte[] decode(final char[] in, final int iOff, int iLen) {
         if (iLen % 4 != 0) {
             throw new IllegalArgumentException("Length of Base64 encoded input string is not a multiple of 4.");
         }
         while (iLen > 0 && in[iOff + iLen - 1] == '=') {
             iLen--;
         }
-        int oLen = (iLen * 3) >> 2;
-        byte[] out = new byte[oLen];
+        final int oLen = (iLen * 3) >> 2;
+        final byte[] out = new byte[oLen];
         int ip = iOff;
-        int iEnd = iOff + iLen;
+        final int iEnd = iOff + iLen;
         int op = 0;
         while (ip < iEnd) {
-            int i0 = in[ip++];
-            int i1 = in[ip++];
-            int i2 = ip < iEnd ? in[ip++] : 'A';
-            int i3 = ip < iEnd ? in[ip++] : 'A';
+            final int i0 = in[ip++];
+            final int i1 = in[ip++];
+            final int i2 = ip < iEnd ? in[ip++] : 'A';
+            final int i3 = ip < iEnd ? in[ip++] : 'A';
             if (i0 > 127 || i1 > 127 || i2 > 127 || i3 > 127) {
                 throw new IllegalArgumentException("Illegal character in Base64 encoded data.");
             }
-            int b0 = map2[i0];
-            int b1 = map2[i1];
-            int b2 = map2[i2];
-            int b3 = map2[i3];
+            final int b0 = map2[i0];
+            final int b1 = map2[i1];
+            final int b2 = map2[i2];
+            final int b3 = map2[i3];
             if (b0 < 0 || b1 < 0 || b2 < 0 || b3 < 0) {
                 throw new IllegalArgumentException("Illegal character in Base64 encoded data.");
             }
-            int o0 = (b0 << 2) | (b1 >>> 4);
-            int o1 = ((b1 & 0xf) << 4) | (b2 >>> 2);
-            int o2 = ((b2 & 3) << 6) | b3;
+            final int o0 = (b0 << 2) | (b1 >>> 4);
+            final int o1 = ((b1 & 0xf) << 4) | (b2 >>> 2);
+            final int o2 = ((b2 & 3) << 6) | b3;
             out[op++] = (byte) o0;
             if (op < oLen) {
                 out[op++] = (byte) o1;
@@ -294,4 +290,4 @@ public class Base64Coder implements Serializable {
     Base64Coder() {
     }
 
-} // end class Base64Coder
+}

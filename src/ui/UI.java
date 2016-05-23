@@ -62,10 +62,6 @@ import utility.Statics;
 
 import static javax.swing.JFrame.EXIT_ON_CLOSE;
 import interfaces.IClientRMI;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.util.Properties;
 
 /**
  * The User-Interface for the Swing client.<br>
