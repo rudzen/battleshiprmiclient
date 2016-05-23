@@ -247,7 +247,9 @@ public final class UI extends UnicastRemoteObject implements IClientRMI {
 
         me = new Player("User" + Double.toString(Math.random() * 10)); // temporary Player object as player hasnt logged in yet
         me.initShips();
-
+        
+        user = me.getName();
+        
         game.registerClient(this, me.getName());
         setupUI();
 
@@ -349,12 +351,16 @@ public final class UI extends UnicastRemoteObject implements IClientRMI {
         menus.chat.addActionListener((ActionEvent e) -> {
             try {
                 Chat.getInstance().setVisibility(Chat.getInstance().isVisible() ^ true);
-                game.registerChatClient(Chat.getInstance(), Statics.lastUser);
+                if (Chat.getInstance().isVisible()) {
+                    game.registerChatClient(Chat.getInstance(), user);
+                } else {
+                    game.removeChatClient(Chat.getInstance(), user);
+                }
             } catch (RemoteException ex) {
                 Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
-        
+
         menus.options = new JMenuItem("Options");
         menus.options.addActionListener(new OptionsListener());
 
@@ -903,6 +909,10 @@ public final class UI extends UnicastRemoteObject implements IClientRMI {
         return me;
     }
 
+    public String getUser() {
+        return user;
+    }
+    
     /**
      * The listener for the buttons on the board. Purpose : Ship placement
      */

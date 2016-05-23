@@ -26,6 +26,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Locale;
 import java.util.logging.Level;
@@ -56,7 +57,7 @@ public final class Chat extends UnicastRemoteObject implements IChatClient {
     SwingJList lstUsers, lstChat;
     JFrame frame;
     JButton bt;
-
+    
     static Chat instance;
 
     public static Chat getInstance() throws RemoteException {
@@ -100,14 +101,14 @@ public final class Chat extends UnicastRemoteObject implements IChatClient {
         cn.setLayout(new BorderLayout(5, 5));
         bottom.setLayout(new BorderLayout(5, 5));
         top.add(new JLabel("User: "));
-        name.setText(Statics.lastUser);
+        name.setText(UI.getInstance().getUser());
         top.add(name);
         top.add(new JLabel("Host Address: "));
         ip.setText(Statics.lastRegistry);
         top.add(ip);
         //top.add(connect);
         cn.add(new JScrollPane(lstChat), BorderLayout.CENTER);
-        cn.add(lstUsers, BorderLayout.EAST);
+        cn.add(new JScrollPane(lstUsers), BorderLayout.EAST);
         bottom.add(tf, BorderLayout.CENTER);
         bottom.add(bt, BorderLayout.EAST);
         main.add(top, BorderLayout.NORTH);
@@ -136,7 +137,10 @@ public final class Chat extends UnicastRemoteObject implements IChatClient {
 
         bt.addActionListener((ActionEvent e) -> {
             try {
-                UI.getInstance().game.sendMessage(this, Statics.lastUser, tf.getText());
+                UI.getInstance().game.sendMessage(this, UI.getInstance().getUser(), tf.getText());
+                tf.setText("");
+                bt.setEnabled(false);
+                tf.requestFocus();
             } catch (RemoteException ex) {
                 Logger.getLogger(Chat.class.getName()).log(Level.SEVERE, null, ex);
             }
