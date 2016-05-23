@@ -52,6 +52,7 @@ public class LobbyLister {
     }
 
     public LobbyLister() {
+        super();
         SwingUtilities.invokeLater(() -> {
             try {
                 createAndShowGUI();

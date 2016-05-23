@@ -34,4 +34,11 @@ public final class Statics {
     public static volatile boolean isLoggedIn;
     public static volatile boolean gameInProgress;
     
+    
+    /* properties */
+    public static String lastUser;
+    public static String lastPassword;
+    public static String lastRegistry;
+    
+    public static final String PROPERTIES = "./client.properties";
 }

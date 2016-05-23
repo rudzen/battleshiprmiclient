@@ -23,10 +23,11 @@
  */
 package dataobjects;
 
-import dataobjects.Upgrades.UPGRADES;
 import java.awt.Point;
 import java.io.Serializable;
 import java.util.Arrays;
+
+import dataobjects.Upgrades.UPGRADES;
 
 /**
  * Basic ship class, it defines what ship type it is, and what else there is to
@@ -112,6 +113,7 @@ public class Ship implements Serializable {
      * Default constructor.
      */
     public Ship() {
+        super();
     }
 
     /**
@@ -123,11 +125,13 @@ public class Ship implements Serializable {
      * @param horizontal The direction of placement
      */
     public Ship(final int x, final int y, final TYPE type, final boolean horizontal) {
+        super();
         startX = x;
         startY = y;
         length = getLen(type);
         location = new Point[length];
-        for (int i = 0; i < length; i++) {
+        location[0] = new Point(x, y);
+        for (int i = 1; i < length; i++) {
             location[i] = new Point(0, 0);
         }
         if (horizontal) {
@@ -165,6 +169,7 @@ public class Ship implements Serializable {
     }
 
     public Ship(final Ship ship) {
+        super();
         endX = ship.endX;
         endY = ship.endY;
         hasUpgrade = ship.hasUpgrade;

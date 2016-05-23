@@ -37,6 +37,7 @@ public class SignallingChannel extends Thread {
 
     public SignallingChannel(final String directAddress,
             final int directPort) throws IOException {
+        super();
         this.directAddress = directAddress;
         this.directPort = directPort;
         socket = new Socket(directAddress, directPort);

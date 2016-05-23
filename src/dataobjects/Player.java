@@ -60,9 +60,11 @@ public class Player implements Serializable {
      * Empty constructor
      */
     public Player() {
+        super();
     }
 
     public Player(final String name) {
+        super();
         this.name = name;
     }
 
@@ -71,7 +73,7 @@ public class Player implements Serializable {
         id = player.id;
         token = player.token;
         for (int i = 0; i < 10; i++) {
-            for (int j = 0; j < 10; i++) {
+            for (int j = 0; j < 10; j++) {
                 board[i][j] = player.board[i][j];
             }
         }
@@ -110,16 +112,14 @@ public class Player implements Serializable {
         StringBuilder sb = new StringBuilder(150);
         sb.append("Name : ").append(name).append('\n');
         sb.append("ID   : ").append(id).append('\n');
-        sb.append("------------\n-");
+        sb.append("------------\n");
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
                 sb.append(Integer.toString(board[i][j]));
             }
             sb.append("-\n");
         }
-        ships.stream().forEach(s -> {
-            sb.append(s);
-        });
+        ships.stream().forEach(sb::append);
         return sb.toString();
     }
     

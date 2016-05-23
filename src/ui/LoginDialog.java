@@ -40,6 +40,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import javax.swing.JFrame;
+import utility.Statics;
 
 /**
  * Simple login dialog.<br>
@@ -61,6 +62,7 @@ public final class LoginDialog extends JFrame {
     }
 
     private static class LoginDialogHolder {
+
         private static final LoginDialog INSTANCE = new LoginDialog();
     }
 
@@ -117,6 +119,17 @@ public final class LoginDialog extends JFrame {
         cancelButton.setActionCommand("Cancel");
         buttonPane.add(cancelButton);
         setLocationRelativeTo(null);
+
+        if (Statics.lastUser != null) {
+            textField.setText(Statics.lastUser);
+        }
+
+        if (Statics.lastPassword != null) {
+            passwordField.setText(Statics.lastPassword);
+        }
+
+        okButton.setEnabled(!textField.getText().trim().isEmpty());
+
     }
 
     public static void closeThis(JFrame dialog) {
@@ -133,6 +146,7 @@ public final class LoginDialog extends JFrame {
         @Override
         public void keyTyped(KeyEvent e) {
             okButton.setEnabled(!textField.getText().trim().isEmpty());
+            //okButton.setEnabled(!textField.getText().trim().isEmpty());
         }
 
         @Override
@@ -142,11 +156,10 @@ public final class LoginDialog extends JFrame {
         @Override
         public void keyReleased(KeyEvent e) {
         }
-
     }
 
     private static class OkActionImpl implements ActionListener {
-        
+
         @Override
         public void actionPerformed(final ActionEvent e) {
             /* this is where the dialog will send the information to the server. */
@@ -155,7 +168,10 @@ public final class LoginDialog extends JFrame {
 
             progressBar.setVisible(true);
 
-            UI.getInstance().updateUser(textField.getText(), new String(passwordField.getPassword()));
+            Statics.lastUser = textField.getText();
+            Statics.lastPassword = new String(passwordField.getPassword());
+            UIHelpers.saveProperties();
+            UI.getInstance().updateUser(Statics.lastUser, Statics.lastPassword);
 
             progressBar.setVisible(false);
 

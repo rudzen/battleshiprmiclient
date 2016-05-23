@@ -19,7 +19,7 @@ public class SwingJList<T> extends JList<T> {
         // Create a JList data model
         super(new DefaultListModel<>());
 
-        listData.forEach(element -> addElement(element));
+        listData.forEach(this::addElement);
 
         // Set selection mode
         setSelectionMode(ListSelectionModel.SINGLE_SELECTION);

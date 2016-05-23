@@ -36,6 +36,7 @@ public class SocketAdapter {
         final OutputStream out;
 
         StreamThread(InputStream in, OutputStream out) {
+            super();
             this.in = in;
             this.out = out;
         }
@@ -60,6 +61,7 @@ public class SocketAdapter {
 
     @SuppressWarnings("CallToThreadStartDuringObjectConstruction")
     public SocketAdapter(Socket socket1, Socket socket2) throws IOException {
+        super();
         new StreamThread(socket1.getInputStream(), socket2.getOutputStream()).start();
         new StreamThread(socket2.getInputStream(), socket1.getOutputStream()).start();
     }

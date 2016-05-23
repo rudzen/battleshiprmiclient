@@ -51,6 +51,7 @@ public class Output {
     private final JList<String> rowList = new JList<>();
 
     public Output() {
+        super();
         /* configure the listmodel */
         //listModel.addElement(String.format("%sStart.", getTimeString()));
         rowList.setModel(listModel);

@@ -30,6 +30,7 @@ public class EndpointInfo {
      * @param port the port
      */
     public EndpointInfo(String host, int port) {
+        super();
         this.host = host;
         this.port = port;
     }

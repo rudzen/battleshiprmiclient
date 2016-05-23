@@ -35,6 +35,11 @@ import javax.swing.SwingUtilities;
 import dataobjects.Player;
 import dataobjects.Ship;
 import interfaces.IBattleShip;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.util.Properties;
+import utility.Statics;
 
 /**
  * Simple UI helper functions
@@ -59,7 +64,7 @@ public final class UIHelpers {
     /**
      * Convert selected combobox direction to internat data structure.
      *
-     * @param index_direction
+     * @param index_direction The index direction index chosen in the UI
      * @return The direction selected by the user as defined by the IShip
      * interface.
      */
@@ -104,9 +109,9 @@ public final class UIHelpers {
     public static String getPlayerName() {
         String daName = inputDialog("Please enter your name.", "Enter name.");
         int dummy = 0;
-        while ((daName == null || "".equals(daName)) && dummy < 3) {
+        while ((daName == null || daName.isEmpty()) && dummy < 3) {
             daName = inputDialog("You have to input something.", "Enter name.");
-            if (daName != null && !"".equals(daName)) {
+            if (daName != null && !daName.isEmpty()) {
                 break;
             } else if (++dummy == 3) {
                 messageDialog("Since you're having trouble inputting your name, I'll just call you stupid.", "");
@@ -117,7 +122,7 @@ public final class UIHelpers {
     }
 
     //creates a panel that tells whose board is which
-    public static JPanel whoseBoard(final int lobbyID, final Player ... players) {
+    public static JPanel whoseBoard(final int lobbyID, final Player... players) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(new JLabel(players[0].getName() + "'s Board", SwingConstants.LEFT), BorderLayout.WEST);
         panel.add(new JLabel("Lobby : " + Integer.toString(lobbyID), SwingConstants.CENTER), BorderLayout.CENTER);
@@ -157,6 +162,19 @@ public final class UIHelpers {
             return false;
         }
         return true;
+    }
+
+    public static void saveProperties() {
+        try {
+            Properties props = new Properties();
+            props.setProperty("lastUser", Statics.lastUser);
+            props.setProperty("lastPassword", Statics.lastPassword);
+            File f = new File(Statics.PROPERTIES);
+            OutputStream out = new FileOutputStream(f);
+            props.store(out, "BattleshipRMI Client properties file...");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }

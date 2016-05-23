@@ -55,13 +55,17 @@ import javax.swing.border.TitledBorder;
 import dataobjects.Player;
 import dataobjects.Ship;
 import interfaces.IBattleShip;
-import interfaces.IClientListener;
 import ui.Listeners.OptionsListener;
 import ui.Listeners.PingListener;
 import ui.lobbylistener.LobbyLister;
 import utility.Statics;
 
 import static javax.swing.JFrame.EXIT_ON_CLOSE;
+import interfaces.IClientRMI;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.util.Properties;
 
 /**
  * The User-Interface for the Swing client.<br>
@@ -79,7 +83,7 @@ import static javax.swing.JFrame.EXIT_ON_CLOSE;
  * @author Rudy Alex Kohn <s133235@student.dtu.dk>
  */
 @SuppressWarnings("serial")
-public class UI extends UnicastRemoteObject implements IClientListener {
+public class UI extends UnicastRemoteObject implements IClientRMI {
 
     /**
      * The remote object
@@ -156,11 +160,11 @@ public class UI extends UnicastRemoteObject implements IClientListener {
     private static final String[] direction = {"Horizontal", "Vertical"};
 
     /* ships */
-    private final JComboBox combo_ship = new JComboBox(ships);
+    private final JComboBox<String> combo_ship = new JComboBox<>(ships);
     private static int index_ship;
 
     /* directions */
-    private final JComboBox combo_direction = new JComboBox(direction);
+    private final JComboBox<String> combo_direction = new JComboBox<>(direction);
     private static int index_direction;
 
     /* message bar */
@@ -721,7 +725,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             LobbyLister.setVisibility(true);
             LobbyLister.clearAll();
             players.stream().forEach(s -> {
-                gameSelection.addToList(s);
+                LobbyLister.addToList(s);
             });
         } else {
             UIHelpers.messageDialog("No players from server.", "playerList()", JOptionPane.ERROR_MESSAGE);
@@ -774,7 +778,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
             UIHelpers.messageDialog("No free lobbies found", user);
         } else {
             lobbies.stream().forEach(s -> {
-                gameSelection.addToList(s);
+                LobbyLister.addToList(s);
             });
         }
     }
@@ -900,6 +904,7 @@ public class UI extends UnicastRemoteObject implements IClientListener {
         private final int y;
 
         public BoardListener(final int x, final int y) {
+            super();
             this.x = x;
             this.y = y;
         }
@@ -1101,8 +1106,8 @@ public class UI extends UnicastRemoteObject implements IClientListener {
                         loginDialog.dispose();
                     }
                     UI.getInstance().mainFrame.dispose();
-                    System.exit(0);
                 }
+                System.exit(0);
             }
         }
     }

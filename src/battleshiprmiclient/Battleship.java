@@ -36,7 +36,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import interfaces.IBattleShip;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.Properties;
 import ui.UI;
+import utility.Statics;
 
 /**
  * The main launcher class for the Battleship RMI client
@@ -47,34 +52,61 @@ public class Battleship {
 
     public static void main(String[] args) {
 
-        String registry;
         if (args.length >= 1) {
-            registry = args[0];
+            Statics.lastRegistry = args[0];
         } else {
-            //registry = "212.60.120.4"; // own ip // port - 2158
-            //registry = "130.226.195.22"; // studentermaskine //registry = "ubuntu4.javabog.dk";
-            registry = "localhost";
+            Statics.lastRegistry = "localhost";
         }
 
         try {
-            new Battleship(registry);
+            new Battleship(Statics.lastRegistry);
         } catch (RemoteException ex) {
             Logger.getLogger(Battleship.class.getName()).log(Level.SEVERE, null, ex);
         }
-
     }
 
-    //private UI ui;
+    /**
+     * Load the properties.
+     */
+    private void loadProperties() {
+
+        Properties props = new Properties();
+        InputStream is;
+
+        try {
+            File f = new File(Statics.PROPERTIES);
+            is = new FileInputStream(f);
+        } catch (final Exception e) {
+            is = null;
+        }
+
+        try {
+            if (is == null) {
+                is = getClass().getResourceAsStream(Statics.PROPERTIES);
+            }
+            props.load(is);
+        } catch (final Exception e) { }
+
+        Statics.lastUser = props.getProperty("lastUser", "");
+        Statics.lastPassword = props.getProperty("lastPassword", "");
+        Statics.lastRegistry = props.getProperty("lastRegistry", "localhost");
+
+        //registry = "212.60.120.4"; // own ip // port - 2158
+        //registry = "130.226.195.22"; // studentermaskine //registry = "ubuntu4.javabog.dk";
+    }
+
     public static IBattleShip game;
 
     public Battleship() throws RemoteException {
+        super();
     }
 
     public Battleship(final String registry) throws RemoteException {
-        ClientTwoWaySocketFactory fac = null;
+        super();
+        ClientTwoWaySocketFactory fac;
         try {
-
-            int port = 6769;
+            loadProperties();
+            int port = 6769; // default port
 
             if (System.getSecurityManager() == null) {
                 System.setSecurityManager(new SecurityManager());
@@ -107,6 +139,5 @@ public class Battleship {
             System.err.println("General error - Exception()");
             Logger.getLogger(Battleship.class.getName()).log(Level.SEVERE, null, ex);
         }
-
     }
 }

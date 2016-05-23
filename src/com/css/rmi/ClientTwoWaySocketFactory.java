@@ -78,7 +78,7 @@ public class ClientTwoWaySocketFactory extends RMISocketFactory {
 
     /**
      * Register a gateway. Client connections requested via
-     * <code>createSocket</code> for {@code host:port} will instead be made
+     * {@code createSocket} for {@code host:port} will instead be made
      * to {@code gateHost:gatePort}
      *
      * @param host The destination host.
@@ -92,8 +92,8 @@ public class ClientTwoWaySocketFactory extends RMISocketFactory {
 
     /**
      * Establish a tunnelling protocol signalling channel to the server at <code>
-     * @param address
-     * @param port
+     * @param address The address
+     * @param port The port
      * @throws java.io.IOException
      */
     public void establishSignallingChannel(String address, int port) throws IOException {
@@ -114,13 +114,13 @@ public class ClientTwoWaySocketFactory extends RMISocketFactory {
     /**
      * Returns the endpoint associated with the {@code host} and
      * {@code port}. The endpoint returned is the endpoint to be directly
-     * contacted. If the <code>host</code> and {@code port} have an
+     * contacted. If the {@code host} and {@code port} have an
      * associated gateway endpoint, that endpoint is returned. Otherwise an
-     * endpoint for the provided <code>host</code> and {@code port} is
+     * endpoint for the provided {@code host} and {@code port} is
      * returned.
      *
-     * @param host
-     * @param port
+     * @param host The host address
+     * @param port The port
      * @return The endpoint to be connected to.
      */
     public EndpointInfo getDirectEndpoint(String host, int port) {
@@ -138,11 +138,10 @@ public class ClientTwoWaySocketFactory extends RMISocketFactory {
      * port}. If a gateway has been registered using
      * {@code registerGateway} then the socket will be connected to that
      * gateway. Otherwise, the socket is connected directly to the specified
-     * <code>host</code> and {@code port}.
+     * {@code host} and {@code port}.
      *
-     * @return 
+     * @return The newly created socket
      * @throws java.io.IOException
-     * @see #registerGateway()
      */
     @Override
     public Socket createSocket(String host, int port) throws IOException {
@@ -178,7 +177,7 @@ public class ClientTwoWaySocketFactory extends RMISocketFactory {
     }
 
     /**
-     * @param that
+     * @param that The other object this should be compared to
      * @return true if the two socket factories in question return
      * interchangeable sockets.
      */

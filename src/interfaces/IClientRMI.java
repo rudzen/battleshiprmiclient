@@ -34,7 +34,7 @@ import java.util.ArrayList;
  *
  * @author Rudy Alex Kohn (s133235@student.dtu.dk)
  */
-public interface IClientListener extends Remote {
+public interface IClientRMI extends Remote {
 
     /**
      * Informs client if it can play or not, this is called with basic lee every

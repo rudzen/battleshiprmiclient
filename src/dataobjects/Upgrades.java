@@ -66,6 +66,7 @@ public class Upgrades implements Serializable {
      * Default constructor
      */
     public Upgrades() {
+        super();
     }
 
     /**
@@ -77,6 +78,7 @@ public class Upgrades implements Serializable {
      * @param decoy The decoy
      */
     public Upgrades(final int armor, final int sonar, final int power, final int decoy) {
+        super();
         this.armor = armor;
         this.sonar = sonar;
         this.power = power;
