@@ -22,6 +22,7 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.ListSelectionEvent;
 import ui.UI;
 import ui.UIHelpers;
+import ui.components.SwingJList;
 
 /**
  * Original

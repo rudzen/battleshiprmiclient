@@ -79,7 +79,7 @@ import interfaces.IClientRMI;
  * @author Rudy Alex Kohn <s133235@student.dtu.dk>
  */
 @SuppressWarnings("serial")
-public class UI extends UnicastRemoteObject implements IClientRMI {
+public final class UI extends UnicastRemoteObject implements IClientRMI {
 
     /**
      * The remote object
@@ -186,6 +186,7 @@ public class UI extends UnicastRemoteObject implements IClientRMI {
         public JMenuBar menuBar;
         public JMenuItem showFreeLobbies;
         public JMenuItem login;
+        public JMenuItem chat;
         public JMenuItem options;
         public JMenuItem exit;
     }
@@ -344,6 +345,16 @@ public class UI extends UnicastRemoteObject implements IClientRMI {
         menus.login = new JMenuItem("Login");
         menus.login.addActionListener(new LoginListener());
 
+        menus.chat = new JMenuItem("Chat");
+        menus.chat.addActionListener((ActionEvent e) -> {
+            try {
+                Chat.getInstance().setVisibility(Chat.getInstance().isVisible() ^ true);
+                game.registerChatClient(Chat.getInstance(), Statics.lastUser);
+            } catch (RemoteException ex) {
+                Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
+        
         menus.options = new JMenuItem("Options");
         menus.options.addActionListener(new OptionsListener());
 
@@ -355,6 +366,7 @@ public class UI extends UnicastRemoteObject implements IClientRMI {
         }
         menus.menu.add(menus.login);
         menus.menu.add(menus.showFreeLobbies);
+        menus.menu.add(menus.chat);
         menus.menu.add(menus.options);
         menus.menu.addSeparator();
         menus.menu.add(menus.exit);

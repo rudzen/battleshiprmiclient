@@ -1,10 +1,11 @@
-package ui.lobbylistener;
+package ui.components;
 
 import java.util.List;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;
+import ui.lobbylistener.Constants;
 
 /**
  * @author ashraf

@@ -233,19 +233,27 @@ public interface IBattleShip extends Remote {
 
     /**
      * Request all lobbies from the server
+     *
      * @param client The client
      * @param playerID The playerID
      * @throws RemoteException If server is unreachable
      */
     void requestAllLobbies(IClientRMI client, int playerID) throws RemoteException;
 
-    
     /**
      * Debug functionality to add X lobbies.
+     *
      * @param client The client
      * @param amount The amount of lobbies to create
      * @throws RemoteException If server is unreachable
      */
     void debug_CreateLobbies(IClientRMI client, int amount) throws RemoteException;
-    
+
+    /* chat test */
+    void registerChatClient(IChatClient client, String name) throws RemoteException;
+
+    void removeChatClient(IChatClient client, String name) throws RemoteException;
+
+    void sendMessage(IChatClient client, String name, String message) throws RemoteException;
+
 }
