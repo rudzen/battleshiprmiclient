@@ -40,5 +40,5 @@ public final class Statics {
     public static String lastPassword;
     public static String lastRegistry;
     
-    public static final String PROPERTIES = "./client.properties";
+    public static final String PROPERTIES = "./BattleshipRMIClient.properties";
 }

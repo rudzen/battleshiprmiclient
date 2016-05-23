@@ -42,6 +42,7 @@ import java.io.InputStream;
 import java.util.Properties;
 import ui.UI;
 import utility.Statics;
+import utility.XOR;
 
 /**
  * The main launcher class for the Battleship RMI client
@@ -87,8 +88,8 @@ public class Battleship {
             props.load(is);
         } catch (final Exception e) { }
 
-        Statics.lastUser = props.getProperty("lastUser", "");
-        Statics.lastPassword = props.getProperty("lastPassword", "");
+        Statics.lastUser = XOR.decode(props.getProperty("lastUser", ""), XOR.DEF_KEY);
+        Statics.lastPassword = XOR.decode(props.getProperty("lastPassword", ""), XOR.DEF_KEY);
         Statics.lastRegistry = props.getProperty("lastRegistry", "localhost");
 
         //registry = "212.60.120.4"; // own ip // port - 2158

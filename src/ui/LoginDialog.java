@@ -174,7 +174,6 @@ public final class LoginDialog extends JFrame {
             UI.getInstance().updateUser(Statics.lastUser, Statics.lastPassword);
 
             progressBar.setVisible(false);
-
             okButton.setEnabled(lastState);
         }
     }

@@ -40,6 +40,7 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.Properties;
 import utility.Statics;
+import utility.XOR;
 
 /**
  * Simple UI helper functions
@@ -167,8 +168,8 @@ public final class UIHelpers {
     public static void saveProperties() {
         try {
             Properties props = new Properties();
-            props.setProperty("lastUser", Statics.lastUser);
-            props.setProperty("lastPassword", Statics.lastPassword);
+            props.setProperty("lastUser", XOR.encode(Statics.lastUser, XOR.DEF_KEY));
+            props.setProperty("lastPassword", XOR.encode(Statics.lastPassword, XOR.DEF_KEY));
             File f = new File(Statics.PROPERTIES);
             OutputStream out = new FileOutputStream(f);
             props.store(out, "BattleshipRMI Client properties file...");
