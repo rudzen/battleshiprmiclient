@@ -113,6 +113,7 @@ public class Battleship {
             int port = 6769; // default port
 
             if (System.getSecurityManager() == null) {
+                System.setProperty("java.rmi.server.hostname", Statics.getFirstNonLoopbackAddress(true, false).getHostAddress());
                 System.setSecurityManager(new SecurityManager());
             }
 
