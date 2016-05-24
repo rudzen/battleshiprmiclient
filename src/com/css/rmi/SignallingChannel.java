@@ -19,6 +19,7 @@ import java.net.*;
 import java.util.Arrays;
 import java.util.Enumeration;
 import ui.UIHelpers;
+import utility.Statics;
 
 /**
  * Provides a signalling channel used to set up callback sockets between the
@@ -51,10 +52,10 @@ public class SignallingChannel extends Thread {
         // Register with server
         out.writeInt(TwoWay.PROTOCOL_MAGIC);
         out.writeInt(TwoWay.REGISTER_CALLBACK_SOCKET_SOURCE);
-        out.write(InetAddress.getLocalHost().getAddress());
+        //out.write(InetAddress.getLocalHost().getAddress());
         
         //TESTING
-        //out.write(getFirstNonLoopbackAddress(true, false).getAddress());
+        out.write(Statics.getFirstNonLoopbackAddress(true, false).getAddress());
         //UIHelpers.messageDialog("Original signal : " + Arrays.toString(InetAddress.getLocalHost().getAddress()), "IP");
         //UIHelpers.messageDialog("Detected signal : " + getFirstNonLoopbackAddress(true, false).getHostAddress(), "First link-local IP");
         
@@ -124,30 +125,5 @@ public class SignallingChannel extends Thread {
         } catch (IOException e) {
 
         }
-    }
-
-    private static InetAddress getFirstNonLoopbackAddress(boolean preferIpv4, boolean preferIPv6) throws SocketException {
-        Enumeration en = NetworkInterface.getNetworkInterfaces();
-        while (en.hasMoreElements()) {
-            NetworkInterface i = (NetworkInterface) en.nextElement();
-            for (Enumeration en2 = i.getInetAddresses(); en2.hasMoreElements();) {
-                InetAddress addr = (InetAddress) en2.nextElement();
-                if (!addr.isLoopbackAddress()) {
-                    if (addr instanceof Inet4Address) {
-                        if (preferIPv6) {
-                            continue;
-                        }
-                        return addr;
-                    }
-                    if (addr instanceof Inet6Address) {
-                        if (preferIpv4) {
-                            continue;
-                        }
-                        return addr;
-                    }
-                }
-            }
-        }
-        return null;
     }
 }

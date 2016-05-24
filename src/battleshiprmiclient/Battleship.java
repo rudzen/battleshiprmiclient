@@ -117,9 +117,9 @@ public class Battleship {
             }
 
             /* configure custom socket interface for RMI */
-            fac = new ClientTwoWaySocketFactory();
-            RMISocketFactory.setSocketFactory(fac);
-            fac.establishSignallingChannel(registry, port);
+//            fac = new ClientTwoWaySocketFactory();
+//            RMISocketFactory.setSocketFactory(fac);
+//            fac.establishSignallingChannel(registry, port);
 
             /* Lookup the service in the registry, and obtain a remote service */
             Remote server = Naming.lookup("rmi://" + registry + ':' + Integer.toString(port) + "/Battleship");
