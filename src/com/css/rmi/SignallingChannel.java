@@ -51,10 +51,13 @@ public class SignallingChannel extends Thread {
         // Register with server
         out.writeInt(TwoWay.PROTOCOL_MAGIC);
         out.writeInt(TwoWay.REGISTER_CALLBACK_SOCKET_SOURCE);
-        //out.write(InetAddress.getLocalHost().getAddress());
-        out.write(getFirstNonLoopbackAddress(true, false).getAddress());
+        out.write(InetAddress.getLocalHost().getAddress());
+        
+        //TESTING
+        //out.write(getFirstNonLoopbackAddress(true, false).getAddress());
         //UIHelpers.messageDialog("Original signal : " + Arrays.toString(InetAddress.getLocalHost().getAddress()), "IP");
-        //UIHelpers.messageDialog("Detected signal : " + getFirstNonLoopbackAddress(true, false).getHostAddress(), "IP");
+        //UIHelpers.messageDialog("Detected signal : " + getFirstNonLoopbackAddress(true, false).getHostAddress(), "First link-local IP");
+        
         out.flush();
 
         // Get back server endpoint info

@@ -66,7 +66,6 @@ public class ClientTwoWaySocketFactory extends RMISocketFactory {
      * Registered gateways
      */
     private final ConcurrentHashMap<String, EndpointInfo> gatewayMap = new ConcurrentHashMap<>();
-    //private Map gatewayMap = Collections.synchronizedMap(new HashMap());
 
     /**
      * Signalling channel used to handshake with server. Currently supports one
