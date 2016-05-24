@@ -56,7 +56,7 @@ public class Battleship {
         if (args.length >= 1) {
             Statics.lastRegistry = args[0];
         } else {
-            Statics.lastRegistry = "localhost";
+            Statics.lastRegistry = "192.168.1.250";
         }
 
         try {
