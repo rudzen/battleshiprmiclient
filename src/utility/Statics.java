@@ -49,7 +49,7 @@ public final class Statics {
     /* properties */
     public static String lastUser;
     public static String lastPassword;
-    public static String lastRegistry;
+    public static String lastRegistry = null;
 
     public static final String PROPERTIES = "./BattleshipRMIClient.properties";
 

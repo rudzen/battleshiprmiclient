@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -26,8 +27,9 @@ import ui.components.SwingJList;
 
 /**
  * Original
+ *
  * @author ashraf_sarhan
- * 
+ *
  * Heavy modified to fit for consimption :)
  * @author Rudy Alex Kohn s133235@student.dtu.dk
  */
@@ -37,6 +39,8 @@ public class LobbyLister {
     private static LobbyLister instance;
     private static JFrame frame;
     private static SwingJList<String> swingJList;
+    private static final DefaultListModel<String> lobbyModel = new DefaultListModel<>();
+
     private static JTextField nameField;
     private static JButton createButton;
     private static JButton joinButton;
@@ -75,7 +79,8 @@ public class LobbyLister {
 
         // Create JList with a List of String names
         swingJList = new SwingJList<>();
-
+        swingJList.setModel(lobbyModel);
+        
         nameField = new JTextField(10);
 
         swingJList.addListSelectionListener((ListSelectionEvent e) -> {
@@ -91,7 +96,7 @@ public class LobbyLister {
         // Create an action listener to add a new item to the List
         joinButton = new JButton("Join");
         joinButton.addActionListener(new JoinLobby());
-        
+
         cancelButton = new JButton("Cancel");
         cancelButton.addActionListener((ActionEvent e) -> {
             frame.setVisible(false);
@@ -144,7 +149,8 @@ public class LobbyLister {
     public static void addToList(final String text) {
         if (text != null && !text.trim().isEmpty()) {
             try {
-                swingJList.addElement(text);
+                lobbyModel.addElement(text);
+                //swingJList.addElement(text);
             } catch (final OutOfMemoryError e) {
                 /* This is just a extra security for potential exception.
                   Should actually never happend (the server would be insane if it did!) */
@@ -192,7 +198,8 @@ public class LobbyLister {
     }
 
     public static void clearAll() {
-        swingJList.removeAll();
+        lobbyModel.removeAllElements();
+        //swingJList.removeAll();
     }
 
     public static void setVisibility(boolean value) {

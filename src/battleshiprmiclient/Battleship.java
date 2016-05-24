@@ -41,7 +41,6 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Properties;
 import ui.UI;
-import ui.UIHelpers;
 import utility.Statics;
 import utility.XOR;
 
@@ -87,11 +86,14 @@ public class Battleship {
                 is = getClass().getResourceAsStream(Statics.PROPERTIES);
             }
             props.load(is);
-        } catch (final Exception e) { }
+        } catch (final Exception e) {
+        }
 
         Statics.lastUser = XOR.decode(props.getProperty("lastUser", ""), XOR.DEF_KEY);
         Statics.lastPassword = XOR.decode(props.getProperty("lastPassword", ""), XOR.DEF_KEY);
-        Statics.lastRegistry = props.getProperty("lastRegistry", "localhost");
+//        if (Statics.lastRegistry == null) {
+//            Statics.lastRegistry = props.getProperty("lastRegistry", "localhost");
+//        }
 
         //registry = "212.60.120.4"; // own ip // port - 2158
         //registry = "130.226.195.22"; // studentermaskine //registry = "ubuntu4.javabog.dk";
@@ -103,7 +105,7 @@ public class Battleship {
         super();
     }
 
-    public Battleship(final String registry) throws RemoteException {
+    public Battleship(String registry) throws RemoteException {
         super();
         ClientTwoWaySocketFactory fac;
         try {
@@ -124,7 +126,7 @@ public class Battleship {
             game = (IBattleShip) server;
 
             UI.setInstance(new UI(game, port));
-            
+
         } catch (final RemoteException re) {
             System.err.println("RMI Error - RemoteException()\n" + re.getMessage());
             Logger.getLogger(Battleship.class.getName()).log(Level.SEVERE, null, re);
