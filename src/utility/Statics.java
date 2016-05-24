@@ -23,22 +23,92 @@
  */
 package utility;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
+
 /**
+ * Support class with various useful nuggets.
  *
  * @author rudz
  */
 public final class Statics {
 
     public static volatile boolean yourTurn;
-    
+
     public static volatile boolean isLoggedIn;
     public static volatile boolean gameInProgress;
-    
-    
+
     /* properties */
     public static String lastUser;
     public static String lastPassword;
     public static String lastRegistry;
-    
+
     public static final String PROPERTIES = "./BattleshipRMIClient.properties";
+
+    /* time format */
+    public static final SimpleDateFormat SDF = new SimpleDateFormat("HH:mm:ss", Locale.ENGLISH);
+
+    /* build time constant */
+    public static final Date buildDate = getClassBuildTime();
+
+    /**
+     * To get a simple formatted time string used for listings
+     * @return The current time as string
+     */
+    public static String getTimeString() {
+        final Calendar cal = Calendar.getInstance();
+        return SDF.format(cal.getTime());
+    }
+
+    /**
+     * Handles files, jar entries, and deployed jar entries in a zip file (EAR).
+     * by : GGB667 at http://stackoverflow.com/a/22404140
+     *
+     * @return The date if it can be determined, or null if not.
+     */
+    private static Date getClassBuildTime() {
+        Date d = null;
+        Class<?> currentClass = new Object() {
+        }.getClass().getEnclosingClass();
+        URL resource = currentClass.getResource(currentClass.getSimpleName() + ".class");
+        if (resource != null) {
+            String path;
+            switch (resource.getProtocol()) {
+                case "file":
+                    try {
+                        d = new Date(new File(resource.toURI()).lastModified());
+                    } catch (URISyntaxException ignored) {
+                    }
+                    break;
+                case "jar":
+                    path = resource.getPath();
+                    d = new Date(new File(path.substring(5, path.indexOf("!"))).lastModified());
+                    break;
+                case "zip":
+                    path = resource.getPath();
+                    File jarFileOnDisk = new File(path.substring(0, path.indexOf("!")));
+                    //long jfodLastModifiedLong = jarFileOnDisk.lastModified ();
+                    //Date jfodLasModifiedDate = new Date(jfodLastModifiedLong);
+                    try (JarFile jf = new JarFile(jarFileOnDisk)) {
+                        ZipEntry ze = jf.getEntry(path.substring(path.indexOf("!") + 2));//Skip the ! and the /
+                        long zeTimeLong = ze.getTime();
+                        Date zeTimeDate = new Date(zeTimeLong);
+                        d = zeTimeDate;
+                    } catch (IOException | RuntimeException ignored) {
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        return d;
+    }
 }

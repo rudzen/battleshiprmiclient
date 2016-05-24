@@ -22,10 +22,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -67,23 +64,17 @@ public final class Chat extends UnicastRemoteObject implements IChatClient {
         return instance;
     }
 
-    private final SimpleDateFormat SDF = new SimpleDateFormat("HH:mm:ss", Locale.ENGLISH);
     private final DefaultListModel<String> userModel = new DefaultListModel<>();
     private final DefaultListModel<String> chatModel = new DefaultListModel<>();
 
     private void putMessage(final String name, final String message) {
-        chatModel.addElement(getTimeString() + " > [" + name + "] >" + message);
+        chatModel.addElement(Statics.getTimeString() + " > [" + name + "] >" + message);
         final int lastIndex = chatModel.getSize() - 1;
         if (lastIndex >= 0) {
             listChat.setSelectedIndex(lastIndex);
             listChat.ensureIndexIsVisible(lastIndex);
         }
         bt.requestFocus();
-    }
-
-    private String getTimeString() {
-        final Calendar cal = Calendar.getInstance();
-        return SDF.format(cal.getTime());
     }
 
     private Chat() throws RemoteException {
@@ -153,6 +144,7 @@ public final class Chat extends UnicastRemoteObject implements IChatClient {
         });
 
         frame.setContentPane(main);
+        frame.pack();
         frame.setSize(800, 600);
     }
 

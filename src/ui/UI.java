@@ -57,6 +57,7 @@ import dataobjects.Player;
 import dataobjects.Ship;
 import interfaces.IBattleShip;
 import interfaces.IClientRMI;
+import javax.swing.JTextArea;
 import ui.Listeners.OptionsListener;
 import ui.Listeners.PingListener;
 import ui.lobbylistener.LobbyLister;
@@ -187,6 +188,7 @@ public final class UI extends UnicastRemoteObject implements IClientRMI {
         public JMenuItem login;
         public JMenuItem chat;
         public JMenuItem options;
+        public JMenuItem about;
         public JMenuItem exit;
     }
 
@@ -363,6 +365,11 @@ public final class UI extends UnicastRemoteObject implements IClientRMI {
         menus.options = new JMenuItem("Options");
         menus.options.addActionListener(new OptionsListener());
 
+        menus.about = new JMenuItem("About");
+        menus.about.addActionListener((ActionEvent e) -> {
+            UIHelpers.messageDialog("Battleship Swing Client v0.1\nBuild :" + Statics.buildDate.toString().trim() + "\nby Rudy Alex Kohn (s133235@student.dtu.dk", "About Battleship Swing Client", JOptionPane.INFORMATION_MESSAGE);
+        });
+
         menus.exit = new JMenuItem("Exit");
         menus.exit.addActionListener(new ExitListener());
 
@@ -374,6 +381,7 @@ public final class UI extends UnicastRemoteObject implements IClientRMI {
         menus.menu.add(menus.chat);
         menus.menu.add(menus.options);
         menus.menu.addSeparator();
+        menus.menu.add(menus.about);
         menus.menu.add(menus.exit);
 
         return menuBar;

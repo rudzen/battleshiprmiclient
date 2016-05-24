@@ -41,6 +41,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Properties;
 import ui.UI;
+import ui.UIHelpers;
 import utility.Statics;
 import utility.XOR;
 
@@ -124,6 +125,8 @@ public class Battleship {
 
             UI.setInstance(new UI(game, port));
 
+            UIHelpers.messageDialog(Statics.buildDate.toString(), "Build @");
+            
         } catch (final RemoteException re) {
             System.err.println("RMI Error - RemoteException()\n" + re.getMessage());
             Logger.getLogger(Battleship.class.getName()).log(Level.SEVERE, null, re);

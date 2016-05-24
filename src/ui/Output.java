@@ -27,6 +27,7 @@ import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import utility.Statics;
 
 /**
  * Console replacement class for System.out and System.err<br>
@@ -43,7 +44,6 @@ import javax.swing.JScrollPane;
 public class Output {
 
     private final DefaultListModel<String> listModel = new DefaultListModel<>();
-    private final SimpleDateFormat SDF = new SimpleDateFormat("HH:mm:ss", Locale.ENGLISH);
 
     private final JFrame frame = new JFrame();
     private final JPanel panel = new JPanel();
@@ -92,7 +92,7 @@ public class Output {
     public void addToList(final String text) {
         if (text != null && !text.trim().isEmpty()) {
             try {
-                listModel.addElement(String.format("%s %s", getTimeString(), text));
+                listModel.addElement(String.format("%s %s", Statics.getTimeString(), text));
                 int lastIndex = listModel.getSize() - 1;
                 if (lastIndex >= 0) {
                     rowList.setSelectedIndex(lastIndex);
@@ -102,11 +102,6 @@ public class Output {
                 listModel.clear();
             }
         }
-    }
-
-    private String getTimeString() {
-        Calendar cal = Calendar.getInstance();
-        return SDF.format(cal.getTime());
     }
 
     /**
