@@ -124,8 +124,6 @@ public class Battleship {
             game = (IBattleShip) server;
 
             UI.setInstance(new UI(game, port));
-
-            UIHelpers.messageDialog(Statics.buildDate.toString(), "Build @");
             
         } catch (final RemoteException re) {
             System.err.println("RMI Error - RemoteException()\n" + re.getMessage());
