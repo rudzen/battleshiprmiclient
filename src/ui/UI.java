@@ -55,9 +55,9 @@ import javax.swing.border.TitledBorder;
 
 import dataobjects.Player;
 import dataobjects.Ship;
+import dataobjects.Token;
 import interfaces.IBattleShip;
 import interfaces.IClientRMI;
-import javax.swing.JTextArea;
 import ui.Listeners.OptionsListener;
 import ui.Listeners.PingListener;
 import ui.lobbylistener.LobbyLister;
@@ -114,6 +114,9 @@ public final class UI extends UnicastRemoteObject implements IClientRMI {
      * Current game lobby ID
      */
     private static final AtomicInteger lobbyID = new AtomicInteger(-1);
+
+    /* token for testing */
+    private static final Token token = new Token(null);
 
     /* UI Stuff */
     private final LoginDialog loginDialog;
@@ -255,7 +258,6 @@ public final class UI extends UnicastRemoteObject implements IClientRMI {
         setupUI();
 
         handleState();
-
     }
 
     /**
@@ -843,6 +845,11 @@ public final class UI extends UnicastRemoteObject implements IClientRMI {
         } else {
             UIHelpers.messageDialog("Board deployment failed!", "Board deployment", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    @Override
+    public void setToken(String newToken) throws RemoteException {
+        token.setToken(newToken);
     }
 
     public static void createLobby() {

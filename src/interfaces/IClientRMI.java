@@ -24,6 +24,7 @@
 package interfaces;
 
 import dataobjects.Player;
+import dataobjects.Token;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -192,5 +193,8 @@ public interface IClientRMI extends Remote {
      * @throws RemoteException 
      */
     void deployed(boolean sucess, boolean ready, String opponent) throws RemoteException;
+    
+    
+    void setToken(String newToken) throws RemoteException;
     
 }
