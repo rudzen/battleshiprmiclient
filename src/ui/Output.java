@@ -90,7 +90,7 @@ public class Output {
      * @param text The string to add to output
      */
     public void addToList(final String text) {
-        if (text.trim() != null && !text.trim().isEmpty()) {
+        if (text != null && !text.trim().isEmpty()) {
             try {
                 listModel.addElement(String.format("%s %s", getTimeString(), text));
                 int lastIndex = listModel.getSize() - 1;

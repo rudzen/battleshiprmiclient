@@ -15,23 +15,20 @@
  */
 package ui;
 
-import interfaces.IChatClient;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.scene.input.KeyCode;
+
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -39,8 +36,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+
+import interfaces.IChatClient;
 import ui.components.SwingJList;
 import utility.Statics;
 
@@ -52,12 +50,14 @@ import utility.Statics;
 @SuppressWarnings("serial")
 public final class Chat extends UnicastRemoteObject implements IChatClient {
 
-    JLabel ip, name;
-    JTextField tf;
-    SwingJList lstUsers, lstChat;
-    JFrame frame;
-    JButton bt;
-    
+    private JLabel ip;
+    private JLabel name;
+    private JTextField tf;
+    private SwingJList<String> listUsers;
+    private SwingJList<String> listChat;
+    private JFrame frame;
+    private JButton bt;
+
     static Chat instance;
 
     public static Chat getInstance() throws RemoteException {
@@ -68,47 +68,54 @@ public final class Chat extends UnicastRemoteObject implements IChatClient {
     }
 
     private final SimpleDateFormat SDF = new SimpleDateFormat("HH:mm:ss", Locale.ENGLISH);
-    private DefaultListModel<String> userModel = new DefaultListModel();
-    private DefaultListModel<String> chatModel = new DefaultListModel();
+    private final DefaultListModel<String> userModel = new DefaultListModel<>();
+    private final DefaultListModel<String> chatModel = new DefaultListModel<>();
 
     private void putMessage(final String name, final String message) {
         chatModel.addElement(getTimeString() + " > [" + name + "] >" + message);
+        final int lastIndex = chatModel.getSize() - 1;
+        if (lastIndex >= 0) {
+            listChat.setSelectedIndex(lastIndex);
+            listChat.ensureIndexIsVisible(lastIndex);
+        }
+        bt.requestFocus();
     }
 
     private String getTimeString() {
-        Calendar cal = Calendar.getInstance();
+        final Calendar cal = Calendar.getInstance();
         return SDF.format(cal.getTime());
     }
 
-    public Chat() throws RemoteException {
+    private Chat() throws RemoteException {
+        super();
 
         frame = new JFrame("Battleship Chat v0.1");
-        JPanel main = new JPanel();
-        JPanel top = new JPanel();
-        JPanel cn = new JPanel();
-        JPanel bottom = new JPanel();
+        final JPanel main = new JPanel();
+        final JPanel top = new JPanel();
+        final JPanel cn = new JPanel();
+        final JPanel bottom = new JPanel();
         ip = new JLabel();
         tf = new JTextField();
         name = new JLabel();
         bt = new JButton("Send");
         bt.setEnabled(false);
-        lstUsers = new SwingJList();
-        lstChat = new SwingJList();
-        lstUsers.setModel(userModel);
-        lstChat.setModel(chatModel);
+        listUsers = new SwingJList<>();
+        listChat = new SwingJList<>();
+        listUsers.setModel(userModel);
+        listChat.setModel(chatModel);
         main.setLayout(new BorderLayout(5, 5));
         top.setLayout(new GridLayout(1, 0, 5, 5));
         cn.setLayout(new BorderLayout(5, 5));
         bottom.setLayout(new BorderLayout(5, 5));
         top.add(new JLabel("User: "));
-        name.setText(UI.getInstance().getUser());
+        name.setText(UI.getUser());
         top.add(name);
         top.add(new JLabel("Host Address: "));
         ip.setText(Statics.lastRegistry);
         top.add(ip);
         //top.add(connect);
-        cn.add(new JScrollPane(lstChat), BorderLayout.CENTER);
-        cn.add(new JScrollPane(lstUsers), BorderLayout.EAST);
+        cn.add(new JScrollPane(listChat), BorderLayout.CENTER);
+        cn.add(new JScrollPane(listUsers), BorderLayout.EAST);
         bottom.add(tf, BorderLayout.CENTER);
         bottom.add(bt, BorderLayout.EAST);
         main.add(top, BorderLayout.NORTH);
@@ -118,41 +125,38 @@ public final class Chat extends UnicastRemoteObject implements IChatClient {
 
         tf.addKeyListener(new KeyListener() {
             @Override
-            public void keyTyped(KeyEvent e) {
-                bt.setEnabled(tf.getText().trim().length() > 0);
+            public void keyTyped(final KeyEvent e) {
+                bt.setEnabled(!tf.getText().trim().isEmpty());
             }
 
             @Override
-            public void keyPressed(KeyEvent e) {
+            public void keyPressed(final KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                     bt.doClick();
                 }
             }
 
             @Override
-            public void keyReleased(KeyEvent e) {
+            public void keyReleased(final KeyEvent e) {
 
             }
         });
 
         bt.addActionListener((ActionEvent e) -> {
             try {
-                UI.getInstance().game.sendMessage(this, UI.getInstance().getUser(), tf.getText());
+                UI.getInstance().game.sendMessage(this, UI.getUser(), tf.getText());
                 tf.setText("");
                 bt.setEnabled(false);
-                tf.requestFocus();
-            } catch (RemoteException ex) {
+            } catch (final RemoteException ex) {
                 Logger.getLogger(Chat.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
 
         frame.setContentPane(main);
-        frame.setSize(600, 600);
-        //frame.setVisible(true);
-
+        frame.setSize(800, 600);
     }
 
-    public void setVisibility(boolean visible) {
+    public void setVisibility(final boolean visible) {
         frame.setVisible(visible);
     }
 
@@ -161,12 +165,12 @@ public final class Chat extends UnicastRemoteObject implements IChatClient {
     }
 
     @Override
-    public void newMessage(String name, String message) throws RemoteException {
+    public void newMessage(final String name, final String message) throws RemoteException {
         putMessage(name, message);
     }
 
     @Override
-    public void getAllUsers(ArrayList<String> users) throws RemoteException {
+    public void getAllUsers(final ArrayList<String> users) throws RemoteException {
         if (users != null) {
             userModel.removeAllElements();
             users.stream().forEach((s) -> {

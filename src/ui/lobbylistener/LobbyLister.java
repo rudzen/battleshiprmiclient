@@ -142,7 +142,7 @@ public class LobbyLister {
      * @param text The text of the lobby entry, format is ID:PlayerName
      */
     public static void addToList(final String text) {
-        if (text.trim() != null && !text.trim().isEmpty()) {
+        if (text != null && !text.trim().isEmpty()) {
             try {
                 swingJList.addElement(text);
             } catch (final OutOfMemoryError e) {

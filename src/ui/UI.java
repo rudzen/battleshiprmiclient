@@ -50,18 +50,17 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.WindowConstants;
 import javax.swing.border.TitledBorder;
 
 import dataobjects.Player;
 import dataobjects.Ship;
 import interfaces.IBattleShip;
+import interfaces.IClientRMI;
 import ui.Listeners.OptionsListener;
 import ui.Listeners.PingListener;
 import ui.lobbylistener.LobbyLister;
 import utility.Statics;
-
-import static javax.swing.JFrame.EXIT_ON_CLOSE;
-import interfaces.IClientRMI;
 
 /**
  * The User-Interface for the Swing client.<br>
@@ -247,9 +246,9 @@ public final class UI extends UnicastRemoteObject implements IClientRMI {
 
         me = new Player("User" + Double.toString(Math.random() * 10)); // temporary Player object as player hasnt logged in yet
         me.initShips();
-        
+
         user = me.getName();
-        
+
         game.registerClient(this, me.getName());
         setupUI();
 
@@ -276,7 +275,7 @@ public final class UI extends UnicastRemoteObject implements IClientRMI {
             }
         }
 
-        mainFrame.setDefaultCloseOperation(EXIT_ON_CLOSE);
+        mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         menus.menuBar = createMenuBar();
         mainFrame.setJMenuBar(menus.menuBar);
         mainFrame.setResizable(false);
@@ -665,6 +664,9 @@ public final class UI extends UnicastRemoteObject implements IClientRMI {
     public void updateUser(final String name, final String pw) {
         if (name != null && !name.isEmpty()) {
             try {
+                if (Chat.getInstance().isVisible()) {
+                    game.updateChatClient(Chat.getInstance(), user, name);
+                }
                 if (me != null) {
                     user = name;
                     me.setName(user);
@@ -909,10 +911,10 @@ public final class UI extends UnicastRemoteObject implements IClientRMI {
         return me;
     }
 
-    public String getUser() {
+    public static String getUser() {
         return user;
     }
-    
+
     /**
      * The listener for the buttons on the board. Purpose : Ship placement
      */

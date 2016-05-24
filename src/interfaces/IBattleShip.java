@@ -250,10 +250,40 @@ public interface IBattleShip extends Remote {
     void debug_CreateLobbies(IClientRMI client, int amount) throws RemoteException;
 
     /* chat test */
+    
+    
+    /**
+     * Registers a client chat remote object on the server.
+     * @param client The client remote object to register
+     * @param name The name of the user
+     * @throws RemoteException If server is unreachable
+     */
     void registerChatClient(IChatClient client, String name) throws RemoteException;
 
+    /**
+     * Removes a client chat remote object from the server
+     * @param client The client remote object to remove
+     * @param name The name of the user
+     * @throws RemoteException If server is unreachable
+     */
     void removeChatClient(IChatClient client, String name) throws RemoteException;
 
+    /**
+     * Sends a message to the current chat room
+     * @param client The client remote object whom are sending the message
+     * @param name The name of the user sending the message
+     * @param message The message being sent
+     * @throws RemoteException If server is unreachable
+     */
     void sendMessage(IChatClient client, String name, String message) throws RemoteException;
 
+    /**
+     * Updates a client in the chat. This only has effect for messages from this point on.
+     * @param client The remote client object to be updated
+     * @param oldUser The old username
+     * @param newUser The new username
+     * @throws RemoteException If server is unreachable
+     */
+    void updateChatClient(IChatClient client, String oldUser, String newUser) throws RemoteException;
+    
 }
